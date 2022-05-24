@@ -1,3 +1,5 @@
+image: node:12
+
 stages:
   - install_dependencies
   - linter
