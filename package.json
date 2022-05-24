@@ -1,0 +1,73 @@
+{
+	"name": "storn",
+	"version": "0.0.1",
+	"description": "powerful browser state manager",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"start": "npm run story",
+		"build": "rimraf dist && tsc -p tsconfig.build.json && tscpaths -p tsconfig.build.json -s ./src -o ./dist",
+		"npm:patch": "npm version patch && npm publish --access=public && git push && git push --tags",
+		"npm:minor": "npm version minor && npm publish --access=public && git push && git push --tags",
+		"npm:major": "npm version major && npm publish --access=public && git push && git push --tags",
+		"test": "jest --detectOpenHandles",
+		"test:ci": "jest --ci --detectOpenHandles",
+		"lint": "tsc --noEmit && prettier --write \"**/*.{js,jsx,ts,tsx,json,yml}\" && prettier --write \"**/*.md\" --use-tabs=false && eslint . --fix --ext .js,.jsx,.ts,.tsx --max-warnings=0",
+		"lint:ci": "tsc --noEmit && prettier --check \"**/*.{js,jsx,ts,tsx,json,yml}\" && prettier --check \"**/*.md\" --use-tabs=false && eslint . --ext .js,.jsx,.ts,.tsx --max-warnings=0",
+		"prepublish": "npm run build",
+		"prepare": "husky install"
+	},
+	"keywords": [
+		"storage",
+		"state",
+		"manager",
+		"state",
+		"browser",
+		"state"
+	],
+	"author": {
+		"name": "Pavlo Bielik",
+		"email": "razvanlomov@gmail.com",
+		"url": "https://github.com/Razzwan"
+	},
+	"license": "MIT",
+	"devDependencies": {
+		"@babel/core": "7.14.8",
+		"@babel/eslint-parser": "7.14.7",
+		"@types/node": "16.4.9",
+		"@types/react-dom": "17.0.11",
+		"@typescript-eslint/eslint-plugin": "4.28.5",
+		"@typescript-eslint/parser": "4.28.5",
+		"babel-loader": "8.2.5",
+		"eslint": "7.32.0",
+		"eslint-config-prettier": "8.3.0",
+		"eslint-plugin-ordered-imports": "0.5.0",
+		"eslint-plugin-prettier": "3.4.1",
+		"gh-pages": "3.2.3",
+		"husky": "7.0.4",
+		"lint-staged": "11.2.6",
+		"prettier": "2.3.2",
+		"rimraf": "3.0.2",
+		"tscpaths": "0.0.9",
+		"typescript": "4.4.3"
+	},
+	"lint-staged": {
+		"*.{ts,tsx}": [
+			"prettier --write",
+			"eslint --fix --max-warnings=0"
+		],
+		"*.{js,jsx}": [
+			"prettier --write",
+			"eslint --fix --max-warnings=0"
+		],
+		"*.{json,yml}": [
+			"prettier --write"
+		],
+		"*.{md}": [
+			"prettier --write --use-tabs=false"
+		]
+	}
+}

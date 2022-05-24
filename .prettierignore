@@ -1,0 +1,7 @@
+.husky
+dist
+node_modules
+storybook-static
+
+.prettierrc
+package-lock.json

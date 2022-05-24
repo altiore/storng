@@ -1,0 +1,21 @@
+{
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": {
+			"~/*": ["src/*"]
+		},
+		"declaration": true,
+		"outDir": "./dist/",
+		"sourceMap": false,
+		"noImplicitAny": true,
+		"module": "esnext",
+		"target": "es5",
+		"jsx": "react",
+		"moduleResolution": "Node",
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
+		"allowJs": true,
+		"lib": ["dom", "es2015", "es2017"]
+	},
+	"include": ["./src/**/*"]
+}
