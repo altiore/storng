@@ -37,6 +37,7 @@
 	"devDependencies": {
 		"@babel/core": "7.14.8",
 		"@babel/eslint-parser": "7.14.7",
+		"@types/jest": "27.5.1",
 		"@types/node": "16.4.9",
 		"@types/react-dom": "17.0.11",
 		"@typescript-eslint/eslint-plugin": "4.28.5",
@@ -48,11 +49,32 @@
 		"eslint-plugin-prettier": "3.4.1",
 		"gh-pages": "3.2.3",
 		"husky": "7.0.4",
+		"jest": "28.1.0",
 		"lint-staged": "11.2.6",
 		"prettier": "2.3.2",
 		"rimraf": "3.0.2",
+		"ts-jest": "28.0.3",
 		"tscpaths": "0.0.9",
 		"typescript": "4.4.3"
+	},
+	"jest": {
+		"moduleFileExtensions": [
+			"js",
+			"jsx",
+			"ts",
+			"tsx",
+			"json"
+		],
+		"rootDir": "./",
+		"moduleNameMapper": {
+			"@root-dir/(.*)": "<rootDir>/$1",
+			"~/(.*)": "<rootDir>/src/$1"
+		},
+		"testRegex": ".*\\.spec\\.ts(x)?$",
+		"transform": {
+			"^.+\\.(t|j)s(x)?$": "ts-jest"
+		},
+		"testEnvironment": "node"
 	},
 	"lint-staged": {
 		"*.{ts,tsx}": [

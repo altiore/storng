@@ -3,12 +3,14 @@ image: node:12
 stages:
   - install_dependencies
   - linter
+  - test
+  - build
 
 before_script:
   - node -v
   - npm -v
 
-install_dependencies:
+Install Dependencies:
   stage: install_dependencies
   cache:
     key: $CI_COMMIT_REF_SLUG-$CI_PROJECT_DIR
@@ -16,11 +18,11 @@ install_dependencies:
       - node_modules/
   script:
     - npm ci --also=dev --prefer-offline
-#  only:
-#    changes:
-#      - package-lock.json
+  only:
+    changes:
+      - package-lock.json
 
-linter:
+Linter:
   stage: linter
   cache:
     key: $CI_COMMIT_REF_SLUG-$CI_PROJECT_DIR
@@ -35,3 +37,34 @@ linter:
   except:
     variables:
       - $CI_RELEASE_VERSION
+
+Unit Tests:
+  stage: test
+  cache:
+    key: $CI_COMMIT_REF_SLUG-$CI_PROJECT_DIR
+    paths:
+      - node_modules/
+    policy: pull
+  interruptible: true
+  script:
+    - npm run test:ci
+  only:
+    - branches
+  except:
+    variables:
+      - $CI_RELEASE_VERSION
+
+Test Build:
+  stage: build
+  cache:
+    key: $CI_COMMIT_REF_SLUG-$CI_PROJECT_DIR
+    paths:
+      - node_modules/
+    policy: pull
+  interruptible: true
+  script:
+    - npm run build
+  except:
+    - master
+    - release
+    - tags
