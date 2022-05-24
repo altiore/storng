@@ -3,8 +3,6 @@ image: node:12
 stages:
   - install_dependencies
   - linter
-  - test
-  - deploy
 
 before_script:
   - node -v
@@ -18,9 +16,9 @@ install_dependencies:
       - node_modules/
   script:
     - npm ci --also=dev --prefer-offline
-  only:
-    changes:
-      - package-lock.json
+#  only:
+#    changes:
+#      - package-lock.json
 
 linter:
   stage: linter
