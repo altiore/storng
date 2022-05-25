@@ -73,6 +73,9 @@ const path = require('path');
 			'changelogs',
 			'CHANGELOG.md',
 		);
+		console.log('newContent', {
+			newContent,
+		});
 		fs.writeFile(writeToFile, newContent, (err) => {
 			if (err) {
 				console.error(err);
