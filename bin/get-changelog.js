@@ -44,13 +44,8 @@ const path = require('path');
 			resStr = resStr + otherChanges.reduce(reduceChange, '');
 		}
 		if (resStr) {
-			resStr = '## Changelog:\n\n' + resStr + '\n';
+			resStr = '# Changelog:\n\n' + resStr + '\n';
 		}
-		console.log('getChangelog', {
-			arr,
-			changeArray,
-			resStr,
-		});
 		return resStr;
 	};
 
@@ -71,11 +66,8 @@ const path = require('path');
 			__dirname,
 			'..',
 			'changelogs',
-			'CHANGELOG_LAST.md',
+			'CHANGELOG.md',
 		);
-		console.log('newContent', {
-			newContent,
-		});
 		fs.writeFile(writeToFile, newContent, (err) => {
 			if (err) {
 				console.error(err);

@@ -31,21 +31,21 @@ jobs:
 
       - name: Show recently created changelog
         run: |
-          cat changelogs/CHANGELOG_LAST.md
+          cat changelogs/CHANGELOG.md
 
-#      - uses: ncipollo/release-action@v1
-#        with:
-#          artifacts: 'release.tar.gz'
-#          body: cat changelogs/CHANGELOG.md
-#          token: ${{ secrets.GITHUB_TOKEN }}
-#
-#      # Setup .npmrc file to publish to npm
-#      - uses: actions/setup-node@v2
-#        with:
-#          node-version: '12.x'
-#          registry-url: 'https://registry.npmjs.org'
-#      - run: npm ci
-#      - run: npm run build
-#      - run: npm publish --access=public
-#        env:
-#          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - uses: ncipollo/release-action@v1
+        with:
+          artifacts: 'release.tar.gz'
+          body: cat changelogs/CHANGELOG.md
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Setup .npmrc file to publish to npm
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '12.x'
+          registry-url: 'https://registry.npmjs.org'
+      - run: npm ci
+      - run: npm run build
+      - run: npm publish --access=public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
