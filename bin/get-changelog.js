@@ -63,7 +63,7 @@ const path = require('path');
 		}
 
 		const newContent = data.replace(
-			'## Changelog:',
+			'# Changelog:',
 			getChangelog(process.argv.slice(2)),
 		);
 
