@@ -22,14 +22,12 @@ jobs:
         run: |
           echo ${{ env.PRE_LAST_GIT_TAG }}
           echo ${{ env.DATE_FORMAT }}
-          echo 'GIT_COMMITS_STR<<EOL' >> $GITHUB_ENV
-          git log ${{ env.PRE_LAST_GIT_TAG }}..HEAD --oneline --pretty=format:${{ env.DATE_FORMAT }} >> $GITHUB_ENV
-          echo 'EOL' >> $GITHUB_ENV
+          git log ${{ env.PRE_LAST_GIT_TAG }}..HEAD --oneline --pretty=format:${{ env.DATE_FORMAT }} >> changelogs/commits.txt
 
       - name: Create CHANGELOG
         run: |
           echo ${{ env.GIT_COMMITS_STR }}
-          node ./bin/get-changelog.js "${{env.GIT_COMMITS_STR}}"
+          node ./bin/get-changelog.js "${cat changelogs/commits.txt}"
 
       - name: Save Changelog to artifacts
         uses: actions/upload-artifact@v3
