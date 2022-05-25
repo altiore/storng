@@ -11,14 +11,14 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Set LAST_GIT_TAG
+      - name: Set CUSTOM_LAST_GIT_TAG
         run: |
-          echo "LAST_GIT_TAG=$(git tag --sort=committerdate | tail -2 | head -n 1)" >> $GITHUB_ENV
+          echo "CUSTOM_LAST_GIT_TAG=$(git tag --sort=committerdate | tail -3 | head -n 1)" >> $GITHUB_ENV
 
       - name: Set GIT_COMMITS_STR
         run: |
-          echo ${{ env.LAST_GIT_TAG }}
-          echo "GIT_COMMITS_STR=$(git log ${{ env.LAST_GIT_TAG }}..HEAD --oneline --pretty=format:'%an%x09%s')" >> $GITHUB_ENV
+          echo ${{ env.CUSTOM_LAST_GIT_TAG }}
+          echo "GIT_COMMITS_STR=$(git log ${{ env.CUSTOM_LAST_GIT_TAG }}..HEAD --oneline --pretty=format:'%an%x09%s')" >> $GITHUB_ENV
           node ./bin/get-changelog.js ""
 
       - name: Create CHANGELOG
