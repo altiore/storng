@@ -17,6 +17,14 @@ jobs:
       - name: Install dependencies (please, check you dependencies)
         run: npm ci
 
+      - name: Linter (please, run `npm run lint` locally before merge)
+        run: |
+          npm run lint:ci
+
+      - name: Tests (please, run `npm run test` locally before merge)
+        run: |
+          npm run test:ci
+
       - name: Build
         run: npm run build
 
