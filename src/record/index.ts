@@ -1,4 +1,4 @@
-import {RecordState} from '~/@types';
+import {RecordState} from '~/types';
 
 export const record = <T extends Record<string, any>, Name extends string>(
 	name: Name,

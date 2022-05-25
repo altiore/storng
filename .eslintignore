@@ -1,5 +1,6 @@
 /.idea
 /bin/get-changelog.js
+/changelogs
 /coverage
 /dist
 /node_modules

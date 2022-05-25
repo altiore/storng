@@ -1,5 +1,6 @@
 .husky
 .idea
+changelogs
 coverage
 dist
 node_modules

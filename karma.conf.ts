@@ -43,7 +43,12 @@ export default function (config: WholeConfig) {
 		exclude: [],
 
 		// list of files / patterns to load in the browser
-		files: ['test/@global.ts', 'src/*.ts', 'test/*.test.tsx'],
+		files: [
+			'test/@global.ts',
+			'src/**/*.ts',
+			'test/**/*.test.tsx',
+			'test/**/*.ts',
+		],
 
 		// frameworks to use
 		// available frameworks: https://www.npmjs.com/search?q=keywords:karma-adapter
@@ -68,9 +73,9 @@ export default function (config: WholeConfig) {
 		// preprocess matching files before serving them to the browser
 		// available preprocessors: https://www.npmjs.com/search?q=keywords:karma-preprocessor
 		preprocessors: {
-			'test/*.ts': ['webpack'],
-			'test/*.tsx': ['webpack'],
-			'src/*.tsx': ['webpack'],
+			'test/**/*.ts': ['webpack'],
+			'test/**/*.tsx': ['webpack'],
+			'src/**/*.ts': ['webpack'],
 		},
 
 		// test results reporter to use
