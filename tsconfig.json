@@ -6,16 +6,18 @@
 		},
 		"declaration": true,
 		"outDir": "./dist/",
-		"sourceMap": false,
-		"noImplicitAny": true,
+		"sourceMap": true,
+		"noImplicitAny": false,
 		"module": "esnext",
 		"target": "es5",
 		"jsx": "react",
-		"moduleResolution": "Node",
+		"moduleResolution": "node",
 		"esModuleInterop": true,
 		"allowSyntheticDefaultImports": true,
 		"allowJs": true,
+
 		"lib": ["dom", "es2015", "es2017"]
 	},
-	"include": ["./src/**/*"]
+	"include": ["./src/**/*", "./test/**/*"],
+	"exclude": ["./karma.conf.ts"]
 }
