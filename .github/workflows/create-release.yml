@@ -22,9 +22,9 @@ jobs:
         run: |
           echo ${{ env.PRE_LAST_GIT_TAG }}
           echo ${{ env.DATE_FORMAT }}
-          echo 'GIT_COMMITS_STR<<EOF' >> $GITHUB_ENV
+          echo 'GIT_COMMITS_STR<<\n' >> $GITHUB_ENV
           git log ${{ env.PRE_LAST_GIT_TAG }}..HEAD --oneline --pretty=format:${{ env.DATE_FORMAT }} >> $GITHUB_ENV
-          echo 'EOF' >> $GITHUB_ENV
+          echo '\n' >> $GITHUB_ENV
 
       - name: Create CHANGELOG
         run: |
