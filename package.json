@@ -1,6 +1,6 @@
 {
 	"name": "storn",
-	"version": "0.0.24",
+	"version": "0.0.25",
 	"description": "powerful browser state manager",
 	"scripts": {
 		"start": "npm run story",
