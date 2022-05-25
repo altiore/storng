@@ -17,10 +17,10 @@ jobs:
 
       - name: Create CHANGELOG
         run: |
-          ehoc ${{ env.LAST_GIT_TAG }}
+          echo ${{ env.LAST_GIT_TAG }}
           node ./bin/get-changelog.js "$(git log ${{ env.LAST_GIT_TAG }}..HEAD --oneline --pretty=format:"%an%x09%s")"
 
-      - name: Archive code coverage results
+      - name: Save Changelog to artifacts
         uses: actions/upload-artifact@v3
         with:
           name: CHANGELOG
