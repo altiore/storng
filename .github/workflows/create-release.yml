@@ -15,10 +15,16 @@ jobs:
         run: |
           echo "LAST_GIT_TAG=$(git tag --sort=committerdate | tail -2 | head -n 1)" >> $GITHUB_ENV
 
-      - name: Create CHANGELOG
+      - name: Set GIT_COMMITS_STR
         run: |
           echo ${{ env.LAST_GIT_TAG }}
-          node ./bin/get-changelog.js "$(git log ${{ env.LAST_GIT_TAG }}..HEAD --oneline --pretty=format:"%an%x09%s")"
+          echo "GIT_COMMITS_STR=$(git log ${{ env.LAST_GIT_TAG }}..HEAD --oneline --pretty=format:'%an%x09%s')" >> $GITHUB_ENV
+          node ./bin/get-changelog.js ""
+
+      - name: Create CHANGELOG
+        run: |
+          echo ${{ env.GIT_COMMITS_STR }}
+          node ./bin/get-changelog.js "${{env.GIT_COMMITS_STR}}"
 
       - name: Save Changelog to artifacts
         uses: actions/upload-artifact@v3
