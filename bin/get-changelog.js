@@ -24,8 +24,8 @@ const path = require('path');
 				};
 			}
 		});
-		const bugs = changeArray.filter((el) => el.type === 'fix');
-		const features = changeArray.filter((el) => el.type === 'feat');
+		const bugs = changeArray.filter((el) => el && el.type === 'fix');
+		const features = changeArray.filter((el) => el && el.type === 'feat');
 		const otherChanges = changeArray.filter(
 			(el) => !['fix', 'feat'].includes(el.type),
 		);
