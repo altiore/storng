@@ -23,6 +23,3 @@ yarn-error.log*
 
 # code redactor
 .idea
-
-/changelogs/*
-!/changelogs/.gitkeep

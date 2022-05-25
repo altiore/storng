@@ -10,7 +10,6 @@ const path = require('path');
 	const getChangelog = (argArr) => {
 		const arr = Array.isArray(argArr) ? argArr[0].split('\n') : [];
 		const changeArray = arr
-			.slice(1, arr.length - 1)
 			.map((change) => {
 				const matchArr = change.match(
 					/^([a-z\-]+)\t([a-z0-9\-.]+)\(([a-z0-9\-.]+)\)\s?:([a-z0-9\-\.\s\S\[\]]+)$/i,
