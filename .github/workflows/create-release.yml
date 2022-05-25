@@ -29,29 +29,23 @@ jobs:
           cat changelogs/commits.txt
           node ./bin/get-changelog.js "$(cat changelogs/commits.txt)"
 
-      - name: Save Changelog to artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: CHANGELOG
-          path: changelogs/CHANGELOG.md
-
       - name: Show recently created changelog
         run: |
           cat changelogs/CHANGELOG.md
 
-#      - uses: ncipollo/release-action@v1
-#        with:
-#          artifacts: 'release.tar.gz'
-#          bodyFile: 'changelogs/CHANGELOG.md'
-#          token: ${{ secrets.GITHUB_TOKEN }}
-#
-#      # Setup .npmrc file to publish to npm
-#      - uses: actions/setup-node@v2
-#        with:
-#          node-version: '12.x'
-#          registry-url: 'https://registry.npmjs.org'
-#      - run: npm ci
-#      - run: npm run build
-#      - run: npm publish --access=public
-#        env:
-#          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - uses: ncipollo/release-action@v1
+        with:
+          artifacts: 'release.tar.gz'
+          body: cat changelogs/CHANGELOG.md
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Setup .npmrc file to publish to npm
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '12.x'
+          registry-url: 'https://registry.npmjs.org'
+      - run: npm ci
+      - run: npm run build
+      - run: npm publish --access=public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
