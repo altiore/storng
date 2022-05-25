@@ -26,7 +26,7 @@ jobs:
 
       - name: Create CHANGELOG
         run: |
-          echo ${{ env.GIT_COMMITS_STR }}
+          cat changelogs/commits.txt
           node ./bin/get-changelog.js "${cat changelogs/commits.txt}"
 
       - name: Save Changelog to artifacts
