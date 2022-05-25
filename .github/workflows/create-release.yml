@@ -11,16 +11,18 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Set CUSTOM_LAST_GIT_TAG
+      - name: Set PRE_LAST_GIT_TAG
         run: |
           git pull origin main --rebase --tags -f
           git tag
-          echo "CUSTOM_LAST_GIT_TAG=$(git tag --sort=version:refname | tail -2 | head -n 1)" >> $GITHUB_ENV
+          echo "PRE_LAST_GIT_TAG=$(git tag --sort=version:refname | tail -2 | head -n 1)" >> $GITHUB_ENV
+          echo "DATE_FORMAT='%an%x09%s'" >> $GITHUB_ENV
 
       - name: Set GIT_COMMITS_STR
         run: |
-          echo ${{ env.CUSTOM_LAST_GIT_TAG }}
-          echo "GIT_COMMITS_STR='$(git log ${{ env.CUSTOM_LAST_GIT_TAG }}..HEAD --oneline --pretty=format:`%an%x09%s`')" >> $GITHUB_ENV
+          echo ${{ env.PRE_LAST_GIT_TAG }}
+          echo ${{ env.DATE_FORMAT }}
+          echo "GIT_COMMITS_STR=$(git log ${{ env.PRE_LAST_GIT_TAG }}..HEAD --oneline --pretty=format:${{ env.DATE_FORMAT }})" >> $GITHUB_ENV
 
       - name: Create CHANGELOG
         run: |
