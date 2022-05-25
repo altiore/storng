@@ -25,10 +25,6 @@ const path = require('path');
 			})
 			.filter((el) => el && el.author !== 'CI');
 
-		console.log('getChangelog', {
-			arr,
-			changeArray,
-		});
 		const bugs = changeArray.filter((el) => el && el.type === 'fix');
 		const features = changeArray.filter((el) => el && el.type === 'feat');
 		const otherChanges = changeArray.filter(
@@ -50,6 +46,11 @@ const path = require('path');
 		if (resStr) {
 			resStr = '## Changelog:\n\n' + resStr + '\n';
 		}
+		console.log('getChangelog', {
+			arr,
+			changeArray,
+			resStr,
+		});
 		return resStr;
 	};
 
