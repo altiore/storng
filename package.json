@@ -2,7 +2,6 @@
 	"name": "storn",
 	"version": "0.0.3",
 	"description": "powerful browser state manager",
-	"private": true,
 	"scripts": {
 		"start": "npm run story",
 		"build": "rimraf dist && tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
