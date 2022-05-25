@@ -36,7 +36,7 @@ jobs:
       - uses: ncipollo/release-action@v1
         with:
           artifacts: 'release.tar.gz'
-          body: cat changelogs/CHANGELOG.md
+          body: $(cat changelogs/CHANGELOG.md)
           token: ${{ secrets.GITHUB_TOKEN }}
 
       # Setup .npmrc file to publish to npm
