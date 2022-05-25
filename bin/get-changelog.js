@@ -8,26 +8,28 @@ const path = require('path');
 	};
 
 	const getChangelog = (argArr) => {
-		const arr = Array.isArray(argArr)
-			? argArr[0].split('\n').slice(0, argArr.length)
-			: [];
-		const changeArray = arr.map((change) => {
-			const matchArr = change.match(
-				/^([a-z\-]+)\t([a-z\-]+)\(([a-z\-]+)\):([a-z\-\s\S]+)$/i,
-			);
-			if (matchArr) {
-				return {
-					author: matchArr[1],
-					section: matchArr[3],
-					text: matchArr[4],
-					type: matchArr[2],
-				};
-			}
-		});
+		const arr = Array.isArray(argArr) ? argArr[0].split('\n') : [];
+		const changeArray = arr
+			.slice(1, arr.length - 1)
+			.map((change) => {
+				const matchArr = change.match(
+					/^([a-z\-]+)\t([a-z0-9\-.]+)\(([a-z0-9\-.]+)\)\s?:([a-z0-9\-\.\s\S\[\]]+)$/i,
+				);
+				if (matchArr) {
+					return {
+						author: matchArr[1],
+						section: matchArr[3],
+						text: matchArr[4],
+						type: matchArr[2],
+					};
+				}
+			})
+			.filter((el) => el && el.author !== 'CI');
+
 		const bugs = changeArray.filter((el) => el && el.type === 'fix');
 		const features = changeArray.filter((el) => el && el.type === 'feat');
 		const otherChanges = changeArray.filter(
-			(el) => !['fix', 'feat'].includes(el.type),
+			(el) => el && !['fix', 'feat'].includes(el.type),
 		);
 		let resStr = '';
 		if (bugs && bugs.length) {

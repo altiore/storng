@@ -13,7 +13,7 @@ jobs:
 
       - name: Create Changelog
         run: |
-          node ./bin/get-changelog.js "$(git log $(git tag --sort=committerdate | tail -1)..HEAD --oneline --pretty=format:"%an%x09%s")"
+          node ./bin/get-changelog.js "$(git log $(git tag --sort=committerdate | tail -2 | head -n 1)..HEAD --oneline --pretty=format:"%an%x09%s")"
 
       - name: Archive code coverage results
         uses: actions/upload-artifact@v3
