@@ -3,6 +3,7 @@
 	"version": "0.2.1",
 	"description": "powerful browser state manager",
 	"files": [
+		"dist",
 		"common.ts"
 	],
 	"scripts": {
