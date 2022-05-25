@@ -5,7 +5,7 @@
 	"private": true,
 	"scripts": {
 		"start": "npm run story",
-		"build": "rimraf dist && tsc -p tsconfig.build.json && tscpaths -p tsconfig.build.json -s ./src -o ./dist",
+		"build": "rimraf dist && tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
 		"npm:patch": "npm version patch && npm publish --access=public && git push && git push --tags",
 		"npm:minor": "npm version minor && npm publish --access=public && git push && git push --tags",
 		"npm:major": "npm version major && npm publish --access=public && git push && git push --tags",
@@ -70,7 +70,7 @@
 		"source-map-support": "0.5.21",
 		"ts-loader": "9.3.0",
 		"ts-node": "10.8.0",
-		"tscpaths": "0.0.9",
+		"tsc-alias": "1.6.7",
 		"typescript": "4.4.3",
 		"webpack": "5.72.1",
 		"webpack-cli": "4.9.2"
