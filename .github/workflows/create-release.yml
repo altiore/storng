@@ -13,7 +13,7 @@ jobs:
 
       - name: Set CUSTOM_LAST_GIT_TAG
         run: |
-          git pull --rebase --tags -f
+          git pull origin main --rebase --tags -f
           git tag
           echo "CUSTOM_LAST_GIT_TAG=$(git tag --sort=committerdate | tail -3 | head -n 1)" >> $GITHUB_ENV
 
