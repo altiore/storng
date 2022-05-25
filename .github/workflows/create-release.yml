@@ -31,7 +31,7 @@ jobs:
 
       - name: Show recently created changelog
         run: |
-          cat changelogs/CHANGELOG.md
+          cat changelogs/CHANGELOG_LAST.md
 
 #      - uses: ncipollo/release-action@v1
 #        with:

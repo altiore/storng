@@ -71,7 +71,7 @@ const path = require('path');
 			__dirname,
 			'..',
 			'changelogs',
-			'CHANGELOG.md',
+			'CHANGELOG_LAST.md',
 		);
 		console.log('newContent', {
 			newContent,
