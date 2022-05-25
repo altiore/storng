@@ -4,6 +4,6 @@ changelogs
 coverage
 dist
 node_modules
-
+common.ts
 .prettierrc
 package-lock.json

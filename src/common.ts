@@ -20,7 +20,7 @@ export interface RouteConf<
 	Req extends Record<string, any> = Record<string, never>,
 > {
 	method: Method;
-	path: string;
+	path?: string;
 	private?: true;
 	requiredParams?: Array<keyof Req>;
 }
@@ -32,7 +32,7 @@ export class Route<
 	constructor(conf: RouteConf, basePath: string) {
 		this.base = basePath;
 		this.method = conf.method;
-		this.relative = conf.path;
+		this.relative = conf.path ?? '';
 		this.private = conf.private;
 		this.path = this.base + this.relative;
 		this.urlRequiredParams = this.path.match(/:[a-zA-Z]+/g) || [];
@@ -88,12 +88,19 @@ export class Route<
 		}
 
 		const isGet = this.method === Method.GET;
-		return {
-			body: isGet ? undefined : preparedData,
+
+		const req = {
 			method: this.method,
-			params: isGet ? preparedData : undefined,
 			url,
-		};
+		} as Request<Partial<Req>, Partial<Req>>;
+		if (preparedData) {
+			if (isGet) {
+				req.params = preparedData;
+			} else {
+				req.body = preparedData;
+			}
+		}
+		return req;
 	}
 
 	response(): Res {
@@ -105,8 +112,11 @@ export class Route<
 		path: string,
 		params?: Partial<Req>,
 	): [string, string[]] {
+		let preparedPath = path;
 		const urlParams = [];
-		this.urlRequiredParams.forEach((paramName) => {
+		this.urlRequiredParams.forEach((paramWithTwoDots) => {
+			const paramName = paramWithTwoDots.replace(':', '');
+
 			if (typeof params?.[paramName] === 'undefined') {
 				throw new Error(
 					`Базовый параметр маршрута "${this.path}" "${paramName}" - обязателен!`,
@@ -114,10 +124,13 @@ export class Route<
 			}
 
 			urlParams.push(paramName);
-			return path.replace(`:${paramName}`, String(params[paramName]));
+			preparedPath = preparedPath.replace(
+				`:${paramName}`,
+				String(params[paramName]),
+			);
 		});
 
-		return [path, urlParams];
+		return [preparedPath, urlParams];
 	}
 
 	private checkRequiredParams(
@@ -159,9 +172,13 @@ export class Scope<T extends Record<string, RouteConf>> {
 }
 
 export type GetScopeConf<T extends Record<string, Route>> = {
-	[P in keyof T]: T[P] extends Route<infer Req> ? RouteConf<Req> : RouteConf;
+	[P in keyof T]: T[P] extends Route<infer Req, any>
+		? RouteConf<Req>
+		: RouteConf<any>;
 };
-export type GetScope<T extends Record<string, Route>> = Scope<GetScopeConf<T>> &
+export type GetScope<T extends Record<string, Route<any, any>>> = Scope<
+	GetScopeConf<T>
+> &
 	{[P in keyof T]: T[P]};
 
 export function RouteScope<T extends Record<string, Route<any, any>>>(

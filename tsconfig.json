@@ -19,5 +19,5 @@
 		"lib": ["dom", "es2015", "es2017"]
 	},
 	"include": ["./src/**/*", "./test/**/*"],
-	"exclude": ["./karma.conf.ts"]
+	"exclude": ["./karma.conf.ts", "common.ts"]
 }

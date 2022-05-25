@@ -30,9 +30,9 @@ export default function (config: WholeConfig) {
 		coverageIstanbulReporter: {
 			combineBrowserReports: true,
 			dir: join(__dirname, 'coverage'),
+			fixWebpackSourcePaths: true,
 			reports: ['text-summary', 'cobertura', 'html'],
 			skipFilesWithNoCoverage: false,
-			verbose: true,
 		},
 
 		// Concurrency level
@@ -45,9 +45,12 @@ export default function (config: WholeConfig) {
 		// list of files / patterns to load in the browser
 		files: [
 			'test/@global.ts',
+			'src/*.ts',
 			'src/**/*.ts',
+			'test/*.test.tsx',
 			'test/**/*.test.tsx',
-			'test/**/*.ts',
+			'test/**/*.test.ts',
+			'test/*.test.ts',
 		],
 
 		// frameworks to use
