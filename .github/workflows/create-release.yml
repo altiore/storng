@@ -20,8 +20,7 @@ jobs:
       - name: Set GIT_COMMITS_STR
         run: |
           echo ${{ env.CUSTOM_LAST_GIT_TAG }}
-          echo "GIT_COMMITS_STR='$(git log ${{ env.CUSTOM_LAST_GIT_TAG }}..HEAD --oneline --pretty=format:"%an%x09%s"')" >> $GITHUB_ENV
-          node ./bin/get-changelog.js ""
+          echo "GIT_COMMITS_STR='$(git log ${{ env.CUSTOM_LAST_GIT_TAG }}..HEAD --oneline --pretty=format:`%an%x09%s`')" >> $GITHUB_ENV
 
       - name: Create CHANGELOG
         run: |
