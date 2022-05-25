@@ -27,7 +27,7 @@ jobs:
       - name: Create CHANGELOG
         run: |
           cat changelogs/commits.txt
-          node ./bin/get-changelog.js '$(cat changelogs/commits.txt)'
+          node ./bin/get-changelog.js "$(cat changelogs/commits.txt)"
 
       - name: Show recently created changelog
         run: |

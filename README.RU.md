@@ -6,5 +6,5 @@
   <img src="https://img.shields.io/npm/v/storn.svg" alt="NPM Version" />
 </a>
 
-**english version**
-[**README.md**](README.md)
+**English version**
+[**README.md**](https://github.com/altiore/storn/blob/main/README.md)
