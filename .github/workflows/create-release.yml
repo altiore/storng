@@ -18,11 +18,15 @@ jobs:
           echo "PRE_LAST_GIT_TAG=$(git tag --sort=version:refname | tail -2 | head -n 1)" >> $GITHUB_ENV
           echo "DATE_FORMAT='%an%x09%s'" >> $GITHUB_ENV
 
-      - name: Set GIT_COMMITS_STR
+      - name: Set commits.txt
+        uses: actions/upload-artifact@v3
         run: |
           echo ${{ env.PRE_LAST_GIT_TAG }}
           echo ${{ env.DATE_FORMAT }}
           git log ${{ env.PRE_LAST_GIT_TAG }}..HEAD --oneline --pretty=format:${{ env.DATE_FORMAT }} >> changelogs/commits.txt
+        with:
+          name: CHANGELOG
+          path: changelogs/commits.txt
 
       - name: Create CHANGELOG
         run: |
@@ -33,19 +37,19 @@ jobs:
         run: |
           cat changelogs/CHANGELOG.md
 
-      - uses: ncipollo/release-action@v1
-        with:
-          artifacts: 'release.tar.gz'
-          body: cat changelogs/CHANGELOG.md
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      # Setup .npmrc file to publish to npm
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '12.x'
-          registry-url: 'https://registry.npmjs.org'
-      - run: npm ci
-      - run: npm run build
-      - run: npm publish --access=public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+#      - uses: ncipollo/release-action@v1
+#        with:
+#          artifacts: 'release.tar.gz'
+#          body: cat changelogs/CHANGELOG.md
+#          token: ${{ secrets.GITHUB_TOKEN }}
+#
+#      # Setup .npmrc file to publish to npm
+#      - uses: actions/setup-node@v2
+#        with:
+#          node-version: '12.x'
+#          registry-url: 'https://registry.npmjs.org'
+#      - run: npm ci
+#      - run: npm run build
+#      - run: npm publish --access=public
+#        env:
+#          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
