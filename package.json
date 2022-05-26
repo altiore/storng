@@ -1,6 +1,6 @@
 {
 	"name": "storn",
-	"version": "0.2.2",
+	"version": "0.2.3",
 	"description": "powerful browser state manager",
 	"files": [
 		"dist",
