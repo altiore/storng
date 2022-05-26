@@ -5,7 +5,8 @@
 /dist
 /node_modules
 .eslintrc.js
-common.ts
+common.js
+common.d.ts
 karma.conf.js
 karma.conf.ts
 webpack.config.js
