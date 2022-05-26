@@ -4,7 +4,8 @@
 	"description": "powerful browser state manager",
 	"files": [
 		"dist",
-		"common.js"
+		"common.js",
+		"common.d.ts"
 	],
 	"scripts": {
 		"start": "npm run story",
