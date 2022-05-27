@@ -1,18 +1,3 @@
-// 1. Хранилище - там где хранятся данные
-// 2. Подписчик - это сущность, подписанная на элемент данных в хранилище по ключу (таблица)
-// 3. Запись - это данные ключ - значение, где ключи - произвольная строка
-// 4. Список - это данные ключ - значение, где ключами являются числа от 0 до ...
-// 5. Когда отписывается последний подписчик, данные нужно забэкапить
-// 6. При попытке обратиться к данным по тому же ключу - данные должны восстанавливаться
-
-// Бэкап
-// 1. Запрос на сохранение данных - асинхронная
-// 2. Удаление данных - синхронная процедура
-
-type DataAndSubs<T> = {
-	data: T[keyof T];
-	subscribers: Array<(val: T[keyof T]) => void>;
-};
 type Store<T extends Record<string, T[keyof T]>> = WeakMap<
 	Record<'key', keyof T>,
 	DataAndSubs<T>
@@ -23,41 +8,66 @@ export type PersistStore<T extends Record<keyof T, T[keyof T]>> = {
 	setItem: (key: keyof T, value: any) => Promise<void>;
 };
 
-type Rec<K, D> = {
-	key(): K;
-	init(): D;
+type DataAndSubs<T extends Record<keyof T, T[keyof T]>> = {
+	data: T[keyof T];
+	subscribers: Array<(val: T[keyof T]) => void>;
+	persistStore: PersistStore<T>;
 };
 
 export class WeakStore<T extends Record<string, T[keyof T]>> {
-	constructor(persistStore: PersistStore<T>) {
+	private static weakStore: any;
+	public static getStore<T extends Record<string, T[keyof T]>>(): WeakStore<T> {
+		if (WeakStore.weakStore) {
+			return WeakStore.weakStore;
+		}
+
+		return (WeakStore.weakStore = new WeakStore<T>());
+	}
+
+	constructor() {
 		this.store = new WeakMap() as Store<T>;
-		this.persistStore = persistStore;
 	}
 
 	private keys: Map<keyof T, Record<'key', keyof T>> = new Map();
 	private store: Store<T>;
-	private persistStore: PersistStore<T>;
 
 	public async subscribe(
-		record: Rec<T[keyof T], keyof T>,
-		subscriber: (value: T[keyof T]) => void,
+		key: keyof T,
+		persistStore: PersistStore<T>,
+		subscriber: (value: T[keyof T]) => any,
+		initData?: T[keyof T],
 	): Promise<void> {
-		const key = record.key();
 		if (this.has(key)) {
 			this.addSubscriber(key, subscriber);
 		} else {
 			// 1. Восстанавливаем данные или создаем новые
-			let data = await this.persistStore.getItem(key);
+			let data = await persistStore.getItem(key);
 			if (!data) {
-				data = record.init();
+				data = initData ?? {};
 			}
 
-			this.set(key, {data, subscribers: [subscriber]});
+			this.set(key, {data, persistStore, subscribers: [subscriber]});
 			subscriber(data);
 		}
 	}
 
-	private has(key: keyof T): boolean {
+	public async unsubscribe(
+		key: keyof T,
+		persistStore: PersistStore<T>,
+		subscriber: (value: T[keyof T]) => any,
+	): Promise<void> {
+		await this.removeSubscriber(key, subscriber, persistStore);
+	}
+
+	public async updateData(
+		key: keyof T,
+		persistStore: PersistStore<T>,
+		data: Partial<T[keyof T]>,
+	): Promise<void> {
+		await this.updateDataPrivate(key, data, persistStore);
+	}
+
+	public has(key: keyof T): boolean {
 		return this.keys.has(key);
 	}
 
@@ -71,20 +81,67 @@ export class WeakStore<T extends Record<string, T[keyof T]>> {
 
 	private delete(key: keyof T): void {
 		if (this.keys.has(key)) {
+			let keyPointer = this.getKey(key);
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+			keyPointer = null;
 			this.keys.delete(key);
 		}
 	}
 
 	private addSubscriber(
 		key: keyof T,
-		subscriber: (value: T[keyof T]) => void,
+		subscriber: (value: T[keyof T]) => any,
 	): void {
 		const curData = this.get(key);
 		this.set(key, {
 			data: curData.data,
+			persistStore: curData.persistStore,
 			subscribers: [...curData.subscribers, subscriber],
 		});
 		subscriber(curData.data);
+	}
+
+	private async removeSubscriber(
+		key: keyof T,
+		subscriber: (value: T[keyof T]) => any,
+		persistStore: PersistStore<T>,
+	): Promise<void> {
+		if (this.has(key)) {
+			const curData = this.get(key);
+
+			const subscribers = curData.subscribers.filter((el) => el !== subscriber);
+			if (subscribers.length) {
+				this.set(key, {
+					data: curData.data,
+					persistStore: curData.persistStore,
+					subscribers,
+				});
+			} else {
+				await persistStore.setItem(key, curData.data);
+				this.delete(key);
+			}
+		}
+	}
+
+	private async updateDataPrivate(
+		key: keyof T,
+		data: Partial<T[keyof T]>,
+		persistStore: PersistStore<T>,
+	): Promise<void> {
+		if (this.has(key)) {
+			const curData = this.get(key);
+			const newData = {...curData.data, ...data};
+
+			this.set(key, {
+				data: newData,
+				persistStore: curData.persistStore,
+				subscribers: curData.subscribers,
+			});
+			// Разослать данные всем подписчикам
+			curData.subscribers.forEach((subscriber) => subscriber(newData));
+		} else {
+			await persistStore.setItem(key, data);
+		}
 	}
 
 	private getKey(key: keyof T): Record<'key', keyof T> {

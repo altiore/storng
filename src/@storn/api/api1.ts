@@ -1,8 +1,8 @@
 export default (
 	routes: Record<string, any>,
-	reducers: Record<string, any>,
+	changeStrategy: Record<string, any>,
 ): Record<string, any> => ({
-	reducers,
+	changeStrategy,
 	routes,
 	url: '/base-url',
 });

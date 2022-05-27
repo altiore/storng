@@ -1,7 +1,7 @@
 import {GetScope, Method, Route, RouteScope} from '~/common';
 
 type AuthRoutes = {
-	LOGIN: Route<{email: string; password: string}>;
+	LOGIN: Route<{email: string; password: string}, {id: string; email: string}>;
 	LOGOUT: Route;
 };
 
@@ -107,30 +107,25 @@ describe('common.ts', () => {
 	});
 
 	describe('RouteScope', () => {
-		let API_AUTH: GetScope<AuthRoutes>;
+		const API_AUTH: GetScope<AuthRoutes> = getScope();
 
 		it('RouteScope.name', () => {
-			API_AUTH = getScope();
 			expect(API_AUTH.NAME).to.eq('Авторизация');
 		});
 
 		it('RouteScope.base', () => {
-			API_AUTH = getScope();
 			expect(API_AUTH.BASE).to.eq('/auth');
 		});
 
 		it('RouteScope.toString', () => {
-			API_AUTH = getScope();
 			expect(API_AUTH.toString()).to.eq('Авторизация');
 		});
 
 		it('RouteScope.URL.to', () => {
-			API_AUTH = getScope();
 			expect(API_AUTH.LOGIN.to()).to.eq('/auth/login');
 		});
 
 		it('RouteScope.URL.request', () => {
-			API_AUTH = getScope();
 			expect(API_AUTH.LOGOUT.request()).to.eql({
 				method: Method.POST,
 				url: '/auth/logout',
@@ -138,7 +133,6 @@ describe('common.ts', () => {
 		});
 
 		it('RouteScope.URL.request with params', () => {
-			API_AUTH = getScope();
 			expect(
 				API_AUTH.LOGIN.request({
 					email: 'test@mail.com',

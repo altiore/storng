@@ -14,9 +14,17 @@ const LikeButton = () => {
 };
 
 describe('createRecord', () => {
-	it('test react', async () => {
-		const root = getRoot();
+	let root: any;
+	beforeEach(() => {
+		root = getRoot();
+	});
 
+	afterEach(() => {
+		const el = document.getElementById('root');
+		el.remove();
+	});
+
+	it('test react', async () => {
 		let btn: HTMLButtonElement | undefined;
 		await act((render) => {
 			render(<LikeButton />, root);

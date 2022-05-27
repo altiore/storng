@@ -4,6 +4,10 @@ export enum StornMap {
 	Users = 'Users',
 }
 
+export enum StornSelector {
+	AuthUsers = 'AuthUsers',
+}
+
 type Record<Entity> = Entity & {
 	get(): Entity;
 	set(el: Entity): Entity;
