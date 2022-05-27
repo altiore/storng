@@ -1,6 +1,7 @@
 import ReactDOM from 'react-dom';
 
 import {expect as chaiExpect} from 'chai';
+import spies from 'chai-spies';
 
 type ActType = (cb: (render: typeof ReactDOM.render) => void) => Promise<void>;
 
@@ -35,6 +36,8 @@ const getRoot = (): HTMLDivElement => {
 	document.body.appendChild(div);
 	return div;
 };
+
+chai.use(spies);
 
 (global as any).act = act;
 (global as any).getRoot = getRoot;
