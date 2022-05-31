@@ -17,7 +17,7 @@ type StoreType = {
 
 describe('store.ts', () => {
 	describe('subscribe', () => {
-		const store = new WeakStore<StoreType>();
+		const store = WeakStore.getStore<StoreType>();
 
 		store.subscribe('user', persistStore, subscriber1, {
 			email: 'email@email.com',
@@ -81,6 +81,12 @@ describe('store.ts', () => {
 			});
 			expect(setItem).to.have.been.called.twice;
 			expect(store.has('user')).to.be.false;
+		});
+
+		it('то же хранилище используется, если запрашиваем его второй раз', () => {
+			const store2 = WeakStore.getStore<StoreType>();
+
+			expect(store === store2).to.be.eq(true);
 		});
 	});
 });

@@ -13,9 +13,9 @@ declare global {
 
 const act: ActType = (cb) =>
 	new Promise((resolve, reject) => {
-		setTimeout(() => {
+		setTimeout(async () => {
 			try {
-				cb(ReactDOM.render);
+				await cb(ReactDOM.render);
 				setTimeout(resolve, 0);
 			} catch (e) {
 				reject(e);

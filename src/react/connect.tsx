@@ -2,18 +2,23 @@ import React, {JSXElementConstructor} from 'react';
 
 type GetSelector<T> = Record<string, T>;
 
+type GetState<T> = {
+	[P in keyof T]: T extends Record<string, infer ValType> ? ValType : never;
+};
+
+type GetProps<WrappedComponent, T> = Omit<
+	WrappedComponent extends JSXElementConstructor<infer ParentProps>
+		? ParentProps
+		: never,
+	keyof T
+>;
+
 export const connect = function <T extends Record<string, any>>(
 	WrappedComponent: JSXElementConstructor<any>,
 	selectors: {[P in keyof T]: GetSelector<T[P]>},
-) {
-	type WrappedComponentProps =
-		typeof WrappedComponent extends JSXElementConstructor<infer ParentProps>
-			? ParentProps
-			: never;
-	type ConnectProps = Omit<WrappedComponentProps, keyof T>;
-	type ConnectState = {
-		[P in keyof T]: T extends Record<string, infer ValType> ? ValType : never;
-	};
+): React.ComponentClass<GetProps<typeof WrappedComponent, T>, GetState<T>> {
+	type ConnectProps = GetProps<typeof WrappedComponent, T>;
+	type ConnectState = GetState<T>;
 
 	return class ConnectHOC extends React.Component<ConnectProps, ConnectState> {
 		subscribers: any[];
@@ -30,11 +35,7 @@ export const connect = function <T extends Record<string, any>>(
 			this.subscribers.forEach((unsubscribe) => unsubscribe());
 		}
 
-		public setLoadedObjectProps(propName: string, propValue) {
-			console.log('setLoadedObjectProps', {
-				propName,
-				propValue,
-			});
+		public setLoadedObjectProps(propName: keyof T, propValue: T[keyof T]) {
 			this.setState({
 				[propName]: propValue,
 			} as any);

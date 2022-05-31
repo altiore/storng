@@ -25,11 +25,11 @@ export class WeakStore<T extends Record<string, T[keyof T]>> {
 	}
 
 	constructor() {
-		this.store = new WeakMap() as Store<T>;
+		this.weakMap = new WeakMap() as Store<T>;
 	}
 
 	private keys: Map<keyof T, Record<'key', keyof T>> = new Map();
-	private store: Store<T>;
+	private weakMap: Store<T>;
 
 	public async subscribe(
 		key: keyof T,
@@ -63,8 +63,9 @@ export class WeakStore<T extends Record<string, T[keyof T]>> {
 		key: keyof T,
 		persistStore: PersistStore<T>,
 		data: Partial<T[keyof T]>,
+		replace?: boolean,
 	): Promise<void> {
-		await this.updateDataPrivate(key, data, persistStore);
+		await this.updateDataPrivate(key, data, persistStore, replace);
 	}
 
 	public has(key: keyof T): boolean {
@@ -72,11 +73,11 @@ export class WeakStore<T extends Record<string, T[keyof T]>> {
 	}
 
 	private get(key: keyof T): DataAndSubs<T> {
-		return this.store.get(this.getKey(key));
+		return this.weakMap.get(this.getKey(key));
 	}
 
 	private set(key: keyof T, value: DataAndSubs<T>): void {
-		this.store.set(this.getKey(key), value);
+		this.weakMap.set(this.getKey(key), value);
 	}
 
 	private delete(key: keyof T): void {
@@ -127,10 +128,13 @@ export class WeakStore<T extends Record<string, T[keyof T]>> {
 		key: keyof T,
 		data: Partial<T[keyof T]>,
 		persistStore: PersistStore<T>,
+		replace?: boolean,
 	): Promise<void> {
 		if (this.has(key)) {
 			const curData = this.get(key);
-			const newData = {...curData.data, ...data};
+			const newData = replace
+				? (data as T[keyof T])
+				: {...curData.data, ...data};
 
 			this.set(key, {
 				data: newData,
