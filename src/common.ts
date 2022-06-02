@@ -186,3 +186,11 @@ export function RouteScope<T extends Record<string, Route<any, any>>>(
 ): GetScope<T> {
 	return new Scope(conf) as GetScope<T>;
 }
+
+export class Paginated<T> {
+	data: T[];
+	count: number;
+	total: number;
+	page: number;
+	pageCount: number;
+}
