@@ -45,12 +45,9 @@ export default function (config: WholeConfig) {
 		// list of files / patterns to load in the browser
 		files: [
 			'test/@global.ts',
-			'packages/*.ts',
-			'packages/**/*.ts',
-			'test/*.test.tsx',
+			'packages/**/*(!.d).ts',
 			'test/**/*.test.tsx',
 			'test/**/*.test.ts',
-			'test/*.test.ts',
 		],
 
 		// frameworks to use
