@@ -20,6 +20,7 @@
 		"build:store": "cd packages/store && tsc -p tsconfig.json",
 		"build": "npm run build:common && npm run build:store",
 		"p": "lerna publish --force-publish",
+		"p:force": "lerna publish --force-publish",
 		"test": "karma start",
 		"test:ci": "karma start --autoWatch=false --singleRun=true",
 		"lint": "tsc --noEmit && prettier --write \"**/*.{js,jsx,ts,tsx,json,yml}\" && prettier --write \"**/*.md\" --use-tabs=false && eslint . --fix --ext .js,.jsx,.ts,.tsx --max-warnings=3",
