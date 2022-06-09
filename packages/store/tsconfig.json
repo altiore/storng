@@ -5,7 +5,9 @@
 
 		"paths": {
 			"@storng/store": ["./index"],
-			"@storng/store/react": ["./react"]
+			"@storng/store/react": ["./react"],
+			"react": ["../../node_modules/react"],
+			"react/*": ["../../node_modules/react/*"]
 		}
 	},
 	"include": ["*.ts", "**/*.ts"]

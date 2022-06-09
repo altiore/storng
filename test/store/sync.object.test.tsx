@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 
 import {syncObject} from '@storng/store';
-import {connect} from '@storng/store/react';
+import {index} from '@storng/store/react';
 
 const getItem = chai.spy();
 const setItem = chai.spy();
@@ -37,7 +37,7 @@ const MyComponent = ({auth}) => {
 	);
 };
 
-const Wrapped = connect(MyComponent, {
+const Wrapped = index(MyComponent, {
 	auth: auth as any,
 });
 

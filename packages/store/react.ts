@@ -1,1 +1,1 @@
-export * from './src/react/connect';
+export * from './src/react';

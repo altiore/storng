@@ -13,5 +13,5 @@
 		"sourceMap": false,
 		"target": "es5"
 	},
-	"exclude": ["../node_modules", "./**/*.spec.ts"]
+	"exclude": ["../node_modules", "./**/*.spec.ts", "*.d.ts", "**/*.d.ts"]
 }
