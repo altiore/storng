@@ -1,6 +1,8 @@
 /.idea
+/bin/get-changelog.js
 /changelogs
 /coverage
+/dist
 /node_modules
 .eslintrc.js
 karma.conf.js

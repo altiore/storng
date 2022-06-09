@@ -15,9 +15,9 @@
 		"target": "es5",
 
 		"paths": {
-			"@storn/common": ["./packages/common"],
-		},
+			"@storn/common": ["./packages/common"]
+		}
 	},
-	"include": ["packages/**/*"],
+	"include": ["packages/**/*", "test/**/*"],
 	"exclude": ["node_modules", "**/*.spec.ts", "./karma.conf.ts"]
 }

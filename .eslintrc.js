@@ -42,7 +42,7 @@ module.exports = {
 						name: 'external libraries',
 						order: 30,
 					},
-					{match: '^~', name: 'current package', order: 40},
+					{match: '^@storn', name: 'current package', order: 40},
 					{match: '^\\./', name: 'current directory', order: 80},
 					{match: '.*', name: 'new unknown', order: 90},
 				],

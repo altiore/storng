@@ -46,7 +46,7 @@ module.exports = {
 		extensions: ['.tsx', '.ts', '.js', '.jsx'],
 		modules: ['./node_modules'],
 		alias: {
-			'~': `${path.join(__dirname, '/src')}`,
+			'@storn/common': `${path.join(__dirname, '/packages/common')}`,
 		},
 	},
 };

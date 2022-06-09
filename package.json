@@ -1,79 +1,100 @@
 {
-  "name": "@storn/core",
-  "version": "0.0.1",
-  "description": "Modern, fast, powerful javascript async storage",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/altiore/storn"
-  },
-  "devDependencies": {
-    "@babel/core": "7.14.8",
-    "@babel/eslint-parser": "7.14.7",
-    "@babel/plugin-proposal-decorators": "7.17.12",
-    "@babel/preset-env": "7.18.0",
-    "@babel/preset-react": "7.17.12",
-    "@types/chai": "4.3.1",
-    "@types/chai-spies": "1.0.3",
-    "@types/karma": "6.3.3",
-    "@types/karma-coverage-istanbul-reporter": "2.1.1",
-    "@types/mocha": "9.1.1",
-    "@types/node": "16.4.9",
-    "@types/react": "17.0.45",
-    "@types/react-dom": "17.0.17",
-    "@typescript-eslint/eslint-plugin": "4.28.5",
-    "@typescript-eslint/parser": "4.28.5",
-    "babel-loader": "8.2.5",
-    "babel-plugin-istanbul": "6.1.1",
-    "chai": "4.3.6",
-    "chai-spies": "1.0.0",
-    "eslint": "7.32.0",
-    "eslint-config-prettier": "8.3.0",
-    "eslint-plugin-ordered-imports": "0.5.0",
-    "eslint-plugin-prettier": "3.4.1",
-    "gh-pages": "3.2.3",
-    "husky": "7.0.4",
-    "karma": "6.3.20",
-    "karma-chai": "0.1.0",
-    "karma-chrome-launcher": "3.1.1",
-    "karma-coverage-istanbul-reporter": "3.0.3",
-    "karma-mocha": "^2.0.1",
-    "karma-mocha-reporter": "2.2.5",
-    "karma-webpack": "5.0.0",
-    "lerna": "5.1.1",
-    "lint-staged": "11.2.6",
-    "mocha": "9.2.2",
-    "prettier": "2.3.2",
-    "react": "17.0.2",
-    "react-dom": "17.0.2",
-    "rimraf": "3.0.2",
-    "source-map-support": "0.5.21",
-    "ts-loader": "9.3.0",
-    "ts-node": "10.8.0",
-    "tsc-alias": "1.6.7",
-    "tscpaths": "0.0.9",
-    "typescript": "4.4.3",
-    "webpack": "5.72.1",
-    "webpack-cli": "4.9.2"
-  },
-  "lint-staged": {
-    "*.{ts,tsx}": [
-      "prettier --write",
-      "eslint --fix --max-warnings=3"
-    ],
-    "*.{js,jsx}": [
-      "prettier --write",
-      "eslint --fix --max-warnings=3"
-    ],
-    "*.{json,yml}": [
-      "prettier --write"
-    ],
-    "*.{md}": [
-      "prettier --write --use-tabs=false"
-    ]
-  },
-  "author": {
-    "name": "Pavel Belik",
-    "email": "i@pavel-i-tel.ru",
-    "url": "https://github.com/Razzwan"
-  }
+	"name": "@storn/core",
+	"version": "0.0.1",
+	"description": "Modern, fast, powerful javascript async storage",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/altiore/storn"
+	},
+	"keywords": [
+		"storage",
+		"state",
+		"manager",
+		"state",
+		"browser",
+		"state"
+	],
+	"scripts": {
+		"start": "npm run story",
+		"build": "echo 'test'",
+		"npm:patch": "npm version patch && npm publish --access=public && git push && git push --tags",
+		"npm:minor": "npm version minor && npm publish --access=public && git push && git push --tags",
+		"npm:major": "npm version major && npm publish --access=public && git push && git push --tags",
+		"test": "karma start",
+		"test:ci": "karma start --autoWatch=false --singleRun=true",
+		"lint": "tsc --noEmit && prettier --write \"**/*.{js,jsx,ts,tsx,json,yml}\" && prettier --write \"**/*.md\" --use-tabs=false && eslint . --fix --ext .js,.jsx,.ts,.tsx --max-warnings=3",
+		"lint:ci": "tsc --noEmit && prettier --check \"**/*.{js,jsx,ts,tsx,json,yml}\" && prettier --check \"**/*.md\" --use-tabs=false && eslint . --ext .js,.jsx,.ts,.tsx --max-warnings=3",
+		"prepublish": "npm run build",
+		"prepare": "husky install"
+	},
+	"devDependencies": {
+		"@babel/core": "7.14.8",
+		"@babel/eslint-parser": "7.14.7",
+		"@babel/plugin-proposal-decorators": "7.17.12",
+		"@babel/preset-env": "7.18.0",
+		"@babel/preset-react": "7.17.12",
+		"@types/chai": "4.3.1",
+		"@types/chai-spies": "1.0.3",
+		"@types/karma": "6.3.3",
+		"@types/karma-coverage-istanbul-reporter": "2.1.1",
+		"@types/mocha": "9.1.1",
+		"@types/node": "16.4.9",
+		"@types/react": "17.0.45",
+		"@types/react-dom": "17.0.17",
+		"@typescript-eslint/eslint-plugin": "4.28.5",
+		"@typescript-eslint/parser": "4.28.5",
+		"babel-loader": "8.2.5",
+		"babel-plugin-istanbul": "6.1.1",
+		"chai": "4.3.6",
+		"chai-spies": "1.0.0",
+		"eslint": "7.32.0",
+		"eslint-config-prettier": "8.3.0",
+		"eslint-plugin-ordered-imports": "0.5.0",
+		"eslint-plugin-prettier": "3.4.1",
+		"gh-pages": "3.2.3",
+		"husky": "7.0.4",
+		"karma": "6.3.20",
+		"karma-chai": "0.1.0",
+		"karma-chrome-launcher": "3.1.1",
+		"karma-coverage-istanbul-reporter": "3.0.3",
+		"karma-mocha": "^2.0.1",
+		"karma-mocha-reporter": "2.2.5",
+		"karma-webpack": "5.0.0",
+		"lerna": "5.1.1",
+		"lint-staged": "11.2.6",
+		"mocha": "9.2.2",
+		"prettier": "2.3.2",
+		"react": "17.0.2",
+		"react-dom": "17.0.2",
+		"rimraf": "3.0.2",
+		"source-map-support": "0.5.21",
+		"ts-loader": "9.3.0",
+		"ts-node": "10.8.0",
+		"tsc-alias": "1.6.7",
+		"tscpaths": "0.0.9",
+		"typescript": "4.4.3",
+		"webpack": "5.72.1",
+		"webpack-cli": "4.9.2"
+	},
+	"lint-staged": {
+		"*.{ts,tsx}": [
+			"prettier --write",
+			"eslint --fix --max-warnings=3"
+		],
+		"*.{js,jsx}": [
+			"prettier --write",
+			"eslint --fix --max-warnings=3"
+		],
+		"*.{json,yml}": [
+			"prettier --write"
+		],
+		"*.{md}": [
+			"prettier --write --use-tabs=false"
+		]
+	},
+	"author": {
+		"name": "Pavel Belik",
+		"email": "i@pavel-i-tel.ru",
+		"url": "https://github.com/Razzwan"
+	}
 }
