@@ -13,8 +13,11 @@
 		"type": "git",
 		"url": "https://github.com/altiore/storn"
 	},
+	"scripts": {
+		"build": "tsc -p tsconfig.json"
+	},
 	"publishConfig": {
 		"access": "public"
 	},
-	"gitHead": "67b01bacc15556138b11b11611ce7861bff4224f"
+	"gitHead": "2cf16be9eb75cd7be35e07dd90eb773c41456574"
 }

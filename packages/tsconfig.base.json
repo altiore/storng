@@ -10,8 +10,7 @@
 		"module": "commonjs",
 		"moduleResolution": "node",
 		"noImplicitAny": false,
-		"outDir": "./dist/",
-		"sourceMap": true,
+		"sourceMap": false,
 		"target": "es5"
 	},
 	"exclude": ["../node_modules", "./**/*.spec.ts"]
