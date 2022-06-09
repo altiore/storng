@@ -4,5 +4,7 @@ changelogs
 coverage
 dist
 node_modules
+/packages/**/*.js
+/packages/**/*.d.ts
 .prettierrc
 package-lock.json
