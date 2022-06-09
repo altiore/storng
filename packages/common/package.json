@@ -1,0 +1,21 @@
+{
+  "name": "@storn/common",
+  "version": "0.0.1",
+  "description": "storn common",
+
+  "keywords": [
+    "store",
+    "indexedDb",
+    "localStorage"
+  ],
+  "author": "i@pavel-i-tel.ru",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/altiore/storn"
+  },
+
+  "publishConfig": {
+    "access": "public"
+  }
+}

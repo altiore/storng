@@ -1,0 +1,18 @@
+{
+	"compilerOptions": {
+		"allowJs": true,
+		"allowSyntheticDefaultImports": true,
+		"baseUrl": ".",
+		"declaration": true,
+		"esModuleInterop": true,
+		"jsx": "react",
+		"lib": ["dom", "es2015", "es2017"],
+		"module": "commonjs",
+		"moduleResolution": "node",
+		"noImplicitAny": false,
+		"outDir": "./dist/",
+		"sourceMap": true,
+		"target": "es5",
+	},
+	"exclude": ["../node_modules", "./**/*.spec.ts"]
+}

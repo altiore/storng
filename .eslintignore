@@ -1,0 +1,8 @@
+/.idea
+/changelogs
+/coverage
+/node_modules
+.eslintrc.js
+karma.conf.js
+karma.conf.ts
+webpack.config.js
