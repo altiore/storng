@@ -1,6 +1,6 @@
 {
 	"name": "@storn/common",
-	"version": "0.3.1",
+	"version": "0.3.2",
 	"description": "Storn common package use for both UI and API",
 	"keywords": [
 		"store",
