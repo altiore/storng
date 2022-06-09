@@ -47,6 +47,7 @@ module.exports = {
 		modules: ['./node_modules'],
 		alias: {
 			'@storng/common': `${path.join(__dirname, '/packages/common')}`,
+			'@storng/store': `${path.join(__dirname, '/packages/store')}`,
 		},
 	},
 };

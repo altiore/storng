@@ -4,6 +4,8 @@
 /coverage
 /dist
 /node_modules
+/packages/**/*.js
+/packages/**/*.d.ts
 .eslintrc.js
 karma.conf.js
 karma.conf.ts

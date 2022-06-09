@@ -17,7 +17,8 @@
 	"scripts": {
 		"start": "npm run story",
 		"build:common": "cd packages/common && tsc -p tsconfig.json",
-		"build": "npm run build:common",
+		"build:store": "cd packages/store && tsc -p tsconfig.json",
+		"build": "npm run build:common && npm run build:store",
 		"p": "lerna publish --force-publish",
 		"test": "karma start",
 		"test:ci": "karma start --autoWatch=false --singleRun=true",
