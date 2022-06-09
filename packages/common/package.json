@@ -1,6 +1,6 @@
 {
 	"name": "@storn/common",
-	"version": "0.3.3",
+	"version": "0.3.4",
 	"description": "Storn common package use for both UI and API",
 	"keywords": [
 		"store",
@@ -16,5 +16,5 @@
 	"publishConfig": {
 		"access": "public"
 	},
-	"gitHead": "1eadd9015b3f76680f826d0cc6764af3e389dd85"
+	"gitHead": "67b01bacc15556138b11b11611ce7861bff4224f"
 }
