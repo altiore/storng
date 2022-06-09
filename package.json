@@ -19,7 +19,7 @@
 		"build:common": "cd packages/common && tsc -p tsconfig.json",
 		"build:store": "cd packages/store && tsc -p tsconfig.json",
 		"build": "npm run build:common && npm run build:store",
-		"p": "lerna publish --force-publish",
+		"p": "lerna publish",
 		"p:force": "lerna publish --force-publish",
 		"test": "karma start",
 		"test:ci": "karma start --autoWatch=false --singleRun=true",
