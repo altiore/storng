@@ -1,4 +1,4 @@
-import {GetScope, Method, Route, RouteScope} from '@storn/common';
+import {GetScope, Method, Route, RouteScope} from '@storng/common';
 
 type AuthRoutes = {
 	LOGIN: Route<{email: string; password: string}, {id: string; email: string}>;

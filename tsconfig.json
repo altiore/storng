@@ -15,7 +15,7 @@
 		"target": "es5",
 
 		"paths": {
-			"@storn/common": ["./packages/common"]
+			"@storng/common": ["./packages/common"]
 		}
 	},
 	"include": ["packages/**/*", "test/**/*"],
