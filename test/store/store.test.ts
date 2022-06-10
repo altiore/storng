@@ -15,9 +15,11 @@ type StoreType = {
 	user: {email: string; id: string};
 };
 
+const NAME = 'test-store';
+
 describe('store.ts', () => {
 	describe('subscribe', () => {
-		const store = WeakStore.getStore<StoreType>();
+		const store = WeakStore.getStore<StoreType>(NAME);
 
 		store.subscribe('user', persistStore, subscriber1, {
 			email: 'email@email.com',
@@ -72,7 +74,9 @@ describe('store.ts', () => {
 				id: 'user-id',
 			});
 			expect(setItem).to.have.been.called.once;
-			expect(store.has('user')).to.be.false;
+			// ключ остается, но данные недоступны
+			expect(store.hasStructure('user')).to.be.true;
+			expect(store.hasData('user')).to.be.false;
 		});
 
 		it('persistStore.updateData with empty subscribers trigger setItem', async () => {
@@ -80,13 +84,15 @@ describe('store.ts', () => {
 				email: 'finish@mail.com',
 			});
 			expect(setItem).to.have.been.called.twice;
-			expect(store.has('user')).to.be.false;
+			// ключ остается, но данные недоступны
+			expect(store.hasStructure('user')).to.be.true;
+			expect(store.hasData('user')).to.be.false;
 		});
 
 		it('то же хранилище используется, если запрашиваем его второй раз', () => {
-			const store2 = WeakStore.getStore<StoreType>();
+			const store2 = WeakStore.getStore<StoreType>(NAME);
 
-			expect(store === store2).to.be.eq(true);
+			expect(store === store2).to.be.true;
 		});
 	});
 });

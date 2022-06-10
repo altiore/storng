@@ -21,5 +21,10 @@
 		}
 	},
 	"include": ["packages/**/*", "test/**/*"],
-	"exclude": ["node_modules", "**/*.spec.ts", "./karma.conf.ts"]
+	"exclude": [
+		"node_modules",
+		"**/*.spec.ts",
+		"./karma.conf.ts",
+		"test-not-active"
+	]
 }

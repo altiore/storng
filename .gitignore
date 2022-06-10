@@ -6,6 +6,7 @@ node_modules
 # testing
 /coverage
 /dist
+/test-not-active
 
 # misc
 .DS_Store

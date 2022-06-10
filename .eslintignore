@@ -3,6 +3,7 @@
 /changelogs
 /coverage
 /dist
+/test-not-active
 /node_modules
 /packages/**/*.js
 /packages/**/*.d.ts
