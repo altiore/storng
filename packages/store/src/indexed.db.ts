@@ -3,13 +3,13 @@ import {WeakStore} from '@storng/store';
 /**
  * Эта функция должна вызываться строго после объявления всех сущностей
  */
-export function indexedDb(
+function indexedDb(
 	name: string,
 	version = 1,
 	cb: (db: IDBDatabase) => void,
 ): void {
 	const openRequest = window.indexedDB.open(name, version);
-	openRequest.onupgradeneeded = function (event) {
+	openRequest.onupgradeneeded = function (_event) {
 		// срабатывает, если на клиенте нет базы данных
 		// ...выполнить инициализацию...
 		const db = openRequest.result;
@@ -33,11 +33,6 @@ export function indexedDb(
 				db.deleteObjectStore(key);
 			}
 		});
-
-		console.log('onupgradeneeded', {
-			db,
-			oldVersion: event.oldVersion,
-		});
 	};
 
 	openRequest.onerror = function () {
@@ -54,7 +49,6 @@ export function indexedDb(
 		cb(db);
 
 		db.close();
-		console.log('db is', db);
 	};
 
 	openRequest.onblocked = function () {
@@ -66,3 +60,52 @@ export function indexedDb(
 		);
 	};
 }
+
+export const getPersistStore: any = (name, version = 1) => {
+	return {
+		getItem: (name: string) => {
+			return new Promise((resolve, reject) => {
+				indexedDb(name, version, (db) => {
+					const transaction = db.transaction(name, 'readonly');
+
+					// получить хранилище объектов для работы с ним
+					const model = transaction.objectStore(name);
+
+					const request = model.get(name);
+
+					request.onsuccess = function () {
+						resolve(request.result);
+					};
+
+					request.onerror = function () {
+						console.log('Ошибка', request.error);
+						reject(request.error);
+					};
+				});
+			});
+		},
+		setItem: (name: string, value: any) => {
+			return new Promise((resolve, reject) => {
+				indexedDb(name, version, (db) => {
+					const transaction = db.transaction(name, 'readwrite');
+
+					// получить хранилище объектов для работы с ним
+					const model = transaction.objectStore(name);
+
+					const request = model.put(value);
+
+					request.onsuccess = function () {
+						// (4)
+						console.log('Сущность добавлена в хранилище', request.result);
+						resolve(undefined);
+					};
+
+					request.onerror = function () {
+						console.log('Ошибка', request.error);
+						reject(request.error);
+					};
+				});
+			});
+		},
+	};
+};

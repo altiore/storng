@@ -22,15 +22,17 @@ type Store<T extends Record<string, T[keyof T]>> = WeakMap<
 
 export class WeakStore<T extends Record<string, T[keyof T]>> {
 	private static weakStore: any;
+	public static persistStore: PersistStore<any>;
 	public name: string;
+	public static NAME: string;
 	public static getStore<T extends Record<string, T[keyof T]>>(
-		name: string,
+		name?: string,
 	): WeakStore<T> {
 		if (WeakStore.weakStore) {
 			return WeakStore.weakStore;
 		}
 
-		return (WeakStore.weakStore = new WeakStore<T>(name));
+		return (WeakStore.weakStore = new WeakStore<T>(name || WeakStore.NAME));
 	}
 
 	constructor(name: string) {
@@ -45,14 +47,15 @@ export class WeakStore<T extends Record<string, T[keyof T]>> {
 
 	public async subscribe(
 		key: keyof T,
-		persistStore: PersistStore<T>,
 		subscriber: (value: T[keyof T]) => any,
 		initData?: T[keyof T],
+		localPersistStore?: PersistStore<T>,
 	): Promise<void> {
-		if (this.hasStructure(key)) {
+		if (this.hasData(key)) {
 			this.addSubscriber(key, subscriber);
 		} else {
 			// 1. Восстанавливаем данные или создаем новые
+			const persistStore = localPersistStore || WeakStore.persistStore;
 			let data = await persistStore.getItem(key);
 			if (!data) {
 				data = initData ?? {};
@@ -65,19 +68,21 @@ export class WeakStore<T extends Record<string, T[keyof T]>> {
 
 	public async unsubscribe(
 		key: keyof T,
-		persistStore: PersistStore<T>,
 		subscriber: (value: T[keyof T]) => any,
+		localPersistStore?: PersistStore<T>,
 	): Promise<void> {
+		const persistStore = localPersistStore || WeakStore.persistStore;
 		await this.removeSubscriber(key, subscriber, persistStore);
 	}
 
 	public async updateData(
 		key: keyof T,
-		persistStore: PersistStore<T>,
 		data: Partial<T[keyof T]>,
 		replace?: boolean,
+		localPersistStore?: PersistStore<T>,
 	): Promise<void> {
-		await this.updateDataPrivate(key, data, persistStore, replace);
+		const persistStore = localPersistStore || WeakStore.persistStore;
+		await this.updateDataPrivate(key, data, replace, persistStore);
 	}
 
 	public hasStructure(key: keyof T): boolean {
@@ -121,8 +126,9 @@ export class WeakStore<T extends Record<string, T[keyof T]>> {
 	private async removeSubscriber(
 		key: keyof T,
 		subscriber: (value: T[keyof T]) => any,
-		persistStore: PersistStore<T>,
+		localPersistStore?: PersistStore<T>,
 	): Promise<void> {
+		const persistStore = localPersistStore || WeakStore.persistStore;
 		if (this.hasStructure(key)) {
 			const curData = this.getData(key);
 
@@ -149,9 +155,10 @@ export class WeakStore<T extends Record<string, T[keyof T]>> {
 	private async updateDataPrivate(
 		key: keyof T,
 		data: Partial<T[keyof T]>,
-		persistStore: PersistStore<T>,
 		replace?: boolean,
+		localPersistStore?: PersistStore<T>,
 	): Promise<void> {
+		const persistStore = localPersistStore || WeakStore.persistStore;
 		if (this.hasStructure(key)) {
 			if (this.hasData(key)) {
 				const curData = this.getData(key);

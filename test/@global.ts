@@ -4,11 +4,13 @@ import {expect as chaiExpect} from 'chai';
 import spies from 'chai-spies';
 
 type ActType = (cb: (render: typeof ReactDOM.render) => void) => Promise<void>;
+type WaitType = (seconds: number) => Promise<void>;
 
 declare global {
 	export const expect: typeof chaiExpect;
 	export const act: ActType;
 	export const getRoot: () => HTMLDivElement;
+	export const wait: WaitType;
 }
 
 const act: ActType = (cb) =>
@@ -37,7 +39,11 @@ const getRoot = (): HTMLDivElement => {
 	return div;
 };
 
+const wait = (seconds: number) =>
+	new Promise((resolve) => setTimeout(resolve, seconds * 1000));
+
 chai.use(spies);
 
 (global as any).act = act;
 (global as any).getRoot = getRoot;
+(global as any).wait = wait;

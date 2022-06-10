@@ -24,15 +24,8 @@ export const connect = function <T extends Record<string, any>>(
 		subscribers: any[];
 
 		public componentDidMount() {
-			console.log('componentDidMount', {
-				selectors,
-			});
 			this.subscribers = Object.entries(selectors).map(
 				([propName, subscribe]) => {
-					console.log('componentDidMount 2', {
-						propName,
-						subscribe,
-					});
 					return subscribe(this.setLoadedObjectProps.bind(this, propName));
 				},
 			);
@@ -43,9 +36,6 @@ export const connect = function <T extends Record<string, any>>(
 		}
 
 		public setLoadedObjectProps(propName: keyof T, propValue: T[keyof T]) {
-			console.log('>>>>> setLoadedObjectProps <<<<<', {
-				propName,
-			});
 			this.setState({
 				[propName]: propValue,
 			} as any);

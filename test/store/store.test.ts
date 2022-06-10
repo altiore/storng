@@ -19,12 +19,18 @@ const NAME = 'test-store';
 
 describe('store.ts', () => {
 	describe('subscribe', () => {
-		const store = WeakStore.getStore<StoreType>(NAME);
+		WeakStore.NAME = 'TEST_STORAGE';
+		const store = WeakStore.getStore<StoreType>();
 
-		store.subscribe('user', persistStore, subscriber1, {
-			email: 'email@email.com',
-			id: 'user-id',
-		});
+		store.subscribe(
+			'user',
+			subscriber1,
+			{
+				email: 'email@email.com',
+				id: 'user-id',
+			},
+			persistStore,
+		);
 
 		it('persistStore.getItem called on first subscribe', () => {
 			expect(getItem).on.nth(1).be.called.with('user');
@@ -38,7 +44,7 @@ describe('store.ts', () => {
 		});
 
 		it('persistStore.getItem NOT called on second subscribe', () => {
-			store.subscribe('user', persistStore, subscriber2);
+			store.subscribe('user', subscriber2, undefined, persistStore);
 			expect(getItem).be.called.exactly(1);
 		});
 
@@ -50,9 +56,14 @@ describe('store.ts', () => {
 		});
 
 		it('persistStore.updateData trigger subscriber1 with new data', () => {
-			store.updateData('user', persistStore, {
-				email: 'new@mail,.com',
-			});
+			store.updateData(
+				'user',
+				{
+					email: 'new@mail,.com',
+				},
+				false,
+				persistStore,
+			);
 			expect(subscriber1).on.nth(2).be.called.with({
 				email: 'new@mail,.com',
 				id: 'user-id',
@@ -67,8 +78,8 @@ describe('store.ts', () => {
 		});
 
 		it('persistStore.unsubscribe trigger removing subscriber1, subscriber2', async () => {
-			await store.unsubscribe('user', persistStore, subscriber1);
-			await store.unsubscribe('user', persistStore, subscriber2);
+			await store.unsubscribe('user', subscriber1, persistStore);
+			await store.unsubscribe('user', subscriber2, persistStore);
 			expect(setItem).to.have.been.called.with('user', {
 				email: 'new@mail,.com',
 				id: 'user-id',
@@ -80,9 +91,14 @@ describe('store.ts', () => {
 		});
 
 		it('persistStore.updateData with empty subscribers trigger setItem', async () => {
-			await store.updateData('user', persistStore, {
-				email: 'finish@mail.com',
-			});
+			await store.updateData(
+				'user',
+				{
+					email: 'finish@mail.com',
+				},
+				false,
+				persistStore,
+			);
 			expect(setItem).to.have.been.called.twice;
 			// ключ остается, но данные недоступны
 			expect(store.hasStructure('user')).to.be.true;
