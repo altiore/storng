@@ -7,11 +7,10 @@ export enum Method {
 }
 
 type Request<
-	Params extends Record<string, string | never> | undefined = undefined,
-	Body extends Record<string, any> | undefined = undefined,
+	Req extends Record<string, string | never> = Record<string, never>,
 > = {
-	body: Body;
-	params: Params;
+	body: Partial<Req> | undefined;
+	params: Partial<Req> | undefined;
 	method: Method;
 	url: string;
 };
@@ -106,7 +105,7 @@ export class Route<
 		return queryParamArr.length ? `${url}?${queryParamArr.join('&')}` : url;
 	}
 
-	request(data?: Req): Request<Partial<Req>, Partial<Req>> {
+	request(data?: Req): Request<Req> {
 		const [url, urlParams] = this.replaceUrlParams(this.path, data);
 		this.checkRequiredParams(this.requiredParams, data);
 		const preparedData =
@@ -125,7 +124,7 @@ export class Route<
 		const req = {
 			method: this.method,
 			url,
-		} as Request<Partial<Req>, Partial<Req>>;
+		} as Request<Req>;
 		if (preparedData) {
 			if (isGet) {
 				req.params = preparedData;
