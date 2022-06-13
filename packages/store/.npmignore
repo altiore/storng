@@ -1,6 +1,7 @@
 # source
 **/*.ts
 *.ts
+node_modules
 
 # definitions
 !**/*.d.ts

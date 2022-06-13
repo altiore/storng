@@ -1,6 +1,6 @@
 {
 	"name": "@storng/store",
-	"version": "1.1.0",
+	"version": "1.3.0",
 	"description": "Storng web store with async requests",
 	"keywords": [
 		"store",
@@ -20,11 +20,11 @@
 		"access": "public"
 	},
 	"peerDependencies": {
-		"@storng/common": "^1.2.0",
+		"@storng/common": "^1.3.0",
 		"react": "^16.14.0 || ^17.0.0 || ^18.0.0",
 		"react-dom": "^16.14.0 || ^17.0.0 || ^18.0.0"
 	},
 	"devDependencies": {
-		"@storng/common": "^1.2.0"
+		"@storng/common": "^1.3.0"
 	}
 }
