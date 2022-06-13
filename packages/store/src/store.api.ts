@@ -1,6 +1,6 @@
-import {Method, Route} from '@storng/common';
+import {Method, ResBase, Route} from '@storng/common';
 
-export class ApiStore<T extends Record<string, T[keyof T]>> {
+export class StoreApi<T extends Record<string, T[keyof T]>> {
 	public apiFetch: typeof fetch;
 	constructor(apiFetch: typeof fetch) {
 		this.apiFetch = apiFetch;
@@ -8,13 +8,16 @@ export class ApiStore<T extends Record<string, T[keyof T]>> {
 
 	// private requestsQueue: Array<Route>;
 
-	public async fetch(route: Route, data?: Record<string, any>): Promise<any> {
+	public async fetch(
+		route: Route<any>,
+		data?: Record<string, any>,
+	): Promise<ResBase> {
 		try {
-			const request = route.request(data as any);
+			const request = route.request(data);
 			const res = await this.apiFetch(
-				request.method === Method.GET ? route.to(data as any) : request.url,
+				request.method === Method.GET ? route.to(data) : request.url,
 				{
-					body: JSON.stringify(request.body),
+					body: request.body ? JSON.stringify(request.body) : undefined,
 					cache: 'no-cache',
 					credentials: 'same-origin',
 					headers: {

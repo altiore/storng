@@ -1,3 +1,5 @@
+import {deepAssign} from './utils';
+
 export type PersistStore<T extends Record<keyof T, T[keyof T]>> = {
 	getItem: (key: keyof T) => Promise<any>;
 	setItem: (key: keyof T, value: any) => Promise<void>;
@@ -15,7 +17,7 @@ type ObjKey<T extends Record<string, T[keyof T]>> = {
 	name: keyof T;
 };
 
-type Store<T extends Record<string, T[keyof T]>> = WeakMap<
+type StoreLocal<T extends Record<string, T[keyof T]>> = WeakMap<
 	ObjKey<T>,
 	DataAndSubs<T>
 >;
@@ -36,13 +38,13 @@ export class WeakStore<T extends Record<string, T[keyof T]>> {
 
 	constructor(name: string) {
 		this.name = name;
-		this.weakMap = new WeakMap() as Store<T>;
+		this.weakMap = new WeakMap() as StoreLocal<T>;
 	}
 
 	// Хранит все имена сущностей, которые мы собираемся хранить в нашей базе данных и никогда не
 	// удаляет эти имена. Это нужно, чтоб зафиксировать структуру базы данных
 	public dbStructure: Map<keyof T, ObjKey<T>> = new Map();
-	private weakMap: Store<T>;
+	private weakMap: StoreLocal<T>;
 
 	public async subscribe(
 		key: keyof T,
@@ -74,11 +76,10 @@ export class WeakStore<T extends Record<string, T[keyof T]>> {
 
 	public async updateData(
 		key: keyof T,
-		data: Partial<T[keyof T]>,
-		replace: boolean,
+		getData: (data: Partial<T[keyof T]>) => Partial<T[keyof T]>,
 		persistStore: PersistStore<T>,
 	): Promise<void> {
-		await this.updateDataPrivate(key, data, replace, persistStore);
+		await this.updateDataPrivate(key, getData, persistStore);
 	}
 
 	public hasStructure(key: keyof T): boolean {
@@ -149,29 +150,23 @@ export class WeakStore<T extends Record<string, T[keyof T]>> {
 
 	private async updateDataPrivate(
 		key: keyof T,
-		data: Partial<T[keyof T]>,
-		replace: boolean,
+		getData: (data: Partial<T[keyof T]>) => Partial<T[keyof T]>,
 		persistStore: PersistStore<T>,
 	): Promise<void> {
-		if (this.hasStructure(key)) {
-			if (this.hasData(key)) {
-				const curData = this.getData(key);
-				const newData = replace
-					? (data as T[keyof T])
-					: {...curData.data, ...data};
+		if (this.hasStructure(key) && this.hasData(key)) {
+			const curData = this.getData(key);
+			const newData = deepAssign({}, getData(curData?.data || {})) as any;
 
-				this.setData(key, {
-					data: newData,
-					persistStore: curData.persistStore,
-					subscribers: curData.subscribers,
-				});
-				// Разослать данные всем подписчикам
-				curData.subscribers.forEach((subscriber) => subscriber(newData));
-			} else {
-				await persistStore.setItem(key, data);
-			}
+			this.setData(key, {
+				data: newData,
+				persistStore: curData.persistStore,
+				subscribers: curData.subscribers,
+			});
+			// Разослать данные всем подписчикам
+			curData.subscribers.forEach((subscriber) => subscriber(newData));
 		} else {
-			await persistStore.setItem(key, data);
+			const prevData = await persistStore.getItem(key);
+			await persistStore.setItem(key, getData(prevData?.data || {}));
 		}
 	}
 

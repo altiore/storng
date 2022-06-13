@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 
-import {PersistStore, syncObject} from '@storng/store';
+import {PersistStore, syncObjectSimple} from '@storng/store';
 import {connect} from '@storng/store/react';
 
 const getItem = chai.spy();
@@ -15,11 +15,7 @@ type StoreType = {
 	auth: {id?: string; token?: string};
 };
 
-const {
-	replace: replaceAuth,
-	select: auth,
-	update: updateAuth,
-} = syncObject<StoreType>(
+const {select: auth, update: updateAuth} = syncObjectSimple<StoreType>(
 	'auth',
 	{id: 'old-id', token: '123123'},
 	persistStore,
@@ -58,7 +54,7 @@ const Parent = (): JSX.Element => {
 	}
 };
 
-describe('sync.object.ts', () => {
+describe('sync.object.simple.ts', () => {
 	let root: any;
 	beforeEach(() => {
 		root = getRoot();
@@ -73,7 +69,7 @@ describe('sync.object.ts', () => {
 
 	it('подписка на изменения syncObject', async () => {
 		await act((render) => {
-			replaceAuth({id: 'old-id', token: '123123'});
+			updateAuth(() => ({id: 'old-id', token: '123123'}));
 			render(<Parent />, root);
 		});
 
@@ -85,7 +81,7 @@ describe('sync.object.ts', () => {
 	it('подписка syncObject и обновление данных', async () => {
 		await act(async (render) => {
 			render(<Parent />, root);
-			await updateAuth({token: '000000'});
+			await updateAuth((s) => ({...s, token: '000000'}));
 		});
 
 		expect(root?.innerHTML).to.equal(
@@ -96,7 +92,7 @@ describe('sync.object.ts', () => {
 	it('подписка syncObject и замена данных', async () => {
 		await act(async (render) => {
 			render(<Parent />, root);
-			await replaceAuth({token: '777'});
+			await updateAuth(() => ({token: '777'}));
 		});
 
 		expect(root?.innerHTML).to.equal(

@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 
-import {getPersistStore, syncObject} from '@storng/store';
+import {getPersistStore, syncObjectSimple} from '@storng/store';
 import {connect} from '@storng/store/react';
 
 type StoreType = {
@@ -9,11 +9,7 @@ type StoreType = {
 
 const DB_NAME = 'test-db';
 
-const {
-	replace: replaceAuth,
-	select: auth,
-	update: updateAuth,
-} = syncObject<StoreType>(
+const {select: auth, update: updateAuth} = syncObjectSimple<StoreType>(
 	'auth',
 	{id: 'old-id', token: '123123'},
 	getPersistStore(DB_NAME),
@@ -79,7 +75,7 @@ describe('indexed.db test', () => {
 	it('подписка syncObject и обновление данных', async () => {
 		await act(async (render) => {
 			render(<Parent />, root);
-			await updateAuth({token: '000000'});
+			await updateAuth((s) => ({...s, token: '000000'}));
 		});
 
 		expect(root?.innerHTML).to.equal(
@@ -90,7 +86,7 @@ describe('indexed.db test', () => {
 	it('подписка syncObject и замена данных', async () => {
 		await act(async (render) => {
 			render(<Parent />, root);
-			await replaceAuth({id: undefined, token: '777'});
+			await updateAuth(() => ({id: undefined, token: '777'}));
 		});
 
 		expect(root?.innerHTML).to.equal(

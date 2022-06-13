@@ -247,3 +247,10 @@ export class Paginated<T> {
 	page: number;
 	pageCount: number;
 }
+
+export type RequestFunc<T extends Route<any, any>> = T extends Route<
+	infer Req,
+	infer Res
+>
+	? (data: Req) => Promise<Res>
+	: unknown;

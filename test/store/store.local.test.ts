@@ -17,7 +17,7 @@ type StoreType = {
 
 const NAME = 'test-store';
 
-describe('store.ts', () => {
+describe('store.local.ts', () => {
 	describe('subscribe', () => {
 		WeakStore.NAME = 'TEST_STORAGE';
 		const store = WeakStore.getStore<StoreType>();
@@ -58,10 +58,10 @@ describe('store.ts', () => {
 		it('persistStore.updateData trigger subscriber1 with new data', () => {
 			store.updateData(
 				'user',
-				{
+				(s) => ({
+					...s,
 					email: 'new@mail,.com',
-				},
-				false,
+				}),
 				persistStore,
 			);
 			expect(subscriber1).on.nth(2).be.called.with({
@@ -93,10 +93,10 @@ describe('store.ts', () => {
 		it('persistStore.updateData with empty subscribers trigger setItem', async () => {
 			await store.updateData(
 				'user',
-				{
+				(s) => ({
+					...s,
 					email: 'finish@mail.com',
-				},
-				false,
+				}),
 				persistStore,
 			);
 			expect(setItem).to.have.been.called.twice;

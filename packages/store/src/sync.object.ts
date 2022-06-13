@@ -1,27 +1,179 @@
+import {
+	DataRes,
+	ErrorRes,
+	GetScope,
+	InfoRes,
+	RequestFunc,
+	ResBase,
+	Route,
+} from '@storng/common';
 import {PersistStore, WeakStore} from '@storng/store';
 
-export const syncObject = function <T extends Record<string, any>>(
-	key: keyof T,
-	initData: T[keyof T],
-	persistStore?: PersistStore<T>,
-	_remoteStorage?: unknown,
-): {
-	select: (data: T[keyof T]) => any;
-	update: (state: Partial<T[keyof T]>) => Promise<void>;
-	replace: (state: T[keyof T]) => Promise<void>;
-} {
-	const store = WeakStore.getStore<T>(WeakStore.name);
-	return {
-		replace: async function (state: T[keyof T]) {
-			return store.updateData(key, state, true, persistStore);
-		},
-		select: function (subscriber: (state: T[keyof T]) => any) {
-			store.subscribe(key, subscriber, initData, persistStore).then().catch();
+import {StoreApi} from './store.api';
 
-			return () => store.unsubscribe(key, subscriber, persistStore);
-		},
-		update: async function (state: T[keyof T]) {
-			return store.updateData(key, state, false, persistStore);
-		},
-	};
+type AsyncData<Data> = {
+	data: Partial<Data>;
+	error?: any;
+	isLoading: boolean;
+	isLoaded: boolean;
 };
+
+type RemoteHandlers<Data extends any = any> = {
+	request: (
+		state: Partial<AsyncData<Data>>,
+		data: any,
+		route: Route,
+	) => Partial<AsyncData<Data>>;
+	success: (
+		state: Partial<AsyncData<Data>>,
+		data: any,
+		res: ResBase,
+	) => Partial<AsyncData<Data>>;
+	failure: (
+		state: Partial<AsyncData<Data>>,
+		data: any,
+		res: ResBase,
+	) => Partial<AsyncData<Data>>;
+};
+
+export const syncObject = <
+	Key extends string,
+	Data extends Record<string, any>,
+	Routes extends Record<string, Route<any, any>> = any,
+>(
+	store: WeakStore<any>,
+	api: StoreApi<any>,
+	key: string,
+	initData: Partial<Data>,
+	routeScope: GetScope<Routes>,
+	handlers: {[P in keyof Routes]: RemoteHandlers<Data>},
+	persistStore?: PersistStore<any>,
+) => {
+	const res: {[P in keyof Routes]: RequestFunc<Routes[P]>} & {
+		select: (subscriber: (state: Data) => any) => Promise<() => Promise<void>>;
+	} = {
+		select: async function (subscriber: (state: AsyncData<Data>) => any) {
+			try {
+				await store.subscribe(
+					key as Key,
+					subscriber,
+					{
+						data: initData,
+						isLoaded: false,
+						isLoading: false,
+					},
+					persistStore,
+				);
+			} catch (err) {
+				console.error(err);
+			}
+
+			return () => store.unsubscribe(key as Key, subscriber, persistStore);
+		},
+	} as any;
+
+	Object.entries(handlers).forEach(([handlerName, handler]) => {
+		const route = routeScope[handlerName];
+		(res as any)[handlerName] = async (data) => {
+			await store.updateData(
+				key as Key,
+				(state) => handler.request(state, data, route),
+				persistStore,
+			);
+			try {
+				const resData = await api.fetch(route, data);
+				if (resData?.ok) {
+					await store.updateData(
+						key as Key,
+						(state) => handler.success(state, data, resData),
+						persistStore,
+					);
+				} else {
+					await store.updateData(
+						key as Key,
+						(state) => handler.failure(state, data, resData),
+						persistStore,
+					);
+				}
+				return resData;
+			} catch (err) {
+				await store.updateData(
+					key as Key,
+					(state) =>
+						handler.failure(
+							state,
+							data,
+							err?.ok === false ? err : {error: err, ok: false},
+						),
+					persistStore,
+				);
+				return err;
+			}
+		};
+	});
+
+	return res;
+};
+
+syncObject.update = {
+	request: (s) => ({
+		...s,
+		isLoading: true,
+	}),
+	success: (s, _, res: DataRes) => ({
+		...s,
+		data: {
+			...s.data,
+			...res.data,
+		},
+		error: undefined,
+		isLoaded: true,
+		isLoading: false,
+	}),
+	// eslint-disable-next-line sort-keys
+	failure: (s, _, res: ErrorRes | InfoRes) => ({
+		...s,
+		error: (res as InfoRes)?.message ?? (res as ErrorRes).errors,
+		isLoading: false,
+	}),
+} as RemoteHandlers;
+
+syncObject.replace = {
+	request: (s) => ({
+		...s,
+		isLoading: true,
+	}),
+	success: (s, _, res: DataRes) => ({
+		...s,
+		data: res.data,
+		error: undefined,
+		isLoaded: true,
+		isLoading: false,
+	}),
+	// eslint-disable-next-line sort-keys
+	failure: (s, _, res: ErrorRes | InfoRes) => ({
+		...s,
+		error: (res as InfoRes)?.message ?? (res as ErrorRes).errors,
+		isLoading: false,
+	}),
+} as RemoteHandlers;
+
+syncObject.nothing = {
+	request: (s) => {
+		return {
+			...s,
+			isLoading: true,
+		};
+	},
+	success: (s) => ({
+		...s,
+		error: undefined,
+		isLoading: false,
+	}),
+	// eslint-disable-next-line sort-keys
+	failure: (s, _, res: ErrorRes | InfoRes) => ({
+		...s,
+		error: (res as InfoRes)?.message ?? (res as ErrorRes).errors,
+		isLoading: false,
+	}),
+} as RemoteHandlers;
