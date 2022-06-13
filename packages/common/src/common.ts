@@ -25,9 +25,38 @@ export interface RouteConf<
 	requiredParams?: Array<keyof Req>;
 }
 
+type ResError<FormState extends Record<string, any> = Record<string, any>> = {
+	value: FormState[keyof FormState];
+	property: string;
+	children?: Array<ResError<FormState[keyof FormState]>>;
+	constraints?: {[key in keyof FormState]: string};
+};
+
+interface DataRes<Data extends Record<string, any> = Record<string, any>> {
+	ok: boolean;
+	data: Data;
+}
+
+interface InfoRes {
+	ok: boolean;
+	message?: string;
+}
+
+interface ErrorRes<
+	FormState extends Record<string, any> = Record<string, any>,
+> {
+	ok: false;
+	errors: Array<ResError<FormState>>;
+}
+
+type ResBase<
+	Data extends Record<string, any> = Record<string, any>,
+	FormState extends Record<string, any> = Record<string, any>,
+> = DataRes<Data> | InfoRes | ErrorRes<FormState>;
+
 export class Route<
 	Req extends Record<string, any> = Record<string, never>,
-	Res extends Record<string, any> = Record<string, never>,
+	Res extends ResBase = ResBase,
 > {
 	constructor(conf: RouteConf, basePath: string) {
 		this.base = basePath;
@@ -103,9 +132,29 @@ export class Route<
 		return req;
 	}
 
-	response(): Res {
-		console.info('Not implemented yet');
-		return {} as Res;
+	response(
+		ok: boolean,
+		payload?: string | Record<string, any> | Array<ResError>,
+	): Res {
+		if (!payload) {
+			return {ok} as Res;
+		}
+		if (typeof payload === 'string') {
+			return {
+				message: payload,
+				ok,
+			} as Res;
+		}
+		if (Array.isArray(payload)) {
+			return {
+				errors: payload,
+				ok,
+			} as Res;
+		}
+		return {
+			data: payload,
+			ok,
+		} as Res;
 	}
 
 	private replaceUrlParams(
