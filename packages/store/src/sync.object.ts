@@ -18,7 +18,7 @@ type AsyncData<Data> = {
 	isLoaded: boolean;
 };
 
-type RemoteHandlers<Data extends any = any> = {
+export type RemoteHandlers<Data extends any = any> = {
 	request: (
 		state: Partial<AsyncData<Data>>,
 		data: any,
