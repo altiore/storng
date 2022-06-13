@@ -48,7 +48,9 @@ export const syncObject = <
 	routeScope: GetScope<Routes>,
 	handlers: {[P in keyof Routes]: RemoteHandlers<Data>},
 	persistStore?: PersistStore<any>,
-) => {
+): {[P in keyof Routes]: RequestFunc<Routes[P]>} & {
+	select: (subscriber: (state: Data) => any) => Promise<() => Promise<void>>;
+} => {
 	const res: {[P in keyof Routes]: RequestFunc<Routes[P]>} & {
 		select: (subscriber: (state: Data) => any) => Promise<() => Promise<void>>;
 	} = {

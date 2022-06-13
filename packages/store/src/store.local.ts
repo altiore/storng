@@ -1,5 +1,3 @@
-import {deepAssign} from './utils';
-
 export type PersistStore<T extends Record<keyof T, T[keyof T]>> = {
 	getItem: (key: keyof T) => Promise<any>;
 	setItem: (key: keyof T, value: any) => Promise<void>;
@@ -76,7 +74,7 @@ export class WeakStore<T extends Record<string, T[keyof T]>> {
 
 	public async updateData(
 		key: keyof T,
-		getData: (data: Partial<T[keyof T]>) => Partial<T[keyof T]>,
+		getData: (data: T[keyof T]) => T[keyof T],
 		persistStore: PersistStore<T>,
 	): Promise<void> {
 		await this.updateDataPrivate(key, getData, persistStore);
@@ -150,12 +148,12 @@ export class WeakStore<T extends Record<string, T[keyof T]>> {
 
 	private async updateDataPrivate(
 		key: keyof T,
-		getData: (data: Partial<T[keyof T]>) => Partial<T[keyof T]>,
+		getData: (data: T[keyof T]) => T[keyof T],
 		persistStore: PersistStore<T>,
 	): Promise<void> {
 		if (this.hasStructure(key) && this.hasData(key)) {
 			const curData = this.getData(key);
-			const newData = deepAssign({}, getData(curData?.data || {})) as any;
+			const newData = getData(curData?.data || ({} as any));
 
 			this.setData(key, {
 				data: newData,

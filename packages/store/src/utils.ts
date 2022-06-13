@@ -1,7 +1,13 @@
-export function deepAssign(
-	_target: Record<string, any>,
-	...sources: Array<Record<string, any>>
-) {
+type DeepPartial<T> = T extends Record<string, any>
+	? {
+			[P in keyof T]?: DeepPartial<T[P]>;
+	  }
+	: T;
+
+export function deepAssign<T extends Record<string, any> = Record<string, any>>(
+	_target: T,
+	...sources: Array<DeepPartial<T>>
+): T {
 	const target = {..._target};
 	for (const source of sources) {
 		for (const k in source) {
@@ -11,7 +17,7 @@ export function deepAssign(
 				target[k] = deepAssign(vt, {...vs});
 				continue;
 			}
-			target[k] = source[k];
+			target[k] = source[k] as any;
 		}
 	}
 	return target;

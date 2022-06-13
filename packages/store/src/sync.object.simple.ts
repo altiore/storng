@@ -18,9 +18,7 @@ export const syncObjectSimple = function <T extends Record<string, any>>(
 
 			return () => store.unsubscribe(key, subscriber, persistStore);
 		},
-		update: async function (
-			getData: (prevState: Partial<T[keyof T]>) => Partial<T[keyof T]>,
-		) {
+		update: async function (getData: (prevState: T[keyof T]) => T[keyof T]) {
 			return store.updateData(key, getData, persistStore);
 		},
 	};
