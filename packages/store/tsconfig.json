@@ -4,6 +4,7 @@
 		"baseUrl": "./",
 
 		"paths": {
+			"@storng/common": ["../common"],
 			"@storng/store": ["./index"],
 			"@storng/store/react": ["./react"],
 			"react": ["../../node_modules/react"],
