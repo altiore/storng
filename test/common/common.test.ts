@@ -1,7 +1,10 @@
-import {GetScope, Method, Route, RouteScope} from '@storng/common';
+import {DataRes, GetScope, Method, Route, RouteScope} from '@storng/common';
 
 type AuthRoutes = {
-	LOGIN: Route<{email: string; password: string}, {id: string; email: string}>;
+	LOGIN: Route<
+		{email: string; password: string},
+		DataRes<{id: string; email: string}>
+	>;
 	LOGOUT: Route;
 };
 
@@ -102,7 +105,7 @@ describe('common.ts', () => {
 				'/v2/kitchens',
 			);
 
-			expect(GET_KITCHENS.response()).to.eql({});
+			expect(GET_KITCHENS.response(true)).to.eql({ok: true});
 		});
 	});
 
