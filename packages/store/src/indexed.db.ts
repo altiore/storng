@@ -1,5 +1,27 @@
 import {WeakStore} from '@storng/store';
 
+const createTables = (store: WeakStore<any>, db: IDBDatabase) => {
+	// создать необходимые хранилища в структуре базы данных, если их еще нет
+	store.dbStructure.forEach((value, key) => {
+		if (!db.objectStoreNames.contains(String(key))) {
+			// если хранилище key не существует
+			// console.log('>>>>>> создание таблицы <<<<<<<', key);
+			db.createObjectStore(String(key), {
+				autoIncrement: value.autoIncrement,
+				keyPath: value.keyPath,
+			}); // создаем хранилище
+		}
+	});
+
+	// удалить лишние хранилища из базы данных, если их больше нет в текущей структуре
+	Array.from(db.objectStoreNames).forEach((key) => {
+		if (!store.dbStructure.has(key)) {
+			// console.log('>>>>>> удаление таблицы <<<<<<', key);
+			db.deleteObjectStore(key);
+		}
+	});
+}
+
 /**
  * Эта функция должна вызываться строго после объявления всех сущностей
  */
@@ -16,23 +38,7 @@ function indexedDb(
 
 		const store = WeakStore.getStore(name);
 
-		// создать необходимые хранилища в структуре базы данных, если их еще нет
-		store.dbStructure.forEach((value, key) => {
-			if (!db.objectStoreNames.contains(key)) {
-				// если хранилище key не существует
-				db.createObjectStore(key, {
-					autoIncrement: value.autoIncrement,
-					keyPath: value.keyPath,
-				}); // создаем хранилище
-			}
-		});
-
-		// удалить лишние хранилища из базы данных, если их больше нет в текущей структуре
-		Array.from(db.objectStoreNames).forEach((key) => {
-			if (!store.dbStructure.has(key)) {
-				db.deleteObjectStore(key);
-			}
-		});
+		createTables(store, db);
 	};
 
 	openRequest.onerror = function () {
@@ -41,6 +47,10 @@ function indexedDb(
 
 	openRequest.onsuccess = function () {
 		const db = openRequest.result;
+
+		const store = WeakStore.getStore(name);
+		createTables(store, db);
+
 		db.onversionchange = function () {
 			db.close();
 			alert('База данных устарела, пожалуйста, перезагрузите страницу.');
@@ -63,17 +73,20 @@ function indexedDb(
 
 export const getPersistStore: any = (name, version = 1) => {
 	return {
-		getItem: (name: string) => {
+		getItem: (key: string) => {
 			return new Promise((resolve, reject) => {
 				indexedDb(name, version, (db) => {
-					const transaction = db.transaction(name, 'readonly');
+					const transaction = db.transaction(key, 'readonly');
 
 					// получить хранилище объектов для работы с ним
-					const model = transaction.objectStore(name);
+					const model = transaction.objectStore(key);
 
-					const request = model.get(name);
+					const keys = model.getAllKeys();
+					console.log('Все существующие ключи', keys);
+					const request = model.get(key);
 
 					request.onsuccess = function () {
+						console.log(`Данные получены ${key}=`, request.result);
 						resolve(request.result);
 					};
 
@@ -84,20 +97,20 @@ export const getPersistStore: any = (name, version = 1) => {
 				});
 			});
 		},
-		setItem: (name: string, value: any) => {
+		setItem: (key: string, value: any) => {
 			return new Promise((resolve, reject) => {
 				indexedDb(name, version, (db) => {
-					const transaction = db.transaction(name, 'readwrite');
+					const transaction = db.transaction(key, 'readwrite');
 
 					// получить хранилище объектов для работы с ним
-					const model = transaction.objectStore(name);
+					const model = transaction.objectStore(key);
 
 					const request = model.put(value);
 
 					request.onsuccess = function () {
 						// (4)
-						console.log('Сущность добавлена в хранилище', request.result);
-						resolve(undefined);
+						console.log(`данные сохранены ${key}=`, value);
+						resolve(value);
 					};
 
 					request.onerror = function () {
