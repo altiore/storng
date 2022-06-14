@@ -12,9 +12,10 @@ export const syncObjectSimple = function <T extends Record<string, any>>(
 	) => Promise<void>;
 } {
 	const store = WeakStore.getStore<T>(WeakStore.name);
+	store.addTable(key, initData);
 	return {
 		select: function (subscriber: (state: T[keyof T]) => any) {
-			store.subscribe(key, subscriber, initData, persistStore).then().catch();
+			store.subscribe(key, subscriber, persistStore).then().catch();
 
 			return () => store.unsubscribe(key, subscriber, persistStore);
 		},

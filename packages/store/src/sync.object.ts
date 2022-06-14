@@ -51,6 +51,12 @@ export const syncObject = <
 ): {[P in keyof Routes]: RequestFunc<Routes[P]>} & {
 	select: (subscriber: (state: Data) => any) => Promise<() => Promise<void>>;
 } => {
+	store.addTable(key, {
+		data: initData,
+		isLoaded: false,
+		isLoading: false,
+	});
+
 	const res: {[P in keyof Routes]: RequestFunc<Routes[P]>} & {
 		select: (subscriber: (state: Data) => any) => Promise<() => Promise<void>>;
 	} = {
@@ -59,11 +65,6 @@ export const syncObject = <
 				await store.subscribe(
 					key as Key,
 					subscriber,
-					{
-						data: initData,
-						isLoaded: false,
-						isLoading: false,
-					},
 					persistStore,
 				);
 			} catch (err) {
@@ -167,15 +168,21 @@ syncObject.nothing = {
 			isLoading: true,
 		};
 	},
-	success: (s) => ({
-		...s,
-		error: undefined,
-		isLoading: false,
-	}),
+	success: (s) => {
+		console.log('success', {
+			s,
+		})
+		return ({
+			...s,
+			error: undefined,
+			isLoading: false,
+		})
+	},
 	// eslint-disable-next-line sort-keys
 	failure: (s, _, res: ErrorRes | InfoRes) => ({
 		...s,
-		error: (res as InfoRes)?.message ?? (res as ErrorRes).errors,
+		error: (res as InfoRes)?.message ?? (res as ErrorRes)?.errors,
 		isLoading: false,
+		isLoaded: false,
 	}),
 } as RemoteHandlers;

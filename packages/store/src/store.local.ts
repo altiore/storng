@@ -11,6 +11,7 @@ type DataAndSubs<T extends Record<keyof T, T[keyof T]>> = {
 
 type ObjKey<T extends Record<string, T[keyof T]>> = {
 	autoIncrement?: boolean;
+	initData: Record<string, any>;
 	keyPath?: string | string[] | null;
 	name: keyof T;
 };
@@ -44,10 +45,17 @@ export class WeakStore<T extends Record<string, T[keyof T]>> {
 	public dbStructure: Map<keyof T, ObjKey<T>> = new Map();
 	private weakMap: StoreLocal<T>;
 
+	public addTable(key: keyof T, initData: T[keyof T], tableOpts: Partial<{keyPath: string, autoIncrement: boolean}> = {autoIncrement: true}): void {
+		this.dbStructure.set(key, {
+			initData,
+			name: key,
+			...tableOpts,
+		});
+	}
+
 	public async subscribe(
 		key: keyof T,
 		subscriber: (value: T[keyof T]) => any,
-		initData: T[keyof T],
 		persistStore: PersistStore<T>,
 	): Promise<void> {
 		if (this.hasData(key)) {
@@ -55,12 +63,15 @@ export class WeakStore<T extends Record<string, T[keyof T]>> {
 		} else {
 			// 1. Восстанавливаем данные или создаем новые
 			let data = await persistStore.getItem(key);
+
 			if (!data) {
-				data = initData ?? {};
+				const keyData = this.getKey(key);
+				data = keyData.initData;
 			}
 
 			this.setData(key, {data, persistStore, subscribers: [subscriber]});
 			subscriber(data);
+
 		}
 	}
 
@@ -169,10 +180,6 @@ export class WeakStore<T extends Record<string, T[keyof T]>> {
 	}
 
 	private getKey(name: keyof T): ObjKey<T> {
-		if (!this.dbStructure.has(name)) {
-			this.dbStructure.set(name, {keyPath: 'id', name});
-		}
-
 		return this.dbStructure.get(name);
 	}
 }
