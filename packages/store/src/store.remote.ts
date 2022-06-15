@@ -1,6 +1,6 @@
 import {Method, ResBase, Route} from '@storng/common';
 
-export class StoreApi<T extends Record<string, T[keyof T]>> {
+export class StoreRemote {
 	public apiFetch: typeof fetch;
 	constructor(apiFetch: typeof fetch) {
 		this.apiFetch = apiFetch;

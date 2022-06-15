@@ -15,7 +15,7 @@
 		"state"
 	],
 	"scripts": {
-		"start": "npm run story",
+		"start": "npm run test",
 		"build:common": "cd packages/common && tsc -p tsconfig.json",
 		"build:store": "cd packages/store && tsc -p tsconfig.json",
 		"build": "npm run build:common && npm run build:store",
@@ -54,6 +54,7 @@
 		"eslint-plugin-prettier": "3.4.1",
 		"gh-pages": "3.2.3",
 		"husky": "7.0.4",
+		"idb": "7.0.1",
 		"karma": "6.3.20",
 		"karma-chai": "0.1.0",
 		"karma-chrome-launcher": "3.1.1",

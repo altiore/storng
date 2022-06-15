@@ -1,31 +1,39 @@
-import { GetScope, RequestFunc, Route } from '@storng/common';
-import {RemoteHandlers, StoreApi, WeakStore, getPersistStore, syncObject as syncObj} from '@storng/store';
+import {GetScope, Route} from '@storng/common';
+import {RemoteHandlers, Store, SyncObjectType, syncObj} from '@storng/store';
 
-export type Store = {
-  auth: {accessToken: string};
-}
+import {mockSuccessItemFetch} from './mock.fetch';
 
-const STORAGE_NAME = 'storng';
+export type StoreState = {
+	auth: {accessToken: string};
+};
 
-const localStorage = WeakStore.getStore<Store>(STORAGE_NAME);
+const STORAGE_NAME = 'PREPARED_NAME';
 
-const successFetchJson = chai.spy(() => new Promise((resolve) => {
-  resolve({
-    data: {id: 'my-id'},
-    ok: true,
-  })
-}));
-export const localFetch = chai.spy(() => new Promise((resolve) => {
-  resolve({
-    json: successFetchJson,
-  });
-}));
+const store = new Store<StoreState>(
+	STORAGE_NAME,
+	1,
+	{
+		auth: 'id',
+	},
+	mockSuccessItemFetch,
+);
 
-const apiStore = new StoreApi<any>(localFetch as any);
-
-const persistStorage = getPersistStore(STORAGE_NAME);
-
-export const syncObject = <Data extends Record<string, any>, Routes extends Record<string, Route<any, any>>>(key: keyof Store, initData: Partial<Data>, routeScope: GetScope<Routes>, handlers: { [P in keyof Routes]: RemoteHandlers<Data>}): { [P in keyof Routes]: RequestFunc<Routes[P]>; } & {select: (subscriber: (state: Data) => any) => Promise<() => Promise<void>>} => syncObj<keyof Store, Data, Routes>(localStorage, apiStore, key, initData, routeScope, handlers, persistStorage);
+export const syncObject = <
+	Routes extends Record<string, Route<any, any>> = any,
+>(
+	routeScope: GetScope<Routes>,
+	routeScopeHandlers: {
+		[P in keyof Routes]: RemoteHandlers<StoreState[keyof StoreState]>;
+	},
+	initState?: StoreState[keyof StoreState],
+): SyncObjectType<Routes> => {
+	return syncObj<StoreState, Routes>(
+		store,
+		routeScope,
+		routeScopeHandlers,
+		initState,
+	);
+};
 
 syncObject.update = syncObj.update;
 syncObject.replace = syncObj.replace;

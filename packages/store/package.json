@@ -26,5 +26,8 @@
 	},
 	"devDependencies": {
 		"@storng/common": "^1.3.5"
+	},
+	"dependencies": {
+		"idb": "7.0.1"
 	}
 }
