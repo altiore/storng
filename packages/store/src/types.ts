@@ -70,3 +70,5 @@ export type RemoteHandlers<Data extends Record<string, any> = any> = {
 		res: ResBase,
 	) => LoadedItem<Data>;
 };
+
+export type FetchType = (url: string, init: RequestInit) => Promise<Response>;

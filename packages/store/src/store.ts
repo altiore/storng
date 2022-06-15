@@ -1,7 +1,7 @@
 import {StoreCache} from './store.cache';
 import {StoreLocal} from './store.local';
 import {StoreRemote} from './store.remote';
-import {KeyNames, StoreStructure} from './types';
+import {FetchType, KeyNames, StoreStructure} from './types';
 
 export class Store<T extends Record<string, T[keyof T]>> {
 	public cache: StoreCache<T>;
@@ -12,7 +12,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 		name: string,
 		version: number,
 		entityKeyNames: KeyNames<StoreStructure<T>>,
-		customFetch: typeof fetch,
+		customFetch: FetchType,
 	) {
 		this.cache = new StoreCache<T>(name);
 		this.local = new StoreLocal<StoreStructure<T>>(
