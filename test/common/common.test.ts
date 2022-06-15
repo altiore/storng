@@ -151,4 +151,74 @@ describe('common.ts', () => {
 			});
 		});
 	});
+
+	describe('test fetchParams', () => {
+		it('данные типа GET', () => {
+			const GET_KITCHENS = new Route<{page: number; limit: number}>(
+				{
+					method: Method.GET,
+					requiredParams: ['page', 'limit'],
+				},
+				'/v2/kitchens',
+			);
+
+			expect(GET_KITCHENS.fetchParams({limit: 20, page: 2})).to.be.eql([
+				'/v2/kitchens?limit=20&page=2',
+				{
+					body: undefined,
+					cache: 'no-cache',
+					credentials: 'same-origin',
+					headers: {
+						Accept: 'application/json',
+						'Content-Type': 'application/json',
+					},
+					method: Method.GET,
+					redirect: 'follow',
+					referrerPolicy: 'no-referrer',
+				},
+			]);
+		});
+
+		it('данные типа POST', () => {
+			const POST_KITCHENS = new Route<{title: string; type: string}>(
+				{
+					method: Method.POST,
+					requiredParams: ['title', 'type'],
+				},
+				'/v2/kitchens',
+			);
+
+			const data = {title: 'Title', type: 'type'};
+			expect(POST_KITCHENS.fetchParams(data)).to.be.eql([
+				'/v2/kitchens',
+				{
+					body: JSON.stringify(data),
+					cache: 'no-cache',
+					credentials: 'same-origin',
+					headers: {
+						Accept: 'application/json',
+						'Content-Type': 'application/json',
+					},
+					method: Method.POST,
+					redirect: 'follow',
+					referrerPolicy: 'no-referrer',
+				},
+			]);
+		});
+
+		it('Имитация использования в fetch методе', () => {
+			const mockFetch1 = chai.spy<string, RequestInit, any>(() => ({}));
+			const GET_KITCHENS = new Route<{page: number; limit: number}>(
+				{
+					method: Method.GET,
+					requiredParams: ['page', 'limit'],
+				},
+				'/v2/kitchens',
+			);
+			mockFetch1(...GET_KITCHENS.fetchParams({limit: 12, page: 4}));
+			expect(mockFetch1).to.have.been.called.with(
+				'/v2/kitchens?limit=12&page=4',
+			);
+		});
+	});
 });

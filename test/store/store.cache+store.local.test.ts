@@ -182,30 +182,12 @@ describe('StoreWeb src/store.web.ts + фактическое indexed.db хран
 	describe('subscribe - подписка на изменения', () => {
 		it('первый подписчик получает текущие данные', async () => {
 			await storeWeb.subscribe('auth', subscriber1, persistStore);
-			expect(subscriber1)
-				.to.nth(0)
-				.have.been.called.with({
-					data: {},
-					loadingStatus: {
-						error: undefined,
-						isLoaded: false,
-						isLoading: false,
-					},
-				});
+			expect(subscriber1).to.nth(0).have.been.called.once;
 		});
 
 		it('второй подписчик получает текущие данные', async () => {
 			await storeWeb.subscribe('auth', subscriber2, persistStore);
-			expect(subscriber2)
-				.to.nth(0)
-				.have.been.called.with({
-					data: {},
-					loadingStatus: {
-						error: undefined,
-						isLoaded: false,
-						isLoading: false,
-					},
-				});
+			expect(subscriber2).to.nth(0).have.been.called.once;
 		});
 
 		it('после добавления второго подписчика ссылка на первого осталась прежней', () => {

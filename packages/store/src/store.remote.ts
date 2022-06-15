@@ -1,10 +1,11 @@
-import {Method, ResBase, Route} from '@storng/common';
+import {ResBase, Route} from '@storng/common';
 
 import {FetchType} from './types';
 
 export class StoreRemote {
 	private readonly prefix: string;
 	private readonly apiFetch: FetchType;
+
 	constructor(apiFetch: FetchType, prefix = '') {
 		this.apiFetch = apiFetch;
 		this.prefix = prefix;
@@ -13,27 +14,15 @@ export class StoreRemote {
 	// private requestsQueue: Array<Route>;
 
 	public async fetch(
-		route: Route<any>,
+		route: Route<any, any>,
 		data?: Record<string, any>,
-	): Promise<ResBase> {
+	): Promise<
+		typeof Route extends Route<infer Req, infer Res>
+			? ResBase<Res, Req>
+			: ResBase
+	> {
 		try {
-			const request = route.request(data);
-			const res = await this.apiFetch(
-				this.prefix +
-					(request.method === Method.GET ? route.to(data) : request.url),
-				{
-					body: request.body ? JSON.stringify(request.body) : undefined,
-					cache: 'no-cache',
-					credentials: 'same-origin',
-					headers: {
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					},
-					method: request.method,
-					redirect: 'follow',
-					referrerPolicy: 'no-referrer',
-				},
-			);
+			const res = await this.apiFetch(...route.fetchParams(data, this.prefix));
 			return await res.json();
 		} catch (err) {
 			return err;

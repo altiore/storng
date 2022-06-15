@@ -135,6 +135,32 @@ export class Route<
 		return req;
 	}
 
+	fetchParams(
+		data?: Req,
+		prefix = '',
+		requestInit?: Partial<RequestInit>,
+	): [string, RequestInit] {
+		const request = this.request(data);
+
+		return [
+			prefix + (request.method === Method.GET ? this.to(data) : request.url),
+			{
+				body: request.body ? JSON.stringify(request.body) : undefined,
+				cache: 'no-cache',
+				credentials: 'same-origin',
+				method: request.method,
+				redirect: 'follow',
+				referrerPolicy: 'no-referrer',
+				...(requestInit || {}),
+				headers: {
+					Accept: 'application/json',
+					'Content-Type': 'application/json',
+					...(requestInit?.headers || {}),
+				},
+			},
+		];
+	}
+
 	response(
 		ok: boolean,
 		payload?: string | Record<string, any> | Array<ResError>,
