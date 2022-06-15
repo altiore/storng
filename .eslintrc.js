@@ -38,7 +38,7 @@ module.exports = {
 				'group-ordering': [
 					{match: '^react', name: 'react', order: 10},
 					{
-						match: '^lodash|^enzyme|^sinon',
+						match: '^lodash|^enzyme|^sinon|^idb',
 						name: 'external libraries',
 						order: 30,
 					},
