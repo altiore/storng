@@ -37,7 +37,7 @@ export default function (config: WholeConfig) {
 
 		// Concurrency level
 		// how many browser instances should be started simultaneously
-		concurrency: 1,
+		concurrency: Infinity,
 
 		// list of files / patterns to exclude
 		exclude: [],

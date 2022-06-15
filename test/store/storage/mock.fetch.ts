@@ -1,4 +1,4 @@
-const successFetchJson = chai.spy(
+const successFetchJson = chai.spy<Promise<any>>(
 	() =>
 		new Promise((resolve) => {
 			resolve({
@@ -8,11 +8,15 @@ const successFetchJson = chai.spy(
 		}),
 );
 
-export const mockSuccessItemFetch = chai.spy(
+export const mockSuccessItemFetch = chai.spy<
+	string,
+	RequestInit,
+	Promise<Response>
+>(
 	() =>
 		new Promise((resolve) => {
 			resolve({
 				json: successFetchJson,
-			});
+			} as any);
 		}),
 );
