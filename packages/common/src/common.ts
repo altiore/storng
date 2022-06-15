@@ -286,3 +286,17 @@ export type RequestFunc<T extends Route<any, any>> = T extends Route<
 >
 	? (data: Req) => Promise<Res>
 	: unknown;
+
+export type RouteReq<T extends Route<any, any>> = T extends Route<
+	infer Req,
+	any
+>
+	? Req
+	: unknown;
+
+export type RouteRes<T extends Route<any, any>> = T extends Route<
+	any,
+	infer Res
+>
+	? Promise<Res>
+	: unknown;
