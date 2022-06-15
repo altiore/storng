@@ -199,14 +199,17 @@ export class Route<
 	}
 }
 
-type ScopeConf<T extends Record<string, RouteConf>> = {
+type ScopeConf<T extends Record<string, RouteConf>, NameType extends string> = {
 	BASE: string;
-	NAME: string;
+	NAME: NameType;
 	URL: T;
 };
 
-export class Scope<T extends Record<string, RouteConf>> {
-	constructor(conf: ScopeConf<T>) {
+export class Scope<
+	T extends Record<string, RouteConf>,
+	NameType extends string,
+> {
+	constructor(conf: ScopeConf<T, NameType>) {
 		this.BASE = conf.BASE;
 		this.NAME = conf.NAME;
 
@@ -215,10 +218,10 @@ export class Scope<T extends Record<string, RouteConf>> {
 		});
 	}
 
-	public readonly NAME: string;
+	public readonly NAME: keyof T;
 	public readonly BASE: string;
 
-	toString(): string {
+	toString(): keyof T {
 		return this.NAME;
 	}
 }
@@ -228,14 +231,15 @@ export type GetScopeConf<T extends Record<string, Route>> = {
 		? RouteConf<Req>
 		: RouteConf<any>;
 };
-export type GetScope<T extends Record<string, Route<any, any>>> = Scope<
-	GetScopeConf<T>
-> &
-	{[P in keyof T]: T[P]};
+export type GetScope<
+	T extends Record<string, Route<any, any>>,
+	NameType extends string = string,
+> = Scope<GetScopeConf<T>, NameType> & {[P in keyof T]: T[P]};
 
-export function RouteScope<T extends Record<string, Route<any, any>>>(
-	conf: ScopeConf<GetScopeConf<T>>,
-): GetScope<T> {
+export function RouteScope<
+	T extends Record<string, Route<any, any>>,
+	NameType extends string = string,
+>(conf: ScopeConf<GetScopeConf<T>, NameType>): GetScope<T> {
 	return new Scope(conf) as GetScope<T>;
 }
 
