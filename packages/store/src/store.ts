@@ -13,6 +13,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 		version: number,
 		entityKeyNames: KeyNames<StoreStructure<T>>,
 		customFetch: FetchType,
+		prefix = '',
 	) {
 		this.cache = new StoreCache<T>(name);
 		this.local = new StoreLocal<StoreStructure<T>>(
@@ -20,6 +21,6 @@ export class Store<T extends Record<string, T[keyof T]>> {
 			version,
 			entityKeyNames,
 		);
-		this.remote = new StoreRemote(customFetch);
+		this.remote = new StoreRemote(customFetch, prefix);
 	}
 }
