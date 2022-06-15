@@ -199,7 +199,10 @@ export class Route<
 	}
 }
 
-type ScopeConf<T extends Record<string, RouteConf>, NameType extends string> = {
+type ScopeConf<
+	T extends Record<string, RouteConf>,
+	NameType extends string | number | symbol,
+> = {
 	BASE: string;
 	NAME: NameType;
 	URL: T;
@@ -207,7 +210,7 @@ type ScopeConf<T extends Record<string, RouteConf>, NameType extends string> = {
 
 export class Scope<
 	T extends Record<string, RouteConf>,
-	NameType extends string,
+	NameType extends string | number | symbol,
 > {
 	constructor(conf: ScopeConf<T, NameType>) {
 		this.BASE = conf.BASE;
@@ -218,10 +221,10 @@ export class Scope<
 		});
 	}
 
-	public readonly NAME: keyof T;
+	public readonly NAME: NameType;
 	public readonly BASE: string;
 
-	toString(): keyof T {
+	toString(): NameType {
 		return this.NAME;
 	}
 }
@@ -233,14 +236,14 @@ export type GetScopeConf<T extends Record<string, Route>> = {
 };
 export type GetScope<
 	T extends Record<string, Route<any, any>>,
-	NameType extends string = string,
+	NameType extends string | number | symbol = string,
 > = Scope<GetScopeConf<T>, NameType> & {[P in keyof T]: T[P]};
 
 export function RouteScope<
 	T extends Record<string, Route<any, any>>,
-	NameType extends string = string,
->(conf: ScopeConf<GetScopeConf<T>, NameType>): GetScope<T> {
-	return new Scope(conf) as GetScope<T>;
+	NameType extends string | number | symbol = string,
+>(conf: ScopeConf<GetScopeConf<T>, NameType>): GetScope<T, NameType> {
+	return new Scope(conf) as GetScope<T, NameType>;
 }
 
 export class Paginated<T> {

@@ -8,7 +8,7 @@ export const syncObj = <
 	Routes extends Record<string, Route<any, any>> = any,
 >(
 	store: Store<StoreState>,
-	routeScope: GetScope<Routes>,
+	routeScope: GetScope<Routes, keyof StoreState>,
 	routeScopeHandlers: {
 		[P in keyof Routes]: RemoteHandlers<StoreState[keyof StoreState]>;
 	},

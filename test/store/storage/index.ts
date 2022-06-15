@@ -2,18 +2,15 @@ import {GetScope, Route} from '@storng/common';
 import {RemoteHandlers, Store, SyncObjectType, syncObj} from '@storng/store';
 
 import {mockSuccessItemFetch} from './mock.fetch';
-
-export type StoreState = {
-	auth: {accessToken: string};
-};
+import {StoreType} from './store.type';
 
 const STORAGE_NAME = 'PREPARED_NAME';
 
-const store = new Store<StoreState>(
+const store = new Store<StoreType>(
 	STORAGE_NAME,
 	1,
 	{
-		auth: 'id',
+		auth_public: 'id',
 	},
 	mockSuccessItemFetch,
 );
@@ -21,13 +18,13 @@ const store = new Store<StoreState>(
 export const syncObject = <
 	Routes extends Record<string, Route<any, any>> = any,
 >(
-	routeScope: GetScope<Routes>,
+	routeScope: GetScope<Routes, keyof StoreType>,
 	routeScopeHandlers: {
-		[P in keyof Routes]: RemoteHandlers<StoreState[keyof StoreState]>;
+		[P in keyof Routes]: RemoteHandlers<StoreType[keyof StoreType]>;
 	},
-	initState?: StoreState[keyof StoreState],
+	initState?: StoreType[keyof StoreType],
 ): SyncObjectType<Routes> => {
-	return syncObj<StoreState, Routes>(
+	return syncObj<StoreType, Routes>(
 		store,
 		routeScope,
 		routeScopeHandlers,
