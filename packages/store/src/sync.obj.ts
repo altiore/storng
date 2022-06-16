@@ -137,6 +137,33 @@ syncObj.replace = {
 	}),
 } as RemoteHandlers;
 
+syncObj.remove = {
+	request: (s): LoadedItem<any> => ({
+		data: s.data,
+		loadingStatus: {
+			...s.loadingStatus,
+			isLoading: true,
+		},
+	}),
+	success: (): LoadedItem<any> => ({
+		data: {},
+		loadingStatus: {
+			error: undefined,
+			isLoaded: false,
+			isLoading: false,
+		},
+	}),
+	// eslint-disable-next-line sort-keys
+	failure: (s, _, res: ErrorRes | InfoRes): LoadedItem<any> => ({
+		data: s.data,
+		loadingStatus: {
+			...s.loadingStatus,
+			error: (res as InfoRes)?.message ?? (res as ErrorRes).errors,
+			isLoading: false,
+		},
+	}),
+} as RemoteHandlers;
+
 syncObj.nothing = {
 	request: (s): LoadedItem<any> => {
 		return {
