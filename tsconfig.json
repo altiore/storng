@@ -18,7 +18,9 @@
 			"@storng/common": ["./packages/common"],
 			"@storng/store": ["./packages/store"],
 			"@storng/store/*": ["./packages/store/*"]
-		}
+		},
+
+		"typeRoots": ["types", "node_modules/@types"]
 	},
 	"include": ["packages/**/*", "test/**/*"],
 	"exclude": [

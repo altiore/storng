@@ -207,7 +207,7 @@ describe('common.ts', () => {
 		});
 
 		it('Имитация использования в fetch методе', () => {
-			const mockFetch1 = chai.spy<string, RequestInit, any>(() => ({}));
+			const mockFetch1 = sinon.spy();
 			const GET_KITCHENS = new Route<{page: number; limit: number}>(
 				{
 					method: Method.GET,
@@ -216,7 +216,7 @@ describe('common.ts', () => {
 				'/v2/kitchens',
 			);
 			mockFetch1(...GET_KITCHENS.fetchParams({limit: 12, page: 4}));
-			expect(mockFetch1).to.have.been.called.with(
+			expect(mockFetch1).to.have.been.calledWith(
 				'/v2/kitchens?limit=12&page=4',
 			);
 		});

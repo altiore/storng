@@ -2,6 +2,7 @@ const path = require('path');
 
 module.exports = {
 	module: {
+		noParse: [/\/sinon\.js/],
 		rules: [
 			{
 				exclude: /node_modules/,
@@ -46,6 +47,7 @@ module.exports = {
 		extensions: ['.tsx', '.ts', '.js', '.jsx'],
 		modules: ['./node_modules'],
 		alias: {
+			sinon: 'sinon/pkg/sinon',
 			'@storng/common': `${path.join(__dirname, '/packages/common')}`,
 			'@storng/store': `${path.join(__dirname, '/packages/store')}`,
 		},

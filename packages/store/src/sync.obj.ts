@@ -1,7 +1,12 @@
 import {DataRes, ErrorRes, GetScope, InfoRes, Route} from '@storng/common';
 
 import {Store} from './store';
-import {LoadedItem, RemoteHandlers, SyncObjectType} from './types';
+import {
+	LoadedItem,
+	RemoteHandlers,
+	SubscriberType,
+	SyncObjectType,
+} from './types';
 
 export const syncObj = <
 	StoreState extends Record<string, StoreState[keyof StoreState]>,
@@ -20,16 +25,15 @@ export const syncObj = <
 	store.cache.addItem(storeName, initData);
 
 	const res = {
-		select: async function (
-			subscriber: (state: LoadedItem<StoreState[keyof StoreState]>) => any,
-		) {
+		subscribe: async (
+			subscriber: SubscriberType<StoreState[keyof StoreState]>,
+		) => {
 			try {
 				await store.cache.subscribe(storeName, subscriber, persistStorage);
+				return async () => await store.cache.unsubscribe(storeName, subscriber);
 			} catch (err) {
 				console.error(err);
 			}
-
-			return () => store.cache.unsubscribe(storeName, subscriber);
 		},
 	};
 
@@ -77,67 +81,89 @@ export const syncObj = <
 };
 
 syncObj.update = {
-	request: (s) => ({
-		...s,
-		isLoading: true,
+	request: (s): LoadedItem<any> => ({
+		data: s.data,
+		loadingStatus: {
+			...s.loadingStatus,
+			isLoading: true,
+		},
 	}),
-	success: (s, _, res: DataRes) => ({
-		...s,
+	success: (s, _, res: DataRes): LoadedItem<any> => ({
 		data: {
 			...s.data,
 			...res.data,
 		},
-		error: undefined,
-		isLoaded: true,
-		isLoading: false,
+		loadingStatus: {
+			error: undefined,
+			isLoaded: true,
+			isLoading: false,
+		},
 	}),
 	// eslint-disable-next-line sort-keys
-	failure: (s, _, res: ErrorRes | InfoRes) => ({
-		...s,
-		error: (res as InfoRes)?.message ?? (res as ErrorRes).errors,
-		isLoading: false,
+	failure: (s, _, res: ErrorRes | InfoRes): LoadedItem<any> => ({
+		data: s.data,
+		loadingStatus: {
+			...s.loadingStatus,
+			error: (res as InfoRes)?.message ?? (res as ErrorRes).errors,
+			isLoading: false,
+		},
 	}),
 } as RemoteHandlers;
 
 syncObj.replace = {
-	request: (s) => ({
-		...s,
-		isLoading: true,
+	request: (s): LoadedItem<any> => ({
+		data: s.data,
+		loadingStatus: {
+			...s.loadingStatus,
+			isLoading: true,
+		},
 	}),
-	success: (s, _, res: DataRes) => ({
-		...s,
+	success: (s, _, res: DataRes): LoadedItem<any> => ({
 		data: res.data,
-		error: undefined,
-		isLoaded: true,
-		isLoading: false,
+		loadingStatus: {
+			error: undefined,
+			isLoaded: true,
+			isLoading: false,
+		},
 	}),
 	// eslint-disable-next-line sort-keys
-	failure: (s, _, res: ErrorRes | InfoRes) => ({
-		...s,
-		error: (res as InfoRes)?.message ?? (res as ErrorRes).errors,
-		isLoading: false,
+	failure: (s, _, res: ErrorRes | InfoRes): LoadedItem<any> => ({
+		data: s.data,
+		loadingStatus: {
+			...s.loadingStatus,
+			error: (res as InfoRes)?.message ?? (res as ErrorRes).errors,
+			isLoading: false,
+		},
 	}),
 } as RemoteHandlers;
 
 syncObj.nothing = {
-	request: (s) => {
+	request: (s): LoadedItem<any> => {
 		return {
-			...s,
-			isLoading: true,
+			data: s.data,
+			loadingStatus: {
+				...s.loadingStatus,
+				isLoading: true,
+			},
 		};
 	},
-	success: (s) => {
+	success: (s): LoadedItem<any> => {
 		return {
-			...s,
-			error: undefined,
-			isLoading: false,
+			data: s.data,
+			loadingStatus: {
+				...s.loadingStatus,
+				error: undefined,
+				isLoading: false,
+			},
 		};
 	},
 	// eslint-disable-next-line sort-keys
-	failure: (s, _, res: ErrorRes | InfoRes) => ({
-		...s,
-		error: (res as InfoRes)?.message ?? (res as ErrorRes)?.errors,
-		isLoaded: false,
-		isLoading: false,
+	failure: (s, _, res: ErrorRes | InfoRes): LoadedItem<any> => ({
+		data: s.data,
+		loadingStatus: {
+			error: (res as InfoRes)?.message ?? (res as ErrorRes)?.errors,
+			isLoaded: false,
+			isLoading: false,
+		},
 	}),
 } as RemoteHandlers;

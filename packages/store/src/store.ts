@@ -23,4 +23,8 @@ export class Store<T extends Record<string, T[keyof T]>> {
 		);
 		this.remote = new StoreRemote(customFetch, prefix);
 	}
+
+	async remove(name?: string): Promise<void> {
+		await this.local.deleteStorage(name);
+	}
 }

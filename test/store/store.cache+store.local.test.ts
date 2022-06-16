@@ -13,8 +13,8 @@ const STORE_NAME = 'STORE_CACHE_AND_LOCAL';
 
 const storeWeb = new StoreCache<StoreType>(STORE_NAME);
 
-const subscriber1 = chai.spy();
-const subscriber2 = chai.spy();
+const subscriber1 = sinon.spy();
+const subscriber2 = sinon.spy();
 
 const persistStore: PersistStore<StoreType> = new StoreLocal<
 	StoreStructure<StoreType>
@@ -182,12 +182,12 @@ describe('StoreWeb src/store.web.ts + фактическое indexed.db хран
 	describe('subscribe - подписка на изменения', () => {
 		it('первый подписчик получает текущие данные', async () => {
 			await storeWeb.subscribe('auth', subscriber1, persistStore);
-			expect(subscriber1).to.nth(0).have.been.called.once;
+			expect(subscriber1).to.nth(0).have.been.calledOnce;
 		});
 
 		it('второй подписчик получает текущие данные', async () => {
 			await storeWeb.subscribe('auth', subscriber2, persistStore);
-			expect(subscriber2).to.nth(0).have.been.called.once;
+			expect(subscriber2).to.nth(0).have.been.calledOnce;
 		});
 
 		it('после добавления второго подписчика ссылка на первого осталась прежней', () => {
@@ -214,30 +214,8 @@ describe('StoreWeb src/store.web.ts + фактическое indexed.db хран
 			});
 		it('После обновления данных, мы видим новые данные у первого подписчика', async () => {
 			await storeWeb.updateData('auth', updater, persistStore);
-			expect(subscriber1)
-				.to.nth(2)
-				.have.been.called.with({
-					data: {
-						id: 'my-id',
-					},
-					loadingStatus: {
-						error: undefined,
-						isLoaded: true,
-						isLoading: true,
-					},
-				});
-			expect(subscriber2)
-				.to.nth(2)
-				.have.been.called.with({
-					data: {
-						id: 'my-id',
-					},
-					loadingStatus: {
-						error: undefined,
-						isLoaded: true,
-						isLoading: true,
-					},
-				});
+			expect(subscriber1).to.nth(2).have.been.calledWith(sinon.match.func);
+			expect(subscriber2).to.nth(2).have.been.calledWith(sinon.match.func);
 		});
 	});
 
@@ -261,18 +239,7 @@ describe('StoreWeb src/store.web.ts + фактическое indexed.db хран
 		it('восстанавливаем данные по ключу auth', async () => {
 			await storeWeb.subscribe('auth', subscriber1, persistStore);
 
-			expect(subscriber1)
-				.to.nth(3)
-				.have.been.called.with({
-					data: {
-						id: 'my-id',
-					},
-					loadingStatus: {
-						error: undefined,
-						isLoaded: true,
-						isLoading: true,
-					},
-				});
+			expect(subscriber1).to.nth(3).have.been.calledWith(sinon.match.func);
 		});
 	});
 });

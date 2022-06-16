@@ -2,7 +2,7 @@ const successFetchJson = chai.spy<Promise<any>>(
 	() =>
 		new Promise((resolve) => {
 			resolve({
-				data: {id: 'my-id'},
+				data: {accessToken: 'accessToken'},
 				ok: true,
 			});
 		}),

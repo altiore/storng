@@ -4,6 +4,7 @@
 /coverage
 /dist
 /test-not-active
+/types
 /node_modules
 /packages/**/*.js
 /packages/**/*.d.ts

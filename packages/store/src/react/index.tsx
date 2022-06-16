@@ -1,6 +1,8 @@
 import React, {JSXElementConstructor} from 'react';
 
-type GetSelector<T> = Record<string, T>;
+import {LoadedItem, MaybeRemoteData} from '@storng/store';
+
+import {getLoading} from './func-data/maybe-remote.data';
 
 type GetState<T> = {
 	[P in keyof T]: T extends Record<string, infer ValType> ? ValType : never;
@@ -15,20 +17,32 @@ type GetProps<WrappedComponent, T> = Omit<
 
 export const connect = function <T extends Record<string, any>>(
 	WrappedComponent: JSXElementConstructor<any>,
-	selectors: {[P in keyof T]: GetSelector<T[P]>},
+	selectors: {
+		[P in keyof T]: (
+			subscriber: (state: MaybeRemoteData<LoadedItem<any>>) => void,
+		) => Promise<() => Promise<void>>;
+	},
 ): React.ComponentClass<GetProps<typeof WrappedComponent, T>, GetState<T>> {
 	type ConnectProps = GetProps<typeof WrappedComponent, T>;
 	type ConnectState = GetState<T>;
 
 	return class ConnectHOC extends React.Component<ConnectProps, ConnectState> {
-		subscribers: any[];
+		subscribers: Array<() => any> = [];
 
-		public componentDidMount() {
-			this.subscribers = Object.entries(selectors).map(
-				([propName, subscribe]) => {
-					return subscribe(this.setLoadedObjectProps.bind(this, propName));
-				},
-			);
+		state: any = Object.keys(selectors).reduce((res, cur) => {
+			res[cur] = getLoading();
+			return res;
+		}, {});
+
+		public constructor(props) {
+			super(props);
+
+			Object.entries(selectors).map(([propName, subscribe]) => {
+				const subscriber = this.setLoadedObjectProps.bind(this, propName);
+				subscribe(subscriber).then((unsubscribe) => {
+					this.subscribers.push(unsubscribe);
+				});
+			});
 		}
 
 		public componentWillUnmount() {

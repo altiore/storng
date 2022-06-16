@@ -10,11 +10,11 @@ type StoreType = {
 
 const storeWeb = new StoreCache<StoreType>('storng');
 
-const subscriber1 = chai.spy();
-const subscriber2 = chai.spy();
+const subscriber1 = sinon.spy();
+const subscriber2 = sinon.spy();
 
-const getItem = chai.spy();
-const setItem = chai.spy();
+const getItem = sinon.spy();
+const setItem = sinon.spy();
 
 const persistStore: any = {
 	getItem,
@@ -175,26 +175,12 @@ describe('StoreWeb src/store.web.ts', () => {
 	describe('subscribe - подписка на изменения', () => {
 		it('первый подписчик получает текущие данные', async () => {
 			await storeWeb.subscribe('auth', subscriber1, persistStore);
-			expect(subscriber1).to.have.been.called.with({
-				data: {},
-				loadingStatus: {
-					error: undefined,
-					isLoaded: false,
-					isLoading: false,
-				},
-			});
+			expect(subscriber1).to.have.been.calledWith(sinon.match.func);
 		});
 
 		it('второй подписчик получает текущие данные', async () => {
 			await storeWeb.subscribe('auth', subscriber2, persistStore);
-			expect(subscriber2).to.have.been.called.with({
-				data: {},
-				loadingStatus: {
-					error: undefined,
-					isLoaded: false,
-					isLoading: false,
-				},
-			});
+			expect(subscriber2).to.have.been.calledWith(sinon.match.func);
 		});
 
 		it('после добавления второго подписчика ссылка на первого осталась прежней', () => {
@@ -221,30 +207,8 @@ describe('StoreWeb src/store.web.ts', () => {
 			});
 		it('После обновления данных, мы видим новые данные у первого подписчика', async () => {
 			await storeWeb.updateData('auth', updater, persistStore);
-			expect(subscriber1)
-				.to.nth(2)
-				.called.with({
-					data: {
-						id: 'my-id',
-					},
-					loadingStatus: {
-						error: undefined,
-						isLoaded: true,
-						isLoading: true,
-					},
-				});
-			expect(subscriber2)
-				.to.nth(2)
-				.called.with({
-					data: {
-						id: 'my-id',
-					},
-					loadingStatus: {
-						error: undefined,
-						isLoaded: true,
-						isLoading: true,
-					},
-				});
+			expect(subscriber1).to.nth(2).calledWith(sinon.match.func);
+			expect(subscriber2).to.nth(2).calledWith(sinon.match.func);
 		});
 	});
 
@@ -262,7 +226,7 @@ describe('StoreWeb src/store.web.ts', () => {
 			// @ts-ignore
 			expect(storeWeb.getData('auth')).to.be.undefined;
 
-			expect(setItem).to.have.been.called.with('auth', {
+			expect(setItem).to.have.been.calledWith('auth', {
 				data: {
 					id: 'my-id',
 				},

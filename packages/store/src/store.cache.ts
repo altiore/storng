@@ -1,4 +1,11 @@
-import {LoadedItem, LoadedList, PersistStore, StructureType} from './types';
+import {getObjFunc} from './react/get.func-data';
+import {
+	LoadedItem,
+	LoadedList,
+	MaybeRemoteData,
+	PersistStore,
+	StructureType,
+} from './types';
 
 type ObjKey<T extends Record<string, T[keyof T]>> = {
 	type: StructureType;
@@ -8,7 +15,7 @@ type ObjKey<T extends Record<string, T[keyof T]>> = {
 
 type DataAndSubs<T extends Record<keyof T, T[keyof T]>> = {
 	data: LoadedItem<T[keyof T]>;
-	subscribers: Array<(val: LoadedItem<T[keyof T]>) => void>;
+	subscribers: Array<(val: MaybeRemoteData<LoadedItem<T[keyof T]>>) => void>;
 	persistStore: PersistStore<T>;
 };
 
@@ -47,7 +54,7 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 	private setData(
 		key: keyof T,
 		data: LoadedItem<T[keyof T]>,
-		subscribers: Array<(val: LoadedItem<T[keyof T]>) => void>,
+		subscribers: Array<(val: MaybeRemoteData<LoadedItem<T[keyof T]>>) => void>,
 		persistStore: PersistStore<T>,
 	): void {
 		this.weakStore.set(this.getDataKey(key), {
@@ -119,17 +126,16 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 
 	public async subscribe(
 		key: keyof T,
-		subscriber: (value: LoadedItem<T[keyof T]>) => void,
+		subscriber: (value: MaybeRemoteData<LoadedItem<T[keyof T]>>) => void,
 		persistStore: PersistStore<T>,
 	): Promise<void> {
 		if (this.hasData(key)) {
 			const curData = this.getData(key);
 			curData.subscribers.push(subscriber);
-			subscriber(curData.data);
+			subscriber(getObjFunc<LoadedItem<T[keyof T]>>(curData.data));
 		} else {
 			// 1. Восстанавливаем данные
 			let data = await persistStore.getItem(key);
-
 			if (typeof data === 'undefined') {
 				// 2. Если не удалось восстановить, создаем новые из начальных значений
 				const keyData = this.getDataKey(key);
@@ -137,13 +143,13 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 			}
 
 			this.setData(key, data, [subscriber], persistStore);
-			subscriber(data);
+			subscriber(getObjFunc<LoadedItem<T[keyof T]>>(data));
 		}
 	}
 
 	public async unsubscribe(
 		key: keyof T,
-		subscriber: (value: LoadedItem<T[keyof T]>) => void,
+		subscriber: (value: MaybeRemoteData<LoadedItem<T[keyof T]>>) => void,
 	): Promise<void> {
 		if (this.hasData(key)) {
 			const curData = this.getData(key);
@@ -173,7 +179,9 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 
 			this.setData(key, newData, curData.subscribers, curData.persistStore);
 			// Разослать данные всем подписчикам
-			curData.subscribers.forEach((subscriber) => subscriber(newData));
+			curData.subscribers.forEach((subscriber) =>
+				subscriber(getObjFunc<LoadedItem<T[keyof T]>>(newData)),
+			);
 		} else {
 			const prevData = await persistStore.getItem(key);
 			const dataKey = this.getDataKey(key);

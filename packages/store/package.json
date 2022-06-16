@@ -28,6 +28,7 @@
 		"@storng/common": "^1.5.1"
 	},
 	"dependencies": {
-		"idb": "7.0.1"
+		"idb": "7.0.1",
+		"memoize-one": "6.0.0"
 	}
 }

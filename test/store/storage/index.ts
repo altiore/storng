@@ -4,20 +4,24 @@ import {RemoteHandlers, Store, SyncObjectType, syncObj} from '@storng/store';
 import {mockSuccessItemFetch} from './mock.fetch';
 import {StoreType} from './store.type';
 
-const STORAGE_NAME = 'PREPARED_NAME';
+export let store: Store<StoreType>;
 
-const store = new Store<StoreType>(
-	STORAGE_NAME,
-	1,
-	{
-		auth_public: 'id',
-	},
-	mockSuccessItemFetch,
-);
+const getStore = (name) => {
+	store = new Store<StoreType>(
+		name,
+		1,
+		{
+			auth_public: 'id',
+		},
+		mockSuccessItemFetch,
+	);
+	return store;
+};
 
 export const syncObject = <
 	Routes extends Record<string, Route<any, any>> = any,
 >(
+	storeName: string,
 	routeScope: GetScope<Routes, keyof StoreType>,
 	routeScopeHandlers: {
 		[P in keyof Routes]: RemoteHandlers<StoreType[keyof StoreType]>;
@@ -25,7 +29,7 @@ export const syncObject = <
 	initState?: StoreType[keyof StoreType],
 ): SyncObjectType<Routes> => {
 	return syncObj<StoreType, Routes>(
-		store,
+		getStore(storeName),
 		routeScope,
 		routeScopeHandlers,
 		initState,

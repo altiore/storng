@@ -44,13 +44,13 @@ export type StoreStructure<StoreType> = {
 	};
 };
 
+export type SubscriberType<T> = (state: MaybeRemoteData<LoadedItem<T>>) => any;
+
 export type SyncObjectType<
 	Routes extends Record<string, Route<any, any>> = any,
 	Item extends Record<string, any> = Record<string, any>,
 > = {[P in keyof Routes]: RequestFunc<Routes[P]>} & {
-	select: (
-		subscriber: (state: LoadedItem<Item>) => any,
-	) => Promise<() => Promise<void>>;
+	subscribe: (subscriber: SubscriberType<Item>) => Promise<() => Promise<void>>;
 };
 
 export type RemoteHandlers<Data extends Record<string, any> = any> = {
@@ -72,3 +72,18 @@ export type RemoteHandlers<Data extends Record<string, any> = any> = {
 };
 
 export type FetchType = (url: string, init: RequestInit) => Promise<Response>;
+
+export type MaybeRemoteData<
+	A extends Record<string, any>,
+	E extends {error?: any; message: string} = {error?: any; message: string},
+> = <R = null>(mapping: {
+	correct: ((a: {data: A}) => R) | R;
+	nothing: (() => R) | R;
+	failure: ((a: {data?: A | null; error: E}) => R) | R;
+	loading: ((a: {data?: A | null}) => R) | R;
+}) => R;
+
+export type IsOrNo = <R = null>(mapping: {
+	is: (() => R) | R;
+	no: (() => R) | R;
+}) => R;

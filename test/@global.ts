@@ -2,6 +2,8 @@ import ReactDOM from 'react-dom';
 
 import {expect as chaiExpect} from 'chai';
 import spies from 'chai-spies';
+import * as Sinon from 'sinon';
+import sinonChai from 'sinon-chai';
 
 type ActType = (cb: (render: typeof ReactDOM.render) => void) => Promise<void>;
 type WaitType = (seconds: number) => Promise<void>;
@@ -11,6 +13,7 @@ declare global {
 	export const act: ActType;
 	export const getRoot: () => HTMLDivElement;
 	export const wait: WaitType;
+	export const sinon: typeof Sinon;
 }
 
 const act: ActType = (cb) =>
@@ -43,7 +46,9 @@ const wait = (seconds: number) =>
 	new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
 chai.use(spies);
+chai.use(sinonChai);
 
 (global as any).act = act;
 (global as any).getRoot = getRoot;
 (global as any).wait = wait;
+(global as any).sinon = Sinon;

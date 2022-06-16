@@ -133,8 +133,8 @@ export class StoreLocal<StoreState extends DBSchema> {
 		return await db.delete(storeName, key ?? (storeName as any));
 	}
 
-	async deleteStorage(): Promise<void> {
-		return await deleteDB(this.name);
+	async deleteStorage(name?: string): Promise<void> {
+		return await deleteDB(name ?? this.name);
 	}
 
 	simpleStorage<StoreType>(): PersistStore<StoreType> {
