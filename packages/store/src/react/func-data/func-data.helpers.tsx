@@ -1,4 +1,4 @@
-import React, {cloneElement, createElement, isValidElement} from 'react';
+import React, {cloneElement, isValidElement} from 'react';
 
 function isClassComponent(component: any) {
 	return (
@@ -20,10 +20,6 @@ function isReactComponent(component: any) {
 	return isClassComponent(component) || isFunctionComponent(component);
 }
 
-const CC = ({func, args = {}}: any) => {
-	return createElement(func as any, args || {}) as any;
-};
-
 function localRunFunc(func: any, args?: Record<string, any>): any {
 	if (!func) {
 		return null;
@@ -33,7 +29,8 @@ function localRunFunc(func: any, args?: Record<string, any>): any {
 	}
 	if (isReactComponent(func)) {
 		// Такая структура нужна, чтоб не было ошибки с измененным порядком хуков
-		return <CC func={func} args={args} />;
+		const MyComponent = func;
+		return <MyComponent {...(args || {})} />;
 	}
 
 	if (typeof func === 'function') {
