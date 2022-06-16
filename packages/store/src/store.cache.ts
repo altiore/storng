@@ -90,6 +90,26 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 		// TODO: возможно, здесь лучше использовать обычный Map
 		this.weakStore = new WeakMap() as WeakStore<T>;
 		this.structure = new Map();
+
+		if (window?.onbeforeunload) {
+			window.onbeforeunload = this.beforeUnload.bind(this);
+		}
+	}
+
+	async beforeUnload() {
+		const promises = [];
+		this.structure.forEach((val, key) => {
+			const curData = this.getData(key);
+
+			console.log('beforeUnload', {
+				key,
+				val,
+			});
+			if (curData) {
+				promises.push(curData.persistStore.setItem(key, curData.data));
+			}
+		});
+		await Promise.all(promises);
 	}
 
 	public addItem(key: keyof T, initData: Partial<T[keyof T]> = {}): void {
