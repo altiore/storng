@@ -28,7 +28,10 @@ function localRunFunc(func: any, args?: Record<string, any>): any {
 		return cloneElement(func as any) as any;
 	}
 	if (isReactComponent(func)) {
-		return createElement(func as any, args || {}) as any;
+		// Такая структура нужна, чтоб не было ошибки с измененным порядком хуков
+		return ((props) => <>{createElement(func as any, props || {}) as any}</>)(
+			args,
+		);
 	}
 
 	if (typeof func === 'function') {
