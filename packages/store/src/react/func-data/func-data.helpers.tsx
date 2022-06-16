@@ -20,6 +20,10 @@ function isReactComponent(component: any) {
 	return isClassComponent(component) || isFunctionComponent(component);
 }
 
+const CC = ({func, args = {}}: any) => {
+	return createElement(func as any, args || {}) as any;
+};
+
 function localRunFunc(func: any, args?: Record<string, any>): any {
 	if (!func) {
 		return null;
@@ -29,9 +33,7 @@ function localRunFunc(func: any, args?: Record<string, any>): any {
 	}
 	if (isReactComponent(func)) {
 		// Такая структура нужна, чтоб не было ошибки с измененным порядком хуков
-		return ((props) => <>{createElement(func as any, props || {}) as any}</>)(
-			args,
-		);
+		return <CC func={func} args={args} />;
 	}
 
 	if (typeof func === 'function') {
