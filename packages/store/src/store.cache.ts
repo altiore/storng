@@ -124,6 +124,26 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 	//   });
 	// }
 
+	public async getDataAsync(
+		key: keyof T,
+		persistStore: PersistStore<T>,
+	): Promise<LoadedItem<T[keyof T]>> {
+		if (this.hasData(key)) {
+			const curData = this.getData(key);
+			return curData.data;
+		} else {
+			// 1. Восстанавливаем данные
+			let data = await persistStore.getItem(key);
+			if (typeof data === 'undefined') {
+				// 2. Если не удалось восстановить, создаем новые из начальных значений
+				const keyData = this.getDataKey(key);
+				data = keyData.initData;
+			}
+
+			return data;
+		}
+	}
+
 	public async subscribe(
 		key: keyof T,
 		subscriber: (value: MaybeRemoteData<LoadedItem<T[keyof T]>>) => void,

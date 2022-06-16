@@ -46,7 +46,9 @@ export const syncObj = <
 				persistStorage,
 			);
 			try {
-				const resData = await store.remote.fetch(route, data);
+				const getAuth = async () =>
+					await store.cache.getDataAsync('auth', persistStorage);
+				const resData = await store.remote.fetch(route, data, getAuth);
 				if (resData?.ok) {
 					await store.cache.updateData(
 						storeName,

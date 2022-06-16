@@ -15,6 +15,12 @@ export class StoreRemote {
 
 	public async fetch(
 		route: Route<any, any>,
+		getAuth: () => Promise<
+			| {accessToken: string; refreshToken}
+			| null
+			| undefined
+			| Record<string, never>
+		>,
 		data?: Record<string, any>,
 	): Promise<
 		typeof Route extends Route<infer Req, infer Res>
@@ -22,7 +28,27 @@ export class StoreRemote {
 			: ResBase
 	> {
 		try {
-			const res = await this.apiFetch(...route.fetchParams(data, this.prefix));
+			let authData: any;
+			if (route.private) {
+				authData = await getAuth();
+				if (!(authData as any)?.accessToken) {
+					// TODO: logout
+					return {
+						message: 'Информация об авторизации была удалена',
+						ok: false,
+					};
+				}
+			}
+			const res = await this.apiFetch(
+				...route.fetchParams(data, this.prefix, {
+					headers: route.private
+						? {
+								Authorization: `bearer ${authData?.accessToken}`,
+						  }
+						: {},
+				}),
+			);
+
 			return await res.json();
 		} catch (err) {
 			return err;
