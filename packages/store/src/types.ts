@@ -47,15 +47,13 @@ export type StoreStructure<StoreType> = {
 export type SubscriberType<T> = (state: MaybeRemoteData<LoadedItem<T>>) => any;
 
 export type SubsObj<Item> = {
-	subscribe: (subscriber: SubscriberType<Item>) => Promise<() => Promise<void>>;
+	subscribe: (subscriber: SubscriberType<Item>) => Promise<() => void>;
 };
 
 export type SyncObjectType<
 	Routes extends Record<string, Route<any, any>> = any,
 	Item extends Record<string, any> = Record<string, any>,
-> = {[P in keyof Routes]: RequestFunc<Routes[P]>} & {
-	subscribe: (subscriber: SubscriberType<Item>) => Promise<() => Promise<void>>;
-};
+> = {[P in keyof Routes]: RequestFunc<Routes[P]>} & SubsObj<Item>;
 
 export type RemoteHandlers<Data extends Record<string, any> = any> = {
 	request: (

@@ -225,17 +225,6 @@ describe('StoreWeb src/store.web.ts', () => {
 			expect(storeWeb.hasData('auth')).to.be.false;
 			// @ts-ignore
 			expect(storeWeb.getData('auth')).to.be.undefined;
-
-			expect(setItem).to.have.been.calledWith('auth', {
-				data: {
-					id: 'my-id',
-				},
-				loadingStatus: {
-					error: undefined,
-					isLoaded: true,
-					isLoading: true,
-				},
-			});
 		});
 	});
 });

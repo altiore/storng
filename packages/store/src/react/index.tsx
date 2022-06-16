@@ -27,7 +27,7 @@ export const connect = function <
 	Omit<ComponentProps<typeof WrappedComponent>, keyof typeof selectors>
 > {
 	return class ConnectHOC extends React.Component {
-		subscribers: Array<() => any> = [];
+		subscribers: Array<() => void> = [];
 
 		state: any = Object.keys(selectors).reduce<any>((res, cur) => {
 			res[cur] = getLoading();

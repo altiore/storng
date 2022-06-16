@@ -147,10 +147,10 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 		}
 	}
 
-	public async unsubscribe(
+	public unsubscribe(
 		key: keyof T,
 		subscriber: (value: MaybeRemoteData<LoadedItem<T[keyof T]>>) => void,
-	): Promise<void> {
+	): void {
 		if (this.hasData(key)) {
 			const curData = this.getData(key);
 
@@ -162,7 +162,6 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 			}
 
 			if (!curData.subscribers?.length) {
-				await curData.persistStore.setItem(key, curData.data);
 				this.deleteData(key);
 			}
 		}
