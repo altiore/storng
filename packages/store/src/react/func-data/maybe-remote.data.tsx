@@ -18,7 +18,7 @@ const getFailureBase =
 export const getFailure = memoize(getFailureBase) as typeof getFailureBase;
 
 const getLoadingBase =
-	<A,>(a: {data: A} = {data: undefined}): MaybeRemoteData<A> =>
+	<A,>(a: {data: A | undefined} = {data: undefined}): MaybeRemoteData<A> =>
 	({loading, failure}) => {
 		return runFunc(loading, a, failure);
 	};
