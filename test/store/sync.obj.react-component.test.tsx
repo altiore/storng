@@ -1,7 +1,7 @@
 import React from 'react';
 
 import {MaybeRemoteData} from '@storng/store';
-import {connect} from '@storng/store/src/react/index';
+import {connect} from '@storng/store/src/react';
 
 import {store} from './storage';
 import {auth as getAuth} from './storage/auth';

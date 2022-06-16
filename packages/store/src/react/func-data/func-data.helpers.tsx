@@ -20,7 +20,11 @@ function isReactComponent(component: any) {
 	return isClassComponent(component) || isFunctionComponent(component);
 }
 
-function localRunFunc(func: any, args?: Record<string, any>): any {
+const NoHooks = (WithHooksComponent: any) => (props: any) => {
+	return <WithHooksComponent {...props} />;
+};
+
+function localRunFunc(func: any, args: Record<string, any> = {}): any {
 	if (!func) {
 		return null;
 	}
@@ -28,14 +32,7 @@ function localRunFunc(func: any, args?: Record<string, any>): any {
 		return cloneElement(func as any) as any;
 	}
 	if (isReactComponent(func)) {
-		// Такая структура нужна, чтоб не было ошибки с измененным порядком хуков
-
-		const CC = ({args}: any) => {
-			const MyComponent = func;
-			return cloneElement(<MyComponent {...args} />);
-		};
-
-		return cloneElement(<CC args={args} />);
+		return NoHooks(func)(args || {});
 	}
 
 	if (typeof func === 'function') {
