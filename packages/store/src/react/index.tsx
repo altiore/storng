@@ -29,12 +29,12 @@ export const connect = function <
 	return class ConnectHOC extends React.Component {
 		subscribers: Array<() => any> = [];
 
-		state: any = Object.keys(selectors).reduce((res, cur) => {
+		state: any = Object.keys(selectors).reduce<any>((res, cur) => {
 			res[cur] = getLoading();
 			return res;
 		}, {});
 
-		public constructor(props) {
+		public constructor(props: ComponentProps<C>) {
 			super(props);
 
 			Object.entries(selectors).map(([propName, syncObj]) => {

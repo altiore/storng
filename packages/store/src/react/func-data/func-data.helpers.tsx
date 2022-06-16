@@ -20,10 +20,7 @@ function isReactComponent(component: any) {
 	return isClassComponent(component) || isFunctionComponent(component);
 }
 
-function localRunFunc<R = any, A = any>(
-	func: R | ((a: {data?: A}) => R),
-	args?: Record<string, any>,
-): any {
+function localRunFunc(func: any, args?: Record<string, any>): any {
 	if (!func) {
 		return null;
 	}
@@ -42,10 +39,12 @@ function localRunFunc<R = any, A = any>(
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export function runFunc<R = any, A = any>(
-	func: R | ((a: {data?: A}) => R),
+export function runFunc(
+	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+	func: any,
 	args?: Record<string, any>,
-	failure?: R | ((a: {data?: A}) => R),
+	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+	failure?: any,
 ): any {
 	try {
 		return localRunFunc(func, args);
