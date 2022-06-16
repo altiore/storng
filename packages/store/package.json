@@ -1,6 +1,6 @@
 {
 	"name": "@storng/store",
-	"version": "1.6.16",
+	"version": "1.7.0",
 	"description": "Storng web store with async requests",
 	"keywords": [
 		"store",
