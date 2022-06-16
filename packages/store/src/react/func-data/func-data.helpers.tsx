@@ -20,6 +20,11 @@ function isReactComponent(component: any) {
 	return isClassComponent(component) || isFunctionComponent(component);
 }
 
+const CC = ({args, func}: any) => {
+	const MyComponent = func;
+	return <MyComponent {...args} />;
+};
+
 function localRunFunc(func: any, args?: Record<string, any>): any {
 	if (!func) {
 		return null;
@@ -29,8 +34,8 @@ function localRunFunc(func: any, args?: Record<string, any>): any {
 	}
 	if (isReactComponent(func)) {
 		// Такая структура нужна, чтоб не было ошибки с измененным порядком хуков
-		const MyComponent = func;
-		return cloneElement(<MyComponent />, args || {});
+
+		return cloneElement(<CC />, {args, func});
 	}
 
 	if (typeof func === 'function') {
