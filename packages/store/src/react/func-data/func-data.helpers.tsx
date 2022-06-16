@@ -30,12 +30,12 @@ function localRunFunc(func: any, args?: Record<string, any>): any {
 	if (isReactComponent(func)) {
 		// Такая структура нужна, чтоб не было ошибки с измененным порядком хуков
 
-		const CC = (props) => {
+		const CC = ({args}: any) => {
 			const MyComponent = func;
-			return <MyComponent {...props} />;
+			return cloneElement(<MyComponent {...args} />);
 		};
 
-		return <CC {...(args || {})} />;
+		return cloneElement(<CC args={args} />);
 	}
 
 	if (typeof func === 'function') {
