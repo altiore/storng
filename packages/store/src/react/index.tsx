@@ -34,9 +34,7 @@ export const connect = function <
 			return res;
 		}, {});
 
-		public constructor(props: ComponentProps<C>) {
-			super(props);
-
+		public componentDidMount() {
 			Object.entries(selectors).map(([propName, syncObj]) => {
 				const subscriber = this.setLoadedObjectProps.bind(this, propName);
 				syncObj.subscribe(subscriber as any).then((unsubscribe) => {
