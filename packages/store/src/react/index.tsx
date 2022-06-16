@@ -1,32 +1,32 @@
-import React, {JSXElementConstructor} from 'react';
+import React, {ComponentProps, FC} from 'react';
 
-import {LoadedItem, MaybeRemoteData} from '@storng/store';
+import {LoadedItem, MaybeRemoteData, SubsObj} from '@storng/store';
 
 import {getLoading} from './func-data/maybe-remote.data';
 
-type GetState<T> = {
-	[P in keyof T]: T extends Record<string, infer ValType> ? ValType : never;
+type SelectorLift<S extends {[K in string]: SubsObj<any>}> = {
+	[Prop in keyof S]: S[Prop] extends SubsObj<infer Item>
+		? MaybeRemoteData<LoadedItem<Item>>
+		: never;
 };
 
-type GetProps<WrappedComponent, T> = Omit<
-	WrappedComponent extends JSXElementConstructor<infer ParentProps>
-		? ParentProps
-		: never,
-	keyof T
->;
+type ValidStateProps<
+	C extends FC<any>,
+	S extends {[K in string]: SubsObj<any>},
+> = ComponentProps<C> extends SelectorLift<S> ? S : never;
 
-export const connect = function <T extends Record<string, any>>(
-	WrappedComponent: JSXElementConstructor<any>,
-	selectors: {
-		[P in keyof T]: (
-			subscriber: (state: MaybeRemoteData<LoadedItem<any>>) => void,
-		) => Promise<() => Promise<void>>;
-	},
-): React.ComponentClass<GetProps<typeof WrappedComponent, T>, GetState<T>> {
-	type ConnectProps = GetProps<typeof WrappedComponent, T>;
-	type ConnectState = GetState<T>;
-
-	return class ConnectHOC extends React.Component<ConnectProps, ConnectState> {
+export const connect = function <
+	C extends FC<any>,
+	S extends {
+		[K in string]: SubsObj<any>;
+	} = {[K in string]: SubsObj<any>},
+>(
+	WrappedComponent: C,
+	selectors: ValidStateProps<C, S>,
+): React.FC<
+	Omit<ComponentProps<typeof WrappedComponent>, keyof typeof selectors>
+> {
+	return class ConnectHOC extends React.Component {
 		subscribers: Array<() => any> = [];
 
 		state: any = Object.keys(selectors).reduce((res, cur) => {
@@ -37,9 +37,9 @@ export const connect = function <T extends Record<string, any>>(
 		public constructor(props) {
 			super(props);
 
-			Object.entries(selectors).map(([propName, subscribe]) => {
+			Object.entries(selectors).map(([propName, syncObj]) => {
 				const subscriber = this.setLoadedObjectProps.bind(this, propName);
-				subscribe(subscriber).then((unsubscribe) => {
+				syncObj.subscribe(subscriber as any).then((unsubscribe) => {
 					this.subscribers.push(unsubscribe);
 				});
 			});
@@ -49,7 +49,7 @@ export const connect = function <T extends Record<string, any>>(
 			this.subscribers.forEach((unsubscribe) => unsubscribe());
 		}
 
-		public setLoadedObjectProps(propName: keyof T, propValue: T[keyof T]) {
+		public setLoadedObjectProps(propName: keyof S, propValue: S[keyof S]) {
 			this.setState({
 				[propName]: propValue,
 			} as any);
@@ -58,5 +58,5 @@ export const connect = function <T extends Record<string, any>>(
 		public render() {
 			return <WrappedComponent {...this.state} {...this.props} />;
 		}
-	};
+	} as any;
 };

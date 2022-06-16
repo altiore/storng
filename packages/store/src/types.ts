@@ -46,6 +46,10 @@ export type StoreStructure<StoreType> = {
 
 export type SubscriberType<T> = (state: MaybeRemoteData<LoadedItem<T>>) => any;
 
+export type SubsObj<Item> = {
+	subscribe: (subscriber: SubscriberType<Item>) => Promise<() => Promise<void>>;
+};
+
 export type SyncObjectType<
 	Routes extends Record<string, Route<any, any>> = any,
 	Item extends Record<string, any> = Record<string, any>,

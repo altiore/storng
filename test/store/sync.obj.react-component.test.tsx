@@ -44,7 +44,7 @@ const STORE_NAME = 'sync.obj.react-component.test.tsx';
 const auth = getAuth(STORE_NAME);
 
 const Wrapped = connect(MyComponent, {
-	auth: auth.subscribe,
+	auth,
 });
 
 describe('sync.obj.ts Подписка на данные из syncObj - Как реакт компоненты с проверкой свойств', () => {

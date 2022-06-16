@@ -28,7 +28,7 @@ const STORE_NAME = 'sync.obj.inline-jsx.test.tsx';
 const auth = getAuth(STORE_NAME);
 
 const Wrapped = connect(MyComponent, {
-	auth: auth.subscribe,
+	auth,
 });
 
 describe('sync.obj.ts Подписка на данные из syncObj - просто JSX разметка без функции', () => {
