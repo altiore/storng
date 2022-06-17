@@ -1,6 +1,6 @@
 import {ResBase, Route} from '@storng/common';
 
-import {FetchType} from './types';
+import {FetchType, LoadedItem} from './types';
 
 export class StoreRemote {
 	private readonly prefix: string;
@@ -15,7 +15,7 @@ export class StoreRemote {
 
 	public async fetch(
 		route: Route<any, any>,
-		getAuth: () => Promise<
+		authData: LoadedItem<
 			| {accessToken: string; refreshToken}
 			| null
 			| undefined
@@ -28,10 +28,8 @@ export class StoreRemote {
 			: ResBase
 	> {
 		try {
-			let authData: any;
 			if (route.private) {
-				authData = await getAuth();
-				if (!(authData as any)?.accessToken) {
+				if (!authData.data?.accessToken) {
 					// TODO: logout
 					return {
 						message: 'Информация об авторизации была удалена',
@@ -42,13 +40,9 @@ export class StoreRemote {
 			const [url, init] = route.fetchParams(data, this.prefix, {
 				headers: route.private
 					? {
-							Authorization: `bearer ${authData?.accessToken}`,
+							Authorization: `bearer ${authData.data.accessToken}`,
 					  }
 					: {},
-			});
-			console.log('asdfasdf', {
-				initHeaders: init.headers,
-				url,
 			});
 			const res = await this.apiFetch(url, init);
 
