@@ -1,4 +1,4 @@
-const successFetchJson = chai.spy<Promise<any>>(
+const successFetchJson: any = sinon.spy(
 	() =>
 		new Promise((resolve) => {
 			resolve({
@@ -8,11 +8,7 @@ const successFetchJson = chai.spy<Promise<any>>(
 		}),
 );
 
-export const mockSuccessItemFetch = chai.spy<
-	string,
-	RequestInit,
-	Promise<Response>
->(
+export const mockSuccessItemFetch: any = sinon.spy(
 	() =>
 		new Promise((resolve) => {
 			resolve({

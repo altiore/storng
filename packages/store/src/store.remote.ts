@@ -39,15 +39,18 @@ export class StoreRemote {
 					};
 				}
 			}
-			const res = await this.apiFetch(
-				...route.fetchParams(data, this.prefix, {
-					headers: route.private
-						? {
-								Authorization: `bearer ${authData?.accessToken}`,
-						  }
-						: {},
-				}),
-			);
+			const [url, init] = route.fetchParams(data, this.prefix, {
+				headers: route.private
+					? {
+							Authorization: `bearer ${authData?.accessToken}`,
+					  }
+					: {},
+			});
+			console.log('asdfasdf', {
+				initHeaders: init.headers,
+				url,
+			});
+			const res = await this.apiFetch(url, init);
 
 			return await res.json();
 		} catch (err) {
