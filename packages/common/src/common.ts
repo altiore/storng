@@ -27,30 +27,35 @@ export interface RouteConf<
 export type ResError<
 	FormState extends Record<string, any> = Record<string, any>,
 > = {
-	value: FormState[keyof FormState];
-	property: string;
 	children?: Array<ResError<FormState[keyof FormState]>>;
 	constraints?: {[key in keyof FormState]: string};
+	property: string;
+	value: FormState[keyof FormState];
 };
 
 export interface DataRes<
 	Data extends Record<string, any> = Record<string, any>,
 > {
-	ok: boolean;
 	data: Data;
+	ok: boolean;
 }
 
 export interface InfoRes {
-	ok: boolean;
 	message?: string;
+	ok: boolean;
 }
 
 export interface ErrorRes<
 	FormState extends Record<string, any> = Record<string, any>,
 > {
-	ok: false;
 	errors: Array<ResError<FormState>>;
+	message?: string;
+	ok: false;
 }
+
+export type ErrorOrInfo<
+	FormState extends Record<string, any> = Record<string, any>,
+> = InfoRes | ErrorRes<FormState>;
 
 export type ResBase<
 	Data extends Record<string, any> = Record<string, any>,

@@ -1,12 +1,31 @@
-import {RequestFunc, ResBase, Route} from '@storng/common';
+import {
+	ErrorOrInfo,
+	RequestFunc,
+	ResBase,
+	ResError,
+	Route,
+} from '@storng/common';
 
-export interface LoadingStatus<Error = any> {
+export interface LoadingStatus<
+	Error extends ErrorOrInfo = {
+		errors?: Array<ResError>;
+		message?: string;
+		ok: boolean;
+	},
+> {
 	isLoading: boolean;
 	isLoaded: boolean;
 	error?: Error;
 }
 
-export interface LoadedItem<Item extends Record<string, any>, Error = any> {
+export interface LoadedItem<
+	Item extends Record<string, any>,
+	Error extends ErrorOrInfo = {
+		errors?: Array<ResError>;
+		message?: string;
+		ok: boolean;
+	},
+> {
 	data: Partial<Item>;
 
 	loadingStatus: LoadingStatus<Error>;
@@ -77,7 +96,11 @@ export type FetchType = (url: string, init: RequestInit) => Promise<Response>;
 
 export type MaybeRemoteData<
 	A extends Record<string, any>,
-	E extends {error?: any; message: string} = {error?: any; message: string},
+	E extends ErrorOrInfo = {
+		errors?: Array<ResError>;
+		message?: string;
+		ok: boolean;
+	},
 > = <R = null>(mapping: {
 	correct: ((a: {data: A}) => R) | R;
 	nothing: (() => R) | R;

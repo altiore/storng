@@ -1,5 +1,6 @@
 import memoize from 'memoize-one';
 
+import {ErrorOrInfo, ResError} from '@storng/common';
 import {MaybeRemoteData} from '@storng/store';
 
 import {runFunc} from './func-data.helpers';
@@ -7,7 +8,11 @@ import {runFunc} from './func-data.helpers';
 const getFailureBase =
 	<
 		A,
-		E extends {error?: any; message: string} = {error?: any; message: string},
+		E extends ErrorOrInfo = {
+			errors?: Array<ResError>;
+			message?: string;
+			ok: boolean;
+		},
 	>(a: {
 		data?: A;
 		error: E;

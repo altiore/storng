@@ -1,4 +1,4 @@
-import {DataRes, ErrorRes, GetScope, InfoRes, Route} from '@storng/common';
+import {DataRes, ErrorOrInfo, GetScope, Route} from '@storng/common';
 
 import {Store} from './store';
 import {
@@ -108,11 +108,11 @@ syncObj.update = {
 		},
 	}),
 	// eslint-disable-next-line sort-keys
-	failure: (s, _, res: ErrorRes | InfoRes): LoadedItem<any> => ({
+	failure: (s, _, res: ErrorOrInfo): LoadedItem<any> => ({
 		data: s.data,
 		loadingStatus: {
 			...s.loadingStatus,
-			error: (res as InfoRes)?.message ?? (res as ErrorRes).errors,
+			error: res,
 			isLoading: false,
 		},
 	}),
@@ -135,11 +135,11 @@ syncObj.replace = {
 		},
 	}),
 	// eslint-disable-next-line sort-keys
-	failure: (s, _, res: ErrorRes | InfoRes): LoadedItem<any> => ({
+	failure: (s, _, res: ErrorOrInfo): LoadedItem<any> => ({
 		data: s.data,
 		loadingStatus: {
 			...s.loadingStatus,
-			error: (res as InfoRes)?.message ?? (res as ErrorRes).errors,
+			error: res,
 			isLoading: false,
 		},
 	}),
@@ -162,11 +162,11 @@ syncObj.remove = {
 		},
 	}),
 	// eslint-disable-next-line sort-keys
-	failure: (s, _, res: ErrorRes | InfoRes): LoadedItem<any> => ({
+	failure: (s, _, res: ErrorOrInfo): LoadedItem<any> => ({
 		data: s.data,
 		loadingStatus: {
 			...s.loadingStatus,
-			error: (res as InfoRes)?.message ?? (res as ErrorRes).errors,
+			error: res,
 			isLoading: false,
 		},
 	}),
@@ -193,10 +193,10 @@ syncObj.nothing = {
 		};
 	},
 	// eslint-disable-next-line sort-keys
-	failure: (s, _, res: ErrorRes | InfoRes): LoadedItem<any> => ({
+	failure: (s, _, res: ErrorOrInfo): LoadedItem<any> => ({
 		data: s.data,
 		loadingStatus: {
-			error: (res as InfoRes)?.message ?? (res as ErrorRes)?.errors,
+			error: res,
 			isLoaded: false,
 			isLoading: false,
 		},

@@ -75,10 +75,7 @@ export const getObjFunc = <A extends LoadedItem<any>>(
 	if (s.loadingStatus.error) {
 		return getFailure<A['data']>({
 			data: s.data,
-			error: {
-				error: s.loadingStatus.error,
-				message: String(s.loadingStatus.error),
-			},
+			error: s.loadingStatus.error,
 		});
 	}
 
