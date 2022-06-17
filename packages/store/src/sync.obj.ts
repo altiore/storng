@@ -18,6 +18,7 @@ export const syncObj = <
 		[P in keyof Routes]: RemoteHandlers<StoreState[keyof StoreState]>;
 	},
 	initData?: Partial<StoreState[keyof StoreState]>,
+	authStorage?: keyof StoreState,
 ): SyncObjectType<Routes, StoreState[keyof StoreState]> => {
 	const storeName = routeScope.NAME;
 	const persistStorage = store.local.simpleStorage();
@@ -46,7 +47,13 @@ export const syncObj = <
 				persistStorage,
 			);
 			try {
-				const authData = await store.cache.getDataAsync('auth', persistStorage);
+				let authData = {data: {}} as any;
+				if (authStorage) {
+					authData = await store.cache.getDataAsync(
+						authStorage,
+						persistStorage,
+					);
+				}
 				const resData = await store.remote.fetch(route, authData, data);
 				if (resData?.ok) {
 					await store.cache.updateData(

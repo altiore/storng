@@ -5,17 +5,17 @@ import {mockSuccessItemFetch} from './storage/mock.fetch';
 
 const remote = new StoreRemote(mockSuccessItemFetch);
 
-const getAuth = sinon.spy(() =>
-	Promise.resolve({
+const authData = {
+	data: {
 		accessToken: 'accessToken1',
-	}),
-);
+	},
+};
 
 describe('StoreRemote src/store.remote.ts', () => {
 	describe('fetch with NOT private route', () => {
 		it('fetch with simplest route', async () => {
 			const r = new Route({method: Method.GET, path: '/route'}, '/base');
-			await remote.fetch(r, getAuth as any);
+			await remote.fetch(r, authData as any);
 
 			expect(mockSuccessItemFetch).to.have.been.calledWith('/base/route', {
 				body: undefined,
@@ -38,7 +38,7 @@ describe('StoreRemote src/store.remote.ts', () => {
 				{method: Method.POST, path: '/route', private: true},
 				'/base',
 			);
-			await remote.fetch(r, getAuth as any, {id: 'my-id'});
+			await remote.fetch(r, authData as any, {id: 'my-id'});
 
 			expect(mockSuccessItemFetch).to.have.been.calledWith('/base/route', {
 				body: JSON.stringify({id: 'my-id'}),
