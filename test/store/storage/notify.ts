@@ -3,7 +3,11 @@ import {SyncObjectType} from '@storng/store';
 import {syncObject} from './index';
 import {StoreType} from './store.type';
 
-type Actions = 'deepMerge' | 'clear' | 'shift';
+type Actions = {
+	clear: undefined;
+	deepMerge: Partial<StoreType['notify']>;
+	send: number;
+};
 
 export const notify = (
 	name: string,
@@ -14,12 +18,12 @@ export const notify = (
 		{
 			clear: syncObject.remove,
 			deepMerge: syncObject.deepMerge,
-			shift: syncObject.custom<StoreType['notify'], {test: string}>(
-				(state, data) => ({
-					messages: state.messages.slice(0, state.messages.length - 1),
-					open: state.open && Boolean(data.test),
-				}),
-			),
+			send: syncObject.custom<StoreType['notify'], number>((state, data) => {
+				return {
+					messages: Array.from(Array(data).keys()),
+					open: state.open,
+				};
+			}),
 		},
 		{messages: [], open: false},
 	);

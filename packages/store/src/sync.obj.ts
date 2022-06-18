@@ -59,13 +59,13 @@ export const syncObj = <
 	StoreState extends Record<string, StoreState[keyof StoreState]>,
 	Key extends keyof StoreState = keyof StoreState,
 	Routes extends Record<string, Route<any, any>> = Record<string, never>,
-	OtherRoutes extends string = never,
+	OtherRoutes extends Record<string, any> = Record<string, never>,
 >(
 	store: Store<StoreState>,
 	scope: GetScope<Routes, Key> | Key,
 	scopeHandlers: ScopeHandlers<StoreState, Key, Routes, OtherRoutes>,
 	initData?: Partial<StoreState[Key]>,
-	authStorage?: keyof StoreState,
+	persistData?: boolean,
 ): SyncObjectType<Routes, StoreState[Key], OtherRoutes> => {
 	const storeName: Key =
 		typeof scope === 'object' ? (scope.NAME as Key) : scope;
@@ -95,9 +95,9 @@ export const syncObj = <
 				);
 				try {
 					let authData = {data: {}} as any;
-					if (authStorage) {
+					if (store.authStorage) {
 						authData = await store.cache.getDataAsync(
-							authStorage,
+							store.authStorage,
 							persistStorage,
 						);
 					}
@@ -128,7 +128,13 @@ export const syncObj = <
 				await store.cache.updateData(
 					storeName,
 					successHandler(handler, req, initData),
-					persistStorage,
+					(
+						typeof persistData === 'undefined'
+							? Boolean(typeof scope === 'string')
+							: persistData
+					)
+						? persistStorage
+						: undefined,
 				);
 			}
 		};

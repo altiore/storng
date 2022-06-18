@@ -1,5 +1,5 @@
 import {GetScope, Route} from '@storng/common';
-import {RemoteHandlers, Store, SyncObjectType, syncObj} from '@storng/store';
+import {ScopeHandlers, Store, SyncObjectType, syncObj} from '@storng/store';
 
 import {mockSuccessItemFetch} from './mock.fetch';
 import {StoreType} from './store.type';
@@ -22,23 +22,17 @@ const getStore = (name) => {
 export const syncObject = <
 	Key extends keyof StoreType = keyof StoreType,
 	Routes extends Record<string, Route<any, any>> = Record<string, never>,
-	OtherRoutes extends string = never,
+	OtherRoutes extends Record<string, any> = Record<string, never>,
 >(
 	storeName: string,
-	routeScope: GetScope<Routes, Key> | Key,
-	routeScopeHandlers: {
-		[P in keyof Routes]: RemoteHandlers<
-			StoreType[Key],
-			Routes[P] extends Route<infer Req> ? Req : never
-		>;
-	} &
-		{[P in OtherRoutes]: RemoteHandlers<StoreType[Key]>},
+	scope: GetScope<Routes, Key> | Key,
+	scopeHandlers: ScopeHandlers<StoreType, Key, Routes, OtherRoutes>,
 	initState?: StoreType[Key],
 ): SyncObjectType<Routes, StoreType[Key], OtherRoutes> => {
 	return syncObj<StoreType, Key, Routes, OtherRoutes>(
 		getStore(storeName),
-		routeScope,
-		routeScopeHandlers,
+		scope,
+		scopeHandlers,
 		initState,
 	);
 };

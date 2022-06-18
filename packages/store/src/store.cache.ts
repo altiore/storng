@@ -190,7 +190,7 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 	public async updateData(
 		key: keyof T,
 		getData: (data: LoadedItem<T[keyof T]>) => LoadedItem<T[keyof T]>,
-		persistStore: PersistStore<T>,
+		persistStore?: PersistStore<T>,
 	): Promise<void> {
 		if (this.hasData(key)) {
 			const curData = this.getData(key);
@@ -202,14 +202,19 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 				subscriber(getObjFunc<LoadedItem<T[keyof T]>>(newData)),
 			);
 
-			await persistStore.setItem(key, getData(newData));
+			if (persistStore) {
+				await persistStore.setItem(key, getData(newData));
+			}
 		} else {
-			const prevData = await persistStore.getItem(key);
-			const dataKey = this.getDataKey(key);
-			await persistStore.setItem(
-				key,
-				getData(prevData?.data || dataKey.initData),
-			);
+			if (persistStore) {
+				const prevData = await persistStore.getItem(key);
+				const dataKey = this.getDataKey(key);
+
+				await persistStore.setItem(
+					key,
+					getData(prevData?.data || dataKey.initData),
+				);
+			}
 		}
 	}
 }

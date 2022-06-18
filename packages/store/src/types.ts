@@ -73,13 +73,21 @@ export type SubsObj<Item> = {
 export type SyncObjectType<
 	Routes extends Record<string, Route<any, any>> = Record<string, never>,
 	Item extends Record<string, any> = Record<string, any>,
-	OtherRoutes extends string = string,
+	OtherRoutes extends Record<string, any> = Record<string, never>,
 > = (Routes extends Record<string, never>
-	? {[P in OtherRoutes]: (data?: Partial<Item>) => Promise<void>}
+	? {
+			[P in keyof OtherRoutes]: OtherRoutes[P] extends undefined
+				? () => Promise<void>
+				: (data: OtherRoutes[P]) => Promise<void>;
+	  }
 	: {
-			[P in keyof Routes | OtherRoutes]: P extends keyof Routes
+			[P in keyof Routes | keyof OtherRoutes]: P extends keyof Routes
 				? RequestFunc<Routes[P]>
-				: (data?: Partial<Item>) => Promise<void>;
+				: P extends keyof OtherRoutes
+				? OtherRoutes[P] extends undefined
+					? () => Promise<void>
+					: (data: OtherRoutes[P]) => Promise<void>
+				: never;
 	  }) &
 	SubsObj<Item>;
 
@@ -94,7 +102,7 @@ export type LocalHandler<
 
 export type RemoteHandlers<
 	Data extends Record<string, any> = Record<string, any>,
-	Req extends Record<string, any> = Record<string, any>,
+	Req extends any = any,
 > = {
 	request: LocalHandler<Data, {route: Route<Req, ResBase<Data>>; req: Req}>;
 	success: LocalHandler<
@@ -111,14 +119,14 @@ export type ScopeHandlers<
 	StoreState extends Record<string, StoreState[keyof StoreState]>,
 	Key extends keyof StoreState = keyof StoreState,
 	Routes extends Record<string, Route<any, any>> = Record<string, never>,
-	OtherRoutes extends string = never,
+	OtherRoutes extends Record<string, any> = Record<string, never>,
 > = {
 	[P in keyof Routes]: RemoteHandlers<
 		StoreState[Key],
 		Routes[P] extends Route<infer Req> ? Req : never
 	>;
 } &
-	{[P in OtherRoutes]: RemoteHandlers<StoreState[Key]>};
+	{[P in keyof OtherRoutes]: RemoteHandlers<StoreState[Key], OtherRoutes[P]>};
 
 export type FetchType = (url: string, init: RequestInit) => Promise<Response>;
 

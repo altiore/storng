@@ -8,12 +8,15 @@ export class Store<T extends Record<string, T[keyof T]>> {
 	public local: StoreLocal<StoreStructure<T>>;
 	public remote: StoreRemote;
 
+	public authStorage?: keyof T;
+
 	constructor(
 		name: string,
 		version: number,
 		entityKeyNames: KeyNames<StoreStructure<T>>,
 		customFetch: FetchType,
 		prefix = '',
+		authStorage?: keyof T,
 	) {
 		this.cache = new StoreCache<T>(name);
 		this.local = new StoreLocal<StoreStructure<T>>(
@@ -22,6 +25,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 			entityKeyNames,
 		);
 		this.remote = new StoreRemote(customFetch, prefix);
+		this.authStorage = authStorage;
 	}
 
 	async remove(name?: string): Promise<void> {
