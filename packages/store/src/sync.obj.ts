@@ -53,6 +53,8 @@ const catchFailureHandler = (handler, initData, err) => (state) =>
 		err?.ok === false ? err : {message: String(err), ok: false},
 	);
 
+const nothingHandler = (s) => s;
+
 export const syncObj = <
 	StoreState extends Record<string, StoreState[keyof StoreState]>,
 	Key extends keyof StoreState = keyof StoreState,
@@ -308,3 +310,15 @@ syncObj.deepMerge = {
 		},
 	}),
 } as RemoteHandlers;
+
+syncObj.custom = <T>(cb: (a: T) => T): RemoteHandlers => ({
+	request: nothingHandler,
+	success: (s: LoadedItem<T>): LoadedItem<T> => {
+		return {
+			data: cb(s.data as T),
+			loadingStatus: s.loadingStatus,
+		};
+	},
+	// eslint-disable-next-line sort-keys
+	failure: nothingHandler,
+});

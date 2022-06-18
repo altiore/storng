@@ -48,3 +48,4 @@ syncObject.replace = syncObj.replace;
 syncObject.nothing = syncObj.nothing;
 syncObject.remove = syncObj.remove;
 syncObject.deepMerge = syncObj.deepMerge;
+syncObject.custom = syncObj.custom;

@@ -3,7 +3,7 @@ import {SyncObjectType} from '@storng/store';
 import {syncObject} from './index';
 import {StoreType} from './store.type';
 
-type Actions = 'deepMerge' | 'clear';
+type Actions = 'deepMerge' | 'clear' | 'shift';
 
 export const notify = (
 	name: string,
@@ -14,6 +14,10 @@ export const notify = (
 		{
 			clear: syncObject.remove,
 			deepMerge: syncObject.deepMerge,
+			shift: syncObject.custom<StoreType['notify']>((state) => ({
+				messages: state.messages.slice(0, state.messages.length - 1),
+				open: state.open,
+			})),
 		},
 		{messages: [], open: false},
 	);
