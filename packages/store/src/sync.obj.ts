@@ -65,7 +65,8 @@ export const syncObj = <
 	initData?: Partial<StoreState[Key]>,
 	authStorage?: Key,
 ): SyncObjectType<Routes, StoreState[Key], OtherRoutes> => {
-	const storeName: Key = typeof scope === 'object' ? scope.NAME : scope;
+	const storeName: Key =
+		typeof scope === 'object' ? (scope.NAME as Key) : scope;
 	const persistStorage = store.local.simpleStorage();
 
 	store.cache.addItem(storeName, initData);

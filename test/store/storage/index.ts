@@ -20,7 +20,7 @@ const getStore = (name) => {
 };
 
 export const syncObject = <
-	Key extends keyof StoreType,
+	Key extends keyof StoreType = keyof StoreType,
 	Routes extends Record<string, Route<any, any>> = Record<string, never>,
 	OtherRoutes extends string = never,
 >(
