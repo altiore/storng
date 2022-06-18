@@ -4,6 +4,7 @@ import {Store} from './store';
 import {
 	LoadedItem,
 	RemoteHandlers,
+	ScopeHandlers,
 	SubscriberType,
 	SyncObjectType,
 } from './types';
@@ -58,19 +59,13 @@ export const syncObj = <
 	OtherRoutes extends string = never,
 >(
 	store: Store<StoreState>,
-	routeScope: GetScope<Routes, keyof StoreState> | keyof StoreState,
-	routeScopeHandlers: {
-		[P in keyof Routes]: RemoteHandlers<
-			StoreState[keyof StoreState],
-			Routes[P] extends Route<infer Req> ? Req : never
-		>;
-	} &
-		{[P in OtherRoutes]: RemoteHandlers<StoreState[keyof StoreState]>},
+	scope: GetScope<Routes, keyof StoreState> | keyof StoreState,
+	scopeHandlers: ScopeHandlers<StoreState, Routes, OtherRoutes>,
 	initData?: Partial<StoreState[keyof StoreState]>,
 	authStorage?: keyof StoreState,
 ): SyncObjectType<Routes, StoreState[keyof StoreState], OtherRoutes> => {
 	const storeName: keyof StoreState =
-		typeof routeScope === 'object' ? routeScope.NAME : routeScope;
+		typeof scope === 'object' ? scope.NAME : scope;
 	const persistStorage = store.local.simpleStorage();
 
 	store.cache.addItem(storeName, initData);
@@ -88,10 +83,10 @@ export const syncObj = <
 		},
 	};
 
-	Object.entries(routeScopeHandlers).forEach(([handlerName, handler]) => {
+	Object.entries(scopeHandlers).forEach(([handlerName, handler]) => {
 		(result as any)[handlerName] = async (req) => {
-			if (typeof routeScope === 'object' && routeScope[handlerName]) {
-				const route = routeScope[handlerName];
+			if (typeof scope === 'object' && scope[handlerName]) {
+				const route = scope[handlerName];
 				await store.cache.updateData(
 					storeName,
 					requestHandler(handler, req, initData, route),

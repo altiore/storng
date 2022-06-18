@@ -107,6 +107,18 @@ export type RemoteHandlers<
 	>;
 };
 
+export type ScopeHandlers<
+	StoreState extends Record<string, StoreState[keyof StoreState]>,
+	Routes extends Record<string, Route<any, any>> = Record<string, never>,
+	OtherRoutes extends string = never,
+> = {
+	[P in keyof Routes]: RemoteHandlers<
+		StoreState[keyof StoreState],
+		Routes[P] extends Route<infer Req> ? Req : never
+	>;
+} &
+	{[P in OtherRoutes]: RemoteHandlers<StoreState[keyof StoreState]>};
+
 export type FetchType = (url: string, init: RequestInit) => Promise<Response>;
 
 export type MaybeRemoteData<
