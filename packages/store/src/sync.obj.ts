@@ -63,7 +63,7 @@ export const syncObj = <
 	scope: GetScope<Routes, Key> | Key,
 	scopeHandlers: ScopeHandlers<StoreState, Key, Routes, OtherRoutes>,
 	initData?: Partial<StoreState[Key]>,
-	authStorage?: Key,
+	authStorage?: keyof StoreState,
 ): SyncObjectType<Routes, StoreState[Key], OtherRoutes> => {
 	const storeName: Key =
 		typeof scope === 'object' ? (scope.NAME as Key) : scope;
