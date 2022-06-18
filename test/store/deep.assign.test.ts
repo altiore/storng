@@ -22,4 +22,19 @@ describe('deepAssign', () => {
 			isLoading: false,
 		});
 	});
+
+	it('с массивом', () => {
+		const a = {
+			data: [{id: 1}],
+			isLoaded: false,
+			isLoading: false,
+		};
+		const res = deepAssign(a, {data: [{id: 2}]});
+		expect(res).to.be.not.eql(a);
+		expect(res).to.be.eql({
+			data: [{id: 1}, {id: 2}],
+			isLoaded: false,
+			isLoading: false,
+		});
+	});
 });

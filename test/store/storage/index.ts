@@ -12,6 +12,7 @@ const getStore = (name) => {
 		1,
 		{
 			auth_public: 'id',
+			notify: 'id',
 		},
 		mockSuccessItemFetch,
 	);
@@ -19,16 +20,22 @@ const getStore = (name) => {
 };
 
 export const syncObject = <
-	Routes extends Record<string, Route<any, any>> = any,
+	Key extends keyof StoreType,
+	Routes extends Record<string, Route<any, any>> = Record<string, never>,
+	OtherRoutes extends string = never,
 >(
 	storeName: string,
-	routeScope: GetScope<Routes, keyof StoreType>,
+	routeScope: GetScope<Routes, keyof StoreType> | keyof StoreType,
 	routeScopeHandlers: {
-		[P in keyof Routes]: RemoteHandlers<StoreType[keyof StoreType]>;
-	},
+		[P in keyof Routes]: RemoteHandlers<
+			StoreType[keyof StoreType],
+			Routes[P] extends Route<infer Req> ? Req : never
+		>;
+	} &
+		{[P in OtherRoutes]: RemoteHandlers<StoreType[keyof StoreType]>},
 	initState?: StoreType[keyof StoreType],
-): SyncObjectType<Routes> => {
-	return syncObj<StoreType, Routes>(
+): SyncObjectType<Routes, StoreType[Key], OtherRoutes> => {
+	return syncObj<StoreType, Routes, OtherRoutes>(
 		getStore(storeName),
 		routeScope,
 		routeScopeHandlers,
@@ -39,3 +46,5 @@ export const syncObject = <
 syncObject.update = syncObj.update;
 syncObject.replace = syncObj.replace;
 syncObject.nothing = syncObj.nothing;
+syncObject.remove = syncObj.remove;
+syncObject.deepMerge = syncObj.deepMerge;

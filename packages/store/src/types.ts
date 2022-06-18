@@ -1,4 +1,5 @@
 import {
+	DataRes,
 	ErrorOrInfo,
 	RequestFunc,
 	ResBase,
@@ -70,26 +71,40 @@ export type SubsObj<Item> = {
 };
 
 export type SyncObjectType<
-	Routes extends Record<string, Route<any, any>> = any,
+	Routes extends Record<string, Route<any, any>> = Record<string, never>,
 	Item extends Record<string, any> = Record<string, any>,
-> = {[P in keyof Routes]: RequestFunc<Routes[P]>} & SubsObj<Item>;
+	OtherRoutes extends string = string,
+> = (Routes extends Record<string, never>
+	? {[P in OtherRoutes]: (data?: Partial<Item>) => Promise<void>}
+	: {
+			[P in keyof Routes | OtherRoutes]: P extends keyof Routes
+				? RequestFunc<Routes[P]>
+				: (data?: Partial<Item>) => Promise<void>;
+	  }) &
+	SubsObj<Item>;
 
-export type RemoteHandlers<Data extends Record<string, any> = any> = {
-	request: (
-		state: LoadedItem<Data>,
-		data: any,
-		route: Route,
-	) => LoadedItem<Data>;
-	success: (
-		state: LoadedItem<Data>,
-		data: any,
-		res: ResBase,
-	) => LoadedItem<Data>;
-	failure: (
-		state: LoadedItem<Data>,
-		data: any,
-		res: ResBase,
-	) => LoadedItem<Data>;
+export type LocalHandler<
+	Data extends Record<string, any> = Record<string, any>,
+	Remote = any,
+> = (
+	state: LoadedItem<Data>,
+	data: Partial<Data>,
+	remote?: Remote,
+) => LoadedItem<Data>;
+
+export type RemoteHandlers<
+	Data extends Record<string, any> = Record<string, any>,
+	Req extends Record<string, any> = Record<string, any>,
+> = {
+	request: LocalHandler<Data, {route: Route<Req, ResBase<Data>>; req: Req}>;
+	success: LocalHandler<
+		Data,
+		{route: Route<Req, ResBase<Data>>; res: DataRes<Data>}
+	>;
+	failure: LocalHandler<
+		Data,
+		{route?: Route<Req, ResBase<Data>>; res: ErrorOrInfo}
+	>;
 };
 
 export type FetchType = (url: string, init: RequestInit) => Promise<Response>;
