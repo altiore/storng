@@ -55,25 +55,23 @@ const catchFailureHandler = (handler, initData, err) => (state) =>
 
 export const syncObj = <
 	StoreState extends Record<string, StoreState[keyof StoreState]>,
+	Key extends keyof StoreState = keyof StoreState,
 	Routes extends Record<string, Route<any, any>> = Record<string, never>,
 	OtherRoutes extends string = never,
 >(
 	store: Store<StoreState>,
-	scope: GetScope<Routes, keyof StoreState> | keyof StoreState,
-	scopeHandlers: ScopeHandlers<StoreState, Routes, OtherRoutes>,
-	initData?: Partial<StoreState[keyof StoreState]>,
-	authStorage?: keyof StoreState,
-): SyncObjectType<Routes, StoreState[keyof StoreState], OtherRoutes> => {
-	const storeName: keyof StoreState =
-		typeof scope === 'object' ? scope.NAME : scope;
+	scope: GetScope<Routes, Key> | Key,
+	scopeHandlers: ScopeHandlers<StoreState, Key, Routes, OtherRoutes>,
+	initData?: Partial<StoreState[Key]>,
+	authStorage?: Key,
+): SyncObjectType<Routes, StoreState[Key], OtherRoutes> => {
+	const storeName: Key = typeof scope === 'object' ? scope.NAME : scope;
 	const persistStorage = store.local.simpleStorage();
 
 	store.cache.addItem(storeName, initData);
 
 	const result = {
-		subscribe: async (
-			subscriber: SubscriberType<StoreState[keyof StoreState]>,
-		) => {
+		subscribe: async (subscriber: SubscriberType<StoreState[Key]>) => {
 			try {
 				await store.cache.subscribe(storeName, subscriber, persistStorage);
 				return async () => await store.cache.unsubscribe(storeName, subscriber);
@@ -133,11 +131,7 @@ export const syncObj = <
 		};
 	});
 
-	return result as any as SyncObjectType<
-		Routes,
-		StoreState[keyof StoreState],
-		OtherRoutes
-	>;
+	return result as any as SyncObjectType<Routes, StoreState[Key], OtherRoutes>;
 };
 
 syncObj.update = {

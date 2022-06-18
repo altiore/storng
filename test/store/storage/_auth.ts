@@ -1,7 +1,5 @@
 import {Method, ResBase, Route, RouteScope} from '@storng/common';
 
-import {StoreType} from './store.type';
-
 export enum AuthType {
 	EMAIL = 'email',
 	PHONE = 'phone',
@@ -28,7 +26,7 @@ export type AuthUrls = {
 	registerConfirm: Route<IRegisterConfirm, ResBase<IAuth, IRegisterConfirm>>;
 };
 
-export const API_AUTH = RouteScope<AuthUrls, keyof StoreType>({
+export const API_AUTH = RouteScope<AuthUrls, 'auth_public'>({
 	BASE: '/auth',
 	NAME: 'auth_public',
 	URL: {

@@ -25,17 +25,17 @@ export const syncObject = <
 	OtherRoutes extends string = never,
 >(
 	storeName: string,
-	routeScope: GetScope<Routes, keyof StoreType> | keyof StoreType,
+	routeScope: GetScope<Routes, Key> | Key,
 	routeScopeHandlers: {
 		[P in keyof Routes]: RemoteHandlers<
-			StoreType[keyof StoreType],
+			StoreType[Key],
 			Routes[P] extends Route<infer Req> ? Req : never
 		>;
 	} &
-		{[P in OtherRoutes]: RemoteHandlers<StoreType[keyof StoreType]>},
-	initState?: StoreType[keyof StoreType],
+		{[P in OtherRoutes]: RemoteHandlers<StoreType[Key]>},
+	initState?: StoreType[Key],
 ): SyncObjectType<Routes, StoreType[Key], OtherRoutes> => {
-	return syncObj<StoreType, Routes, OtherRoutes>(
+	return syncObj<StoreType, Key, Routes, OtherRoutes>(
 		getStore(storeName),
 		routeScope,
 		routeScopeHandlers,
