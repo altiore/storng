@@ -14,10 +14,12 @@ export const notify = (
 		{
 			clear: syncObject.remove,
 			deepMerge: syncObject.deepMerge,
-			shift: syncObject.custom<StoreType['notify']>((state) => ({
-				messages: state.messages.slice(0, state.messages.length - 1),
-				open: state.open,
-			})),
+			shift: syncObject.custom<StoreType['notify'], {test: string}>(
+				(state, data) => ({
+					messages: state.messages.slice(0, state.messages.length - 1),
+					open: state.open && Boolean(data.test),
+				}),
+			),
 		},
 		{messages: [], open: false},
 	);

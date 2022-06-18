@@ -311,11 +311,11 @@ syncObj.deepMerge = {
 	}),
 } as RemoteHandlers;
 
-syncObj.custom = <T>(cb: (a: T) => T): RemoteHandlers => ({
+syncObj.custom = <T, D = any>(cb: (a: T, data?: D) => T): RemoteHandlers => ({
 	request: nothingHandler,
-	success: (s: LoadedItem<T>): LoadedItem<T> => {
+	success: (s: LoadedItem<T>, data): LoadedItem<T> => {
 		return {
-			data: cb(s.data as T),
+			data: cb(s.data as T, data as any),
 			loadingStatus: s.loadingStatus,
 		};
 	},
