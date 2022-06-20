@@ -1,8 +1,10 @@
 import {DataRes, ErrorOrInfo, GetScope, Route} from '@storng/common';
 
+import {getObjFunc} from './react/get.func-data';
 import {Store} from './store';
 import {
 	LoadedItem,
+	MaybeRemoteData,
 	RemoteHandlers,
 	ScopeHandlers,
 	SubscriberType,
@@ -46,6 +48,15 @@ const remoteFailureHandler = (handler, initData, resData, route) => (state) =>
 		route,
 	});
 
+const removeErrorHandler = (state) => ({
+	data: state.data,
+	loadingStatus: {
+		error: undefined,
+		isLoaded: Boolean(state?.loadingStatus?.isLoaded),
+		isLoading: false,
+	},
+});
+
 const catchFailureHandler = (handler, initData, err) => (state) =>
 	handler.failure(
 		state,
@@ -54,6 +65,21 @@ const catchFailureHandler = (handler, initData, err) => (state) =>
 	);
 
 const nothingHandler = (s) => s;
+const defRestorePreparation = (s: LoadedItem<any>) => {
+	if (typeof s?.loadingStatus?.isLoading === 'boolean') {
+		return {
+			data: {...s.data},
+			loadingStatus: {
+				error: undefined,
+				isLoaded: s.loadingStatus.isLoaded,
+				isLoading: false,
+			},
+		};
+	}
+
+	console.error('NO DATA >>>>>>', s);
+	return s;
+};
 
 export const syncObj = <
 	StoreState extends Record<string, StoreState[keyof StoreState]>,
@@ -66,6 +92,7 @@ export const syncObj = <
 	scopeHandlers: ScopeHandlers<StoreState, Key, Routes, OtherRoutes>,
 	initData?: Partial<StoreState[Key]>,
 	persistData?: boolean,
+	restorePreparation = defRestorePreparation,
 ): SyncObjectType<Routes, StoreState[Key], OtherRoutes> => {
 	const storeName: Key =
 		typeof scope === 'object' ? (scope.NAME as Key) : scope;
@@ -76,7 +103,15 @@ export const syncObj = <
 	const result = {
 		subscribe: async (subscriber: SubscriberType<StoreState[Key]>) => {
 			try {
-				await store.cache.subscribe(storeName, subscriber, persistStorage);
+				await store.cache.subscribe<
+					MaybeRemoteData<LoadedItem<StoreState[Key]>>
+				>(
+					storeName,
+					subscriber,
+					persistStorage,
+					getObjFunc,
+					restorePreparation,
+				);
 				return async () => await store.cache.unsubscribe(storeName, subscriber);
 			} catch (err) {
 				console.error(err);
@@ -86,48 +121,10 @@ export const syncObj = <
 
 	Object.entries(scopeHandlers).forEach(([handlerName, handler]) => {
 		(result as any)[handlerName] = async (req) => {
-			if (typeof scope === 'object' && scope[handlerName]) {
-				const route = scope[handlerName];
-				await store.cache.updateData(
+			const updater = async (handler) =>
+				store.cache.updateData(
 					storeName,
-					requestHandler(handler, req, initData, route),
-					persistStorage,
-				);
-				try {
-					let authData = {data: {}} as any;
-					if (store.authStorage) {
-						authData = await store.cache.getDataAsync(
-							store.authStorage,
-							persistStorage,
-						);
-					}
-					const resData = await store.remote.fetch(route, authData, req);
-					if (resData.ok) {
-						await store.cache.updateData(
-							storeName,
-							remoteSuccessHandler(handler, initData, resData, route),
-							persistStorage,
-						);
-					} else {
-						await store.cache.updateData(
-							storeName,
-							remoteFailureHandler(handler, initData, resData, route),
-							persistStorage,
-						);
-					}
-					return resData;
-				} catch (err) {
-					await store.cache.updateData(
-						storeName,
-						catchFailureHandler(handler, initData, err),
-						persistStorage,
-					);
-					return err;
-				}
-			} else {
-				await store.cache.updateData(
-					storeName,
-					successHandler(handler, req, initData),
+					handler,
 					(
 						typeof persistData === 'undefined'
 							? Boolean(typeof scope === 'string')
@@ -135,7 +132,47 @@ export const syncObj = <
 					)
 						? persistStorage
 						: undefined,
+					getObjFunc,
 				);
+
+			const isApiReq = Boolean(typeof scope === 'object' && scope[handlerName]);
+			if (isApiReq) {
+				let isError = false;
+				let actionResult: any;
+				const route = scope[handlerName];
+				await updater(requestHandler(handler, req, initData, route));
+				try {
+					const authData = await store.cache.getAuthData(
+						persistStorage,
+						store.authStorage,
+					);
+					const resData = await store.remote.fetch(route, authData, req);
+					if (resData.ok) {
+						await updater(
+							remoteSuccessHandler(handler, initData, resData, route),
+						);
+					} else {
+						await updater(
+							remoteFailureHandler(handler, initData, resData, route),
+						);
+						isError = true;
+					}
+					actionResult = resData;
+				} catch (err) {
+					await updater(catchFailureHandler(handler, initData, err));
+					actionResult = err;
+					isError = true;
+				} finally {
+					if (store.autoRemoveErrorIn && isError) {
+						// автоматически удалять ошибку через 15 секунд
+						setTimeout(() => {
+							updater(removeErrorHandler).then().catch(console.error);
+						}, store.autoRemoveErrorIn);
+					}
+				}
+				return actionResult;
+			} else {
+				await updater(successHandler(handler, req, initData));
 			}
 		};
 	});

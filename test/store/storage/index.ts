@@ -6,7 +6,7 @@ import {StoreType} from './store.type';
 
 export let store: Store<StoreType>;
 
-const getStore = (name) => {
+export const getStore = (name: string): Store<StoreType> => {
 	store = new Store<StoreType>(
 		name,
 		1,
@@ -34,6 +34,7 @@ export const syncObject = <
 		scope,
 		scopeHandlers,
 		initState,
+		true,
 	);
 };
 

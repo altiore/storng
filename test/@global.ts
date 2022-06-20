@@ -1,11 +1,17 @@
-import ReactDOM from 'react-dom';
+import ReactDOM, {Container} from 'react-dom';
 
 import {expect as chaiExpect} from 'chai';
 import spies from 'chai-spies';
 import * as Sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 
-type ActType = (cb: (render: typeof ReactDOM.render) => void) => Promise<void>;
+type RenderType = (
+	element: any,
+	container: Container | null,
+	callback?: () => void,
+) => Promise<{unmount: () => void}>;
+
+type ActType = (cb: (render: RenderType) => void) => Promise<void>;
 type WaitType = (seconds: number) => Promise<void>;
 
 declare global {
@@ -20,7 +26,16 @@ const act: ActType = (cb) =>
 	new Promise((resolve, reject) => {
 		setTimeout(async () => {
 			try {
-				await cb(ReactDOM.render);
+				await cb(
+					(element, container) =>
+						new Promise((resolve) => {
+							ReactDOM.render(element, container, () => {
+								resolve({
+									unmount: () => ReactDOM.unmountComponentAtNode(container),
+								});
+							});
+						}),
+				);
 				setTimeout(resolve, 0);
 			} catch (e) {
 				reject(e);

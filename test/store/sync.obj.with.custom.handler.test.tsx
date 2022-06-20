@@ -3,7 +3,7 @@ import React from 'react';
 import {MaybeRemoteData} from '@storng/store';
 import {connect} from '@storng/store/src/react/index';
 
-import {store} from './storage';
+import {getStore} from './storage';
 import {notify as getNotify} from './storage/notify';
 import {StoreType} from './storage/store.type';
 
@@ -26,6 +26,8 @@ const MyComponent = ({notify}: MyComponentProps) => {
 const STORE_NAME = 'sync.obj.with.custom.handler.test.tsx';
 
 const notify = getNotify(STORE_NAME);
+
+const store = getStore(STORE_NAME);
 
 const Wrapped = connect(MyComponent, {
 	notify,

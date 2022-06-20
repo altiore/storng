@@ -12,8 +12,7 @@ export interface IRegister {
 }
 
 export interface IRegisterConfirm {
-	authId: string;
-	confirmCode: string;
+	accessToken: string;
 }
 
 export interface IAuth {

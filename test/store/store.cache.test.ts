@@ -21,7 +21,7 @@ const persistStore: any = {
 	setItem,
 };
 
-describe('StoreWeb src/store.web.ts', () => {
+describe('StoreCache src/store.cache.ts', () => {
 	it('проверяем имя', () => {
 		// @ts-ignore
 		expect(storeWeb.name).to.be.eq('storng');
@@ -175,12 +175,30 @@ describe('StoreWeb src/store.web.ts', () => {
 	describe('subscribe - подписка на изменения', () => {
 		it('первый подписчик получает текущие данные', async () => {
 			await storeWeb.subscribe('auth', subscriber1, persistStore);
-			expect(subscriber1).to.have.been.calledWith(sinon.match.func);
+			expect(subscriber1).to.have.been.calledWith(
+				sinon.match({
+					data: {},
+					loadingStatus: {
+						error: undefined,
+						isLoaded: false,
+						isLoading: false,
+					},
+				}),
+			);
 		});
 
 		it('второй подписчик получает текущие данные', async () => {
 			await storeWeb.subscribe('auth', subscriber2, persistStore);
-			expect(subscriber2).to.have.been.calledWith(sinon.match.func);
+			expect(subscriber2).to.have.been.calledWith(
+				sinon.match({
+					data: {},
+					loadingStatus: {
+						error: undefined,
+						isLoaded: false,
+						isLoading: false,
+					},
+				}),
+			);
 		});
 
 		it('после добавления второго подписчика ссылка на первого осталась прежней', () => {
@@ -207,8 +225,30 @@ describe('StoreWeb src/store.web.ts', () => {
 			});
 		it('После обновления данных, мы видим новые данные у первого подписчика', async () => {
 			await storeWeb.updateData('auth', updater, persistStore);
-			expect(subscriber1).to.nth(2).calledWith(sinon.match.func);
-			expect(subscriber2).to.nth(2).calledWith(sinon.match.func);
+			expect(subscriber1)
+				.to.nth(2)
+				.calledWith({
+					data: {
+						id: 'my-id',
+					},
+					loadingStatus: {
+						error: undefined,
+						isLoaded: true,
+						isLoading: true,
+					},
+				});
+			expect(subscriber2)
+				.to.nth(2)
+				.calledWith({
+					data: {
+						id: 'my-id',
+					},
+					loadingStatus: {
+						error: undefined,
+						isLoaded: true,
+						isLoading: true,
+					},
+				});
 		});
 	});
 

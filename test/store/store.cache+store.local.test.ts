@@ -214,8 +214,32 @@ describe('StoreWeb src/store.web.ts + фактическое indexed.db хран
 			});
 		it('После обновления данных, мы видим новые данные у первого подписчика', async () => {
 			await storeWeb.updateData('auth', updater, persistStore);
-			expect(subscriber1).to.nth(2).have.been.calledWith(sinon.match.func);
-			expect(subscriber2).to.nth(2).have.been.calledWith(sinon.match.func);
+			expect(subscriber1)
+				.to.nth(2)
+				.have.been.calledWith({
+					data: {
+						id: 'my-id',
+					},
+					loadingStatus: {
+						error: undefined,
+						isLoaded: true,
+						isLoading: true,
+					},
+				});
+			expect(subscriber2)
+				.to.nth(2)
+				.have.been.calledWith(
+					sinon.match({
+						data: {
+							id: 'my-id',
+						},
+						loadingStatus: {
+							error: undefined,
+							isLoaded: true,
+							isLoading: true,
+						},
+					}),
+				);
 		});
 	});
 
@@ -239,7 +263,20 @@ describe('StoreWeb src/store.web.ts + фактическое indexed.db хран
 		it('восстанавливаем данные по ключу auth', async () => {
 			await storeWeb.subscribe('auth', subscriber1, persistStore);
 
-			expect(subscriber1).to.nth(3).have.been.calledWith(sinon.match.func);
+			expect(subscriber1)
+				.to.nth(3)
+				.have.been.calledWith(
+					sinon.match({
+						data: {
+							id: 'my-id',
+						},
+						loadingStatus: {
+							error: undefined,
+							isLoaded: true,
+							isLoading: true,
+						},
+					}),
+				);
 		});
 	});
 });

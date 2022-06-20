@@ -1,6 +1,6 @@
 import {ResBase, Route} from '@storng/common';
 
-import {FetchType, LoadedItem} from './types';
+import {AuthData, FetchType, LoadedItem} from './types';
 
 export class StoreRemote {
 	private readonly prefix: string;
@@ -15,12 +15,7 @@ export class StoreRemote {
 
 	public async fetch(
 		route: Route<any, any>,
-		authData: LoadedItem<
-			| {accessToken: string; refreshToken}
-			| null
-			| undefined
-			| Record<string, never>
-		>,
+		authData: LoadedItem<AuthData>,
 		data?: Record<string, any>,
 	): Promise<
 		typeof Route extends Route<infer Req, infer Res>

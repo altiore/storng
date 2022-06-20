@@ -7,6 +7,8 @@ export class Store<T extends Record<string, T[keyof T]>> {
 	public cache: StoreCache<T>;
 	public local: StoreLocal<StoreStructure<T>>;
 	public remote: StoreRemote;
+	// в миллисекундах
+	public autoRemoveErrorIn = 7000;
 
 	public authStorage?: keyof T;
 
@@ -17,6 +19,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 		customFetch: FetchType,
 		prefix = '',
 		authStorage?: keyof T,
+		autoRemoveErrorIn?: number,
 	) {
 		this.cache = new StoreCache<T>(name);
 		this.local = new StoreLocal<StoreStructure<T>>(
@@ -26,6 +29,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 		);
 		this.remote = new StoreRemote(customFetch, prefix);
 		this.authStorage = authStorage;
+		this.autoRemoveErrorIn = autoRemoveErrorIn ?? this.autoRemoveErrorIn;
 	}
 
 	async remove(name?: string): Promise<void> {

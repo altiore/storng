@@ -1,21 +1,22 @@
-import {getObjFunc} from './react/get.func-data';
 import {
+	AuthData,
 	LoadedItem,
 	LoadedList,
-	MaybeRemoteData,
 	PersistStore,
 	StructureType,
 } from './types';
 
+type LoadedData<T> = LoadedItem<T[keyof T]> | LoadedList<keyof T, T[keyof T]>;
+
 type ObjKey<T extends Record<string, T[keyof T]>> = {
 	type: StructureType;
-	initData: LoadedItem<T[keyof T]> | LoadedList<keyof T, T[keyof T]>;
+	initData: LoadedData<T>;
 	name: keyof T;
 };
 
 type DataAndSubs<T extends Record<keyof T, T[keyof T]>> = {
-	data: LoadedItem<T[keyof T]>;
-	subscribers: Array<(val: MaybeRemoteData<LoadedItem<T[keyof T]>>) => void>;
+	data: LoadedData<T>;
+	subscribers: Array<(val: any) => void>;
 	persistStore: PersistStore<T>;
 };
 
@@ -23,6 +24,8 @@ type WeakStore<T extends Record<string, T[keyof T]>> = WeakMap<
 	ObjKey<T>,
 	DataAndSubs<T>
 >;
+
+const DEF_PREPARE_DATA = (t) => t;
 
 export class StoreCache<T extends Record<string, T[keyof T]>> {
 	/**
@@ -53,8 +56,8 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 	 */
 	private setData(
 		key: keyof T,
-		data: LoadedItem<T[keyof T]>,
-		subscribers: Array<(val: MaybeRemoteData<LoadedItem<T[keyof T]>>) => void>,
+		data: LoadedData<T>,
+		subscribers: Array<(val: any) => void>,
 		persistStore: PersistStore<T>,
 	): void {
 		this.weakStore.set(this.getDataKey(key), {
@@ -127,7 +130,7 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 	public async getDataAsync(
 		key: keyof T,
 		persistStore: PersistStore<T>,
-	): Promise<LoadedItem<T[keyof T]>> {
+	): Promise<LoadedData<T>> {
 		if (this.hasData(key)) {
 			const curData = this.getData(key);
 			return curData.data;
@@ -144,15 +147,42 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 		}
 	}
 
-	public async subscribe(
-		key: keyof T,
-		subscriber: (value: MaybeRemoteData<LoadedItem<T[keyof T]>>) => void,
+	public async getAuthData(
 		persistStore: PersistStore<T>,
+		key?: keyof T,
+	): Promise<LoadedItem<AuthData>> {
+		let authData: LoadedItem<AuthData>;
+		if (key) {
+			authData = (await this.getDataAsync(key, persistStore)) as any;
+		}
+
+		return (
+			authData || {
+				data: {},
+				loadingStatus: {
+					error: undefined,
+					isLoaded: false,
+					isLoading: false,
+				},
+			}
+		);
+	}
+
+	public async subscribe<ResultData = LoadedData<T>>(
+		key: keyof T,
+		subscriber: (value: ResultData) => void,
+		persistStore: PersistStore<T>,
+		prepareDataForSubscriber: (
+			value: LoadedData<T>,
+		) => ResultData = DEF_PREPARE_DATA as any,
+		restorePreparation: (
+			value: LoadedData<T>,
+		) => LoadedData<T> = DEF_PREPARE_DATA,
 	): Promise<void> {
 		if (this.hasData(key)) {
 			const curData = this.getData(key);
 			curData.subscribers.push(subscriber);
-			subscriber(getObjFunc<LoadedItem<T[keyof T]>>(curData.data));
+			subscriber(prepareDataForSubscriber(curData.data));
 		} else {
 			// 1. Восстанавливаем данные
 			let data = await persistStore.getItem(key);
@@ -160,17 +190,28 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 				// 2. Если не удалось восстановить, создаем новые из начальных значений
 				const keyData = this.getDataKey(key);
 				data = keyData.initData;
+			} else {
+				const restorePreparedData = restorePreparation
+					? restorePreparation(data)
+					: data;
+				if (JSON.stringify(data) !== JSON.stringify(restorePreparedData)) {
+					data = restorePreparedData;
+					await this.updateData(
+						key,
+						DEF_PREPARE_DATA,
+						persistStore,
+						prepareDataForSubscriber,
+					);
+				}
 			}
 
 			this.setData(key, data, [subscriber], persistStore);
-			subscriber(getObjFunc<LoadedItem<T[keyof T]>>(data));
+
+			subscriber(prepareDataForSubscriber(data));
 		}
 	}
 
-	public unsubscribe(
-		key: keyof T,
-		subscriber: (value: MaybeRemoteData<LoadedItem<T[keyof T]>>) => void,
-	): void {
+	public unsubscribe(key: keyof T, subscriber: (value: any) => void): void {
 		if (this.hasData(key)) {
 			const curData = this.getData(key);
 
@@ -187,10 +228,11 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 		}
 	}
 
-	public async updateData(
+	public async updateData<ResultData>(
 		key: keyof T,
-		getData: (data: LoadedItem<T[keyof T]>) => LoadedItem<T[keyof T]>,
+		getData: (data: LoadedData<T>) => LoadedData<T>,
 		persistStore?: PersistStore<T>,
+		prepareData: (value: LoadedData<T>) => ResultData = DEF_PREPARE_DATA as any,
 	): Promise<void> {
 		if (this.hasData(key)) {
 			const curData = this.getData(key);
@@ -198,22 +240,20 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 
 			this.setData(key, newData, curData.subscribers, curData.persistStore);
 			// Разослать данные всем подписчикам
-			curData.subscribers.forEach((subscriber) =>
-				subscriber(getObjFunc<LoadedItem<T[keyof T]>>(newData)),
-			);
+			curData.subscribers.forEach((subscriber) => {
+				subscriber(prepareData(newData));
+			});
 
 			if (persistStore) {
-				await persistStore.setItem(key, getData(newData));
+				await persistStore.setItem(key, newData);
 			}
 		} else {
 			if (persistStore) {
 				const prevData = await persistStore.getItem(key);
 				const dataKey = this.getDataKey(key);
 
-				await persistStore.setItem(
-					key,
-					getData(prevData?.data || dataKey.initData),
-				);
+				const newData = getData(prevData || dataKey.initData);
+				await persistStore.setItem(key, newData);
 			}
 		}
 	}

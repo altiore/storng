@@ -3,7 +3,7 @@ import React from 'react';
 import {MaybeRemoteData} from '@storng/store';
 import {connect} from '@storng/store/src/react';
 
-import {store} from './storage';
+import {getStore} from './storage';
 import {auth as getAuth} from './storage/auth';
 import {StoreType} from './storage/store.type';
 
@@ -43,6 +43,8 @@ const STORE_NAME = 'sync.obj.react-component.test.tsx';
 
 const auth = getAuth(STORE_NAME);
 
+const store = getStore(STORE_NAME);
+
 const Wrapped = connect(MyComponent, {
 	auth,
 });
@@ -76,8 +78,7 @@ describe('sync.obj.ts Подписка на данные из syncObj - Как �
 
 	it('добавляем данные', async () => {
 		const registerConfirmPromise = auth.registerConfirm({
-			authId: 'id',
-			confirmCode: '123123',
+			accessToken: 'accessToken',
 		});
 
 		expect(root?.innerHTML).to.equal('<div>loading: </div>');

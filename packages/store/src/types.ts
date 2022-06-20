@@ -16,7 +16,7 @@ export interface LoadingStatus<
 > {
 	isLoading: boolean;
 	isLoaded: boolean;
-	error?: Error;
+	error: Error | undefined;
 }
 
 export interface LoadedItem<
@@ -129,6 +129,12 @@ export type ScopeHandlers<
 	{[P in keyof OtherRoutes]: RemoteHandlers<StoreState[Key], OtherRoutes[P]>};
 
 export type FetchType = (url: string, init: RequestInit) => Promise<Response>;
+
+export type AuthData =
+	| {accessToken: string}
+	| null
+	| Record<string, never>
+	| undefined;
 
 export type MaybeRemoteData<
 	A extends Record<string, any>,
