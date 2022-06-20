@@ -121,17 +121,15 @@ export const syncObj = <
 
 	Object.entries(scopeHandlers).forEach(([handlerName, handler]) => {
 		(result as any)[handlerName] = async (req) => {
+			const shouldPersistStore =
+				typeof persistData === 'boolean'
+					? persistData
+					: typeof scope === 'object';
 			const updater = async (handler) =>
 				store.cache.updateData(
 					storeName,
 					handler,
-					(
-						typeof persistData === 'undefined'
-							? Boolean(typeof scope === 'string')
-							: persistData
-					)
-						? persistStorage
-						: undefined,
+					shouldPersistStore ? persistStorage : undefined,
 					getObjFunc,
 				);
 

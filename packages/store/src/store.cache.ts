@@ -136,7 +136,7 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 			return curData.data;
 		} else {
 			// 1. Восстанавливаем данные
-			let data = await persistStore.getItem(key);
+			let data = persistStore ? await persistStore.getItem(key) : undefined;
 			if (typeof data === 'undefined') {
 				// 2. Если не удалось восстановить, создаем новые из начальных значений
 				const keyData = this.getDataKey(key);
@@ -185,7 +185,7 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 			subscriber(prepareDataForSubscriber(curData.data));
 		} else {
 			// 1. Восстанавливаем данные
-			let data = await persistStore.getItem(key);
+			let data = persistStore ? await persistStore.getItem(key) : undefined;
 			if (typeof data === 'undefined') {
 				// 2. Если не удалось восстановить, создаем новые из начальных значений
 				const keyData = this.getDataKey(key);
