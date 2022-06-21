@@ -1,9 +1,11 @@
 import React from 'react';
 
+import {RequestFunc} from '@storng/common';
 import {MaybeRemoteData} from '@storng/store';
 import {connect} from '@storng/store/src/react/index';
 
 import {getStore} from './storage';
+import {AuthUrls} from './storage/_auth';
 import {auth as getAuth} from './storage/auth';
 import {StoreType} from './storage/store.type';
 
@@ -11,15 +13,16 @@ const renderSpy = sinon.spy();
 
 interface MyComponentProps {
 	auth: MaybeRemoteData<StoreType['auth_public']>;
+	registerConfirm: RequestFunc<AuthUrls['registerConfirm']>;
 }
 
-const MyComponent = ({auth}: MyComponentProps) => {
+const MyComponent = ({auth, registerConfirm}: MyComponentProps) => {
 	renderSpy();
 	return auth<JSX.Element>({
 		correct: ({data}) => <p>correct: {data.accessToken}</p>,
 		failure: ({error}) => <p>{error.message}</p>,
 		loading: () => <p>...loading</p>,
-		nothing: () => <p>noting</p>,
+		nothing: () => <p>{typeof registerConfirm}</p>,
 	});
 };
 
@@ -29,9 +32,15 @@ const auth = getAuth(STORE_NAME);
 
 const store = getStore(STORE_NAME);
 
-const Wrapped = connect(MyComponent, {
-	auth,
-});
+const Wrapped = connect(
+	MyComponent,
+	{
+		auth,
+	},
+	{
+		registerConfirm: auth.registerConfirm,
+	},
+);
 
 describe('sync.obj.ts Подписка на данные из syncObj - как функции', () => {
 	let root: any;
@@ -57,7 +66,7 @@ describe('sync.obj.ts Подписка на данные из syncObj - как �
 
 		await wait(0.3);
 		expect(renderSpy).to.have.been.calledTwice;
-		expect(root?.innerHTML).to.equal('<p>noting</p>');
+		expect(root?.innerHTML).to.equal('<p>function</p>');
 	}).timeout(5000);
 
 	it('добавляем данные', async () => {

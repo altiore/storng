@@ -1,5 +1,6 @@
 import React, {ComponentProps, FC} from 'react';
 
+import {RequestFunc} from '@storng/common';
 import {LoadedItem, MaybeRemoteData, SubsObj} from '@storng/store';
 
 import {getLoading} from './func-data/maybe-remote.data';
@@ -13,9 +14,26 @@ type SelectorLift<S extends {[K in string]: SubsObj<any>}> = {
 type ValidStateProps<
 	C extends FC<any>,
 	S extends {[K in string]: SubsObj<any>},
-> = ComponentProps<C> extends SelectorLift<S> ? S : never;
+> = ComponentProps<C> extends SelectorLift<S> ? S : undefined;
 
-export const connect = function <
+type ActionLift<
+	A extends {[P in string]: RequestFunc<any>} = {
+		[P in string]: RequestFunc<any>;
+	},
+> = {
+	[Prop in keyof A]: A[Prop] extends RequestFunc<infer R>
+		? RequestFunc<R>
+		: never;
+};
+
+type ValidActionProps<
+	C extends FC<any>,
+	A extends {[P in string]: RequestFunc<any>} = {
+		[P in string]: RequestFunc<any>;
+	},
+> = ComponentProps<C> extends ActionLift<A> ? A : undefined;
+
+export function connect<
 	C extends FC<any>,
 	S extends {
 		[K in string]: SubsObj<any>;
@@ -25,14 +43,71 @@ export const connect = function <
 	selectors: ValidStateProps<C, S>,
 ): React.FC<
 	Omit<ComponentProps<typeof WrappedComponent>, keyof typeof selectors>
+>;
+
+export function connect<
+	C extends FC<any>,
+	S extends {
+		[K in string]: SubsObj<any>;
+	} = {[K in string]: SubsObj<any>},
+	A extends {[P in string]: RequestFunc<any>} = {
+		[P in string]: RequestFunc<any>;
+	},
+>(
+	WrappedComponent: C,
+	selectors?: ValidStateProps<C, S>,
+	actions?: ValidActionProps<C, A>,
+): React.FC<
+	typeof selectors extends {[K in string]: SubsObj<any>}
+		? typeof actions extends {[P in string]: RequestFunc<any>}
+			? Omit<
+					ComponentProps<typeof WrappedComponent>,
+					keyof typeof selectors | keyof typeof actions
+			  >
+			: Omit<ComponentProps<typeof WrappedComponent>, keyof typeof selectors>
+		: typeof actions extends {[P in string]: RequestFunc<any>}
+		? Omit<ComponentProps<typeof WrappedComponent>, keyof typeof actions>
+		: never
+>;
+
+export function connect<
+	C extends FC<any>,
+	S extends
+		| {
+				[K in string]: SubsObj<any>;
+		  }
+		| undefined = {[K in string]: SubsObj<any>},
+	A extends {[P in string]: RequestFunc<any>} | undefined = {
+		[P in string]: RequestFunc<any>;
+	},
+>(
+	WrappedComponent: C,
+	selectors?: ValidStateProps<C, S>,
+	actions?: ValidActionProps<C, A>,
+): React.FC<
+	typeof selectors extends {[K in string]: SubsObj<any>}
+		? typeof actions extends {[P in string]: RequestFunc<any>}
+			? Omit<
+					ComponentProps<typeof WrappedComponent>,
+					keyof typeof selectors | keyof typeof actions
+			  >
+			: Omit<ComponentProps<typeof WrappedComponent>, keyof typeof selectors>
+		: typeof actions extends {[P in string]: RequestFunc<any>}
+		? Omit<ComponentProps<typeof WrappedComponent>, keyof typeof actions>
+		: never
 > {
 	return class ConnectHOC extends React.Component {
 		subscribers: Array<() => void> = [];
 
-		state: any = Object.keys(selectors).reduce<any>((res, cur) => {
-			res[cur] = getLoading();
-			return res;
-		}, {});
+		state: any = {
+			...(selectors
+				? Object.keys(selectors).reduce<any>((res, cur) => {
+						res[cur] = getLoading();
+						return res;
+				  }, {})
+				: {}),
+			...(actions || {}),
+		};
 
 		public componentDidMount() {
 			Object.entries(selectors).map(([propName, syncObj]) => {
@@ -57,4 +132,4 @@ export const connect = function <
 			return <WrappedComponent {...this.state} {...this.props} />;
 		}
 	} as any;
-};
+}
