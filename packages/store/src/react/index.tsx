@@ -13,7 +13,7 @@ type SelectorLift<S extends {[K in string]: SubsObj<any>}> = {
 
 type ValidStateProps<
 	C extends FC<any>,
-	S extends {[K in string]: SubsObj<any>},
+	S extends {[K in string]: SubsObj<any>} | undefined,
 > = ComponentProps<C> extends SelectorLift<S> ? S : undefined;
 
 type ActionLift<
@@ -28,7 +28,7 @@ type ActionLift<
 
 type ValidActionProps<
 	C extends FC<any>,
-	A extends {[P in string]: RequestFunc<any>} = {
+	A extends {[P in string]: RequestFunc<any>} | undefined = {
 		[P in string]: RequestFunc<any>;
 	},
 > = ComponentProps<C> extends ActionLift<A> ? A : undefined;
@@ -47,10 +47,12 @@ export function connect<
 
 export function connect<
 	C extends FC<any>,
-	S extends {
-		[K in string]: SubsObj<any>;
-	} = {[K in string]: SubsObj<any>},
-	A extends {[P in string]: RequestFunc<any>} = {
+	S extends
+		| {
+				[K in string]: SubsObj<any>;
+		  }
+		| undefined = {[K in string]: SubsObj<any>},
+	A extends {[P in string]: RequestFunc<any>} | undefined = {
 		[P in string]: RequestFunc<any>;
 	},
 >(
@@ -110,12 +112,14 @@ export function connect<
 		};
 
 		public componentDidMount() {
-			Object.entries(selectors).map(([propName, syncObj]) => {
-				const subscriber = this.setLoadedObjectProps.bind(this, propName);
-				syncObj.subscribe(subscriber as any).then((unsubscribe) => {
-					this.subscribers.push(unsubscribe);
+			if (selectors) {
+				Object.entries(selectors).map(([propName, syncObj]) => {
+					const subscriber = this.setLoadedObjectProps.bind(this, propName);
+					syncObj.subscribe(subscriber as any).then((unsubscribe) => {
+						this.subscribers.push(unsubscribe);
+					});
 				});
-			});
+			}
 		}
 
 		public componentWillUnmount() {
