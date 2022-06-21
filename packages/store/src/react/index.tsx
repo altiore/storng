@@ -5,7 +5,7 @@ import {LoadedItem, MaybeRemoteData, SubsObj} from '@storng/store';
 
 import {getLoading} from './func-data/maybe-remote.data';
 
-type SelectorLift<S extends {[K in string]: SubsObj<any>}> = {
+type SelectorLift<S extends {[K in string]: SubsObj<any>} | undefined> = {
 	[Prop in keyof S]: S[Prop] extends SubsObj<infer Item>
 		? MaybeRemoteData<LoadedItem<Item>>
 		: never;
@@ -17,7 +17,7 @@ type ValidStateProps<
 > = ComponentProps<C> extends SelectorLift<S> ? S : undefined;
 
 type ActionLift<
-	A extends {[P in string]: RequestFunc<any>} = {
+	A extends {[P in string]: RequestFunc<any>} | undefined = {
 		[P in string]: RequestFunc<any>;
 	},
 > = {
@@ -113,12 +113,14 @@ export function connect<
 
 		public componentDidMount() {
 			if (selectors) {
-				Object.entries(selectors).map(([propName, syncObj]) => {
-					const subscriber = this.setLoadedObjectProps.bind(this, propName);
-					syncObj.subscribe(subscriber as any).then((unsubscribe) => {
-						this.subscribers.push(unsubscribe);
-					});
-				});
+				Object.entries(selectors as {[K in string]: SubsObj<any>}).map(
+					([propName, syncObj]) => {
+						const subscriber = this.setLoadedObjectProps.bind(this, propName);
+						syncObj.subscribe(subscriber as any).then((unsubscribe) => {
+							this.subscribers.push(unsubscribe);
+						});
+					},
+				);
 			}
 		}
 

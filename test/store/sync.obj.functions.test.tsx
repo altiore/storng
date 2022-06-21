@@ -16,15 +16,17 @@ interface MyComponentProps {
 	registerConfirm: RequestFunc<AuthUrls['registerConfirm']>;
 }
 
-const MyComponent = ({auth, registerConfirm}: MyComponentProps) => {
-	renderSpy();
-	return auth<JSX.Element>({
-		correct: ({data}) => <p>correct: {data.accessToken}</p>,
-		failure: ({error}) => <p>{error.message}</p>,
-		loading: () => <p>...loading</p>,
-		nothing: () => <p>{typeof registerConfirm}</p>,
-	});
-};
+const MyComponent = React.memo<MyComponentProps>(
+	({auth, registerConfirm}: MyComponentProps) => {
+		renderSpy();
+		return auth<JSX.Element>({
+			correct: ({data}) => <p>correct: {data.accessToken}</p>,
+			failure: ({error}) => <p>{error.message}</p>,
+			loading: () => <p>...loading</p>,
+			nothing: () => <p>{typeof registerConfirm}</p>,
+		});
+	},
+);
 
 const STORE_NAME = 'sync.obj.functions.test.tsx';
 
@@ -41,6 +43,27 @@ const Wrapped = connect(
 		registerConfirm: auth.registerConfirm,
 	},
 );
+
+interface MyComponent2Props {
+	registerConfirm: RequestFunc<AuthUrls['registerConfirm']>;
+}
+
+const MyComponent2 = React.memo<MyComponent2Props>(({registerConfirm}) => {
+	renderSpy();
+	return <p>{typeof registerConfirm}</p>;
+});
+
+const Wrapped2 = connect(MyComponent2, undefined, {
+	registerConfirm: auth.registerConfirm,
+});
+
+export const MyCom = (): JSX.Element => {
+	return (
+		<div>
+			<Wrapped2 />
+		</div>
+	);
+};
 
 describe('sync.obj.ts Подписка на данные из syncObj - как функции', () => {
 	let root: any;
