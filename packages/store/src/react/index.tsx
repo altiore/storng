@@ -59,18 +59,22 @@ export function connect<
 	WrappedComponent: C,
 	selectors?: ValidStateProps<C, S>,
 	actions?: ValidActionProps<C, A>,
-): React.FC<
-	typeof selectors extends {[K in string]: SubsObj<any>}
-		? typeof actions extends {[P in string]: RequestFunc<any>}
-			? Omit<
+): typeof selectors extends {[K in string]: SubsObj<any>}
+	? typeof actions extends {[P in string]: RequestFunc<any>}
+		? React.FC<
+				Omit<
 					ComponentProps<typeof WrappedComponent>,
 					keyof typeof selectors | keyof typeof actions
-			  >
-			: Omit<ComponentProps<typeof WrappedComponent>, keyof typeof selectors>
-		: typeof actions extends {[P in string]: RequestFunc<any>}
-		? Omit<ComponentProps<typeof WrappedComponent>, keyof typeof actions>
-		: never
->;
+				>
+		  >
+		: React.FC<
+				Omit<ComponentProps<typeof WrappedComponent>, keyof typeof selectors>
+		  >
+	: typeof actions extends {[P in string]: RequestFunc<any>}
+	? React.FC<
+			Omit<ComponentProps<typeof WrappedComponent>, keyof typeof actions>
+	  >
+	: React.FC;
 
 export function connect<
 	C extends FC<any>,
@@ -86,18 +90,22 @@ export function connect<
 	WrappedComponent: C,
 	selectors?: ValidStateProps<C, S>,
 	actions?: ValidActionProps<C, A>,
-): React.FC<
-	typeof selectors extends {[K in string]: SubsObj<any>}
-		? typeof actions extends {[P in string]: RequestFunc<any>}
-			? Omit<
+): typeof selectors extends {[K in string]: SubsObj<any>}
+	? typeof actions extends {[P in string]: RequestFunc<any>}
+		? React.FC<
+				Omit<
 					ComponentProps<typeof WrappedComponent>,
 					keyof typeof selectors | keyof typeof actions
-			  >
-			: Omit<ComponentProps<typeof WrappedComponent>, keyof typeof selectors>
-		: typeof actions extends {[P in string]: RequestFunc<any>}
-		? Omit<ComponentProps<typeof WrappedComponent>, keyof typeof actions>
-		: never
-> {
+				>
+		  >
+		: React.FC<
+				Omit<ComponentProps<typeof WrappedComponent>, keyof typeof selectors>
+		  >
+	: typeof actions extends {[P in string]: RequestFunc<any>}
+	? React.FC<
+			Omit<ComponentProps<typeof WrappedComponent>, keyof typeof actions>
+	  >
+	: never {
 	return class ConnectHOC extends React.Component {
 		subscribers: Array<() => void> = [];
 
@@ -115,7 +123,10 @@ export function connect<
 			if (selectors) {
 				Object.entries(selectors as {[K in string]: SubsObj<any>}).map(
 					([propName, syncObj]) => {
-						const subscriber = this.setLoadedObjectProps.bind(this, propName);
+						const subscriber = this.setLoadedObjectProps.bind(
+							this,
+							propName as keyof {[K in string]: SubsObj<any>},
+						);
 						syncObj.subscribe(subscriber as any).then((unsubscribe) => {
 							this.subscribers.push(unsubscribe);
 						});
@@ -128,10 +139,15 @@ export function connect<
 			this.subscribers.forEach((unsubscribe) => unsubscribe());
 		}
 
-		public setLoadedObjectProps(propName: keyof S, propValue: S[keyof S]) {
+		public setLoadedObjectProps(
+			propName: keyof {[K in string]: SubsObj<any>},
+			propValue: {[K in string]: SubsObj<any>}[keyof {
+				[K in string]: SubsObj<any>;
+			}],
+		) {
 			this.setState({
 				[propName]: propValue,
-			} as any);
+			});
 		}
 
 		public render() {
