@@ -44,6 +44,7 @@ export const ConnectComponent = <T extends Record<string, T[keyof T]>>({
 
 	useEffect(() => {
 		const subscribers: any[] = [];
+		console.log('subscribe', Object.keys(selectors || {}));
 		if (selectors) {
 			Object.entries(
 				selectors as {[K in string]: (store: any) => SubsObj<any>},
@@ -60,6 +61,7 @@ export const ConnectComponent = <T extends Record<string, T[keyof T]>>({
 		}
 
 		return () => {
+			console.log('unsubscribe', Object.keys(selectors || {}));
 			subscribers.forEach((unsubscribe) => unsubscribe());
 		};
 	}, []);
