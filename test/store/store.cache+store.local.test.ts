@@ -112,13 +112,6 @@ describe('StoreWeb src/store.web.ts + фактическое indexed.db хран
 		});
 	});
 
-	describe('hasData', () => {
-		it('проверяем существование временных данных - не должны существовать', () => {
-			// @ts-ignore
-			expect(storeWeb.hasData('profile')).to.be.false;
-		});
-	});
-
 	describe('getData', () => {
 		it('получаем пустые временные данные - должны быть пустыми', () => {
 			// @ts-ignore
@@ -144,7 +137,7 @@ describe('StoreWeb src/store.web.ts + фактическое indexed.db хран
 
 		it('    - должны быть заполненными после установки', () => {
 			// @ts-ignore
-			expect(storeWeb.hasData('auth')).to.be.true;
+			expect(Boolean(storeWeb.getData('auth'))).to.be.true;
 		});
 
 		it('    - должны быть заполненными', () => {
@@ -170,9 +163,6 @@ describe('StoreWeb src/store.web.ts + фактическое indexed.db хран
 		it('    - удаление', () => {
 			// @ts-ignore
 			storeWeb.deleteData('auth');
-
-			// @ts-ignore
-			expect(storeWeb.hasData('auth')).to.be.false;
 
 			// @ts-ignore
 			expect(storeWeb.getData('auth')).to.be.undefined;
@@ -252,8 +242,6 @@ describe('StoreWeb src/store.web.ts + фактическое indexed.db хран
 
 		it('удаляем последнего подписчика', async () => {
 			await storeWeb.unsubscribe('auth', subscriber2);
-			// @ts-ignore
-			expect(storeWeb.hasData('auth')).to.be.false;
 			// @ts-ignore
 			expect(storeWeb.getData('auth')).to.be.undefined;
 		});

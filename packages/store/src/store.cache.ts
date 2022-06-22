@@ -66,12 +66,7 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 			subscribers,
 		});
 	}
-	/**
-	 * Проверяем существование временных данных (кеш данных в оперативной памяти)
-	 */
-	private hasData(key: keyof T): boolean {
-		return this.weakStore.has(this.getDataKey(key));
-	}
+
 	/**
 	 * Получаем временные данные (кеш данные из оперативной памяти)
 	 */
@@ -91,7 +86,7 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 	constructor(name: string) {
 		this.name = name;
 		// TODO: возможно, здесь лучше использовать обычный Map
-		this.weakStore = new WeakMap() as WeakStore<T>;
+		this.weakStore = new Map() as WeakStore<T>;
 		this.structure = new Map();
 	}
 
@@ -131,7 +126,7 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 		key: keyof T,
 		persistStore: PersistStore<T>,
 	): Promise<LoadedData<T>> {
-		if (this.hasData(key)) {
+		if (this.getData(key)) {
 			const curData = this.getData(key);
 			return curData.data;
 		} else {
@@ -179,7 +174,7 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 			value: LoadedData<T>,
 		) => LoadedData<T> = DEF_PREPARE_DATA,
 	): Promise<void> {
-		if (this.hasData(key)) {
+		if (this.getData(key)) {
 			const curData = this.getData(key);
 			curData.subscribers.push(subscriber);
 			subscriber(prepareDataForSubscriber(curData.data));
@@ -212,7 +207,7 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 	}
 
 	public unsubscribe(key: keyof T, subscriber: (value: any) => void): void {
-		if (this.hasData(key)) {
+		if (this.getData(key)) {
 			const curData = this.getData(key);
 
 			const subscriberRemoveIndex = curData.subscribers.findIndex(
@@ -234,7 +229,7 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 		persistStore?: PersistStore<T>,
 		prepareData: (value: LoadedData<T>) => ResultData = DEF_PREPARE_DATA as any,
 	): Promise<void> {
-		if (this.hasData(key)) {
+		if (this.getData(key)) {
 			const curData = this.getData(key);
 			const newData = getData(curData.data);
 
