@@ -217,7 +217,7 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 	}
 
 	public unsubscribe(key: keyof T, subscriber: (value: any) => void): void {
-		console.log('store.cache subscribe', {
+		console.log('store.cache unsubscribe', {
 			key,
 			getData: Boolean(this.getData(key)),
 			hasData: this.hasData(key),
