@@ -36,8 +36,8 @@ export const ConnectComponent = <T extends Record<string, T[keyof T]>>({
 	}, [actions, store]);
 
 	const updateState = useCallback(
-		(propName, value) => {
-			setState((s) => ({
+		(propName: string, value: any) => {
+			setState((s: any) => ({
 				...s,
 				[propName]: value,
 			}));
