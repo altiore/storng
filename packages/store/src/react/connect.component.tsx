@@ -33,17 +33,14 @@ export const ConnectComponent = <T extends Record<string, T[keyof T]>>({
 			res[cur] = actions[cur](store);
 			return res;
 		}, {});
-	}, [actions, store]);
+	}, []);
 
-	const updateState = useCallback(
-		(propName: string, value: any) => {
-			setState((s: any) => ({
-				...s,
-				[propName]: value,
-			}));
-		},
-		[setState],
-	);
+	const updateState = useCallback((propName: string, value: any) => {
+		setState((s: any) => ({
+			...s,
+			[propName]: value,
+		}));
+	}, []);
 
 	useEffect(() => {
 		const subscribers: any[] = [];
@@ -65,7 +62,7 @@ export const ConnectComponent = <T extends Record<string, T[keyof T]>>({
 		return () => {
 			subscribers.forEach((unsubscribe) => unsubscribe());
 		};
-	}, [selectors, store, updateState]);
+	}, []);
 
 	return <Component {...prepActions} {...state} {...componentProps} />;
 };
