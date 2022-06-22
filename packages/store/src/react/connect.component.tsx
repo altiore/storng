@@ -35,17 +35,20 @@ export const ConnectComponent = <T extends Record<string, T[keyof T]>>({
 		}, {});
 	}, []);
 
-	const updateState = useCallback((propName: string, value: any) => {
-		console.log('updateState', {
-			componentName: Component?.name,
-			propName,
-			value,
-		});
-		setState((s: any) => ({
-			...s,
-			[propName]: value,
-		}));
-	}, []);
+	const updateState = useCallback(
+		(propName: string) => (value: any) => {
+			console.log('updateState', {
+				componentName: Component?.name,
+				propName,
+				value,
+			});
+			setState((s: any) => ({
+				...s,
+				[propName]: value,
+			}));
+		},
+		[],
+	);
 
 	useEffect(() => {
 		const subscribers: any[] = [];
@@ -54,12 +57,7 @@ export const ConnectComponent = <T extends Record<string, T[keyof T]>>({
 			Object.entries(
 				selectors as {[K in string]: (store: any) => SubsObj<any>},
 			).map(([propName, syncObj]) => {
-				const subscriber = updateState.bind(
-					undefined,
-					propName as keyof {[K in string]: (store: any) => SubsObj<any>},
-				);
-
-				syncObj(store)(subscriber as any).then((unsubscribe) => {
+				syncObj(store)(updateState(propName)).then((unsubscribe) => {
 					subscribers.push(unsubscribe);
 				});
 			});

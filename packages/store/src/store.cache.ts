@@ -179,6 +179,11 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 			value: LoadedData<T>,
 		) => LoadedData<T> = DEF_PREPARE_DATA,
 	): Promise<void> {
+		console.log('store.cache subscribe', {
+			key,
+			getData: Boolean(this.getData(key)),
+			hasData: this.hasData(key),
+		});
 		if (this.hasData(key)) {
 			const curData = this.getData(key);
 			curData.subscribers.push(subscriber);
@@ -212,6 +217,11 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 	}
 
 	public unsubscribe(key: keyof T, subscriber: (value: any) => void): void {
+		console.log('store.cache subscribe', {
+			key,
+			getData: Boolean(this.getData(key)),
+			hasData: this.hasData(key),
+		});
 		if (this.hasData(key)) {
 			const curData = this.getData(key);
 
