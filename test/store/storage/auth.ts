@@ -8,10 +8,8 @@ type Actions = {
 	otherHandler: {d: number};
 };
 
-export const auth = (
-	name: string,
-): SyncObjectType<AuthUrls, StoreType['auth_public'], Actions> =>
-	syncObject<'auth_public', AuthUrls, Actions>(name, API_AUTH, {
+export const auth: SyncObjectType<AuthUrls, StoreType['auth_public'], Actions> =
+	syncObject<'auth_public', AuthUrls, Actions>(API_AUTH, {
 		otherHandler: syncObject.nothing,
 		register: syncObject.nothing,
 		registerConfirm: syncObject.replace,

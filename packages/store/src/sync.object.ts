@@ -1,15 +1,14 @@
 import {DataRes, ErrorOrInfo, GetScope, Route} from '@storng/common';
-
-import {getObjFunc} from './react/get.func-data';
-import {Store} from './store';
 import {
 	LoadedItem,
 	MaybeRemoteData,
 	RemoteHandlers,
 	ScopeHandlers,
+	Store,
 	SubscriberType,
-	SyncObjectType,
-} from './types';
+} from '@storng/store';
+
+import {getObjFunc} from './react/get.func-data';
 import {deepAssign} from './utils';
 
 const requestHandler = (handler, req, initData, route) => (state) =>
@@ -81,28 +80,27 @@ const defRestorePreparation = (s: LoadedItem<any>) => {
 	return s;
 };
 
-export const syncObj = <
+export function syncObject<
 	StoreState extends Record<string, StoreState[keyof StoreState]>,
 	Key extends keyof StoreState = keyof StoreState,
 	Routes extends Record<string, Route<any, any>> = Record<string, never>,
 	OtherRoutes extends Record<string, any> = Record<string, never>,
 >(
-	store: Store<StoreState>,
 	scope: GetScope<Routes, Key> | Key,
 	scopeHandlers: ScopeHandlers<StoreState, Key, Routes, OtherRoutes>,
 	initData?: Partial<StoreState[Key]>,
 	persistData?: boolean,
 	restorePreparation = defRestorePreparation,
-): SyncObjectType<Routes, StoreState[Key], OtherRoutes> => {
-	const storeName: Key =
-		typeof scope === 'object' ? (scope.NAME as Key) : scope;
-	const persistStorage = store.local.simpleStorage();
-
-	store.cache.addItem(storeName, initData);
-
-	const result = {
-		subscribe: async (subscriber: SubscriberType<StoreState[Key]>) => {
+): any {
+	const result =
+		(store: Store<StoreState>) =>
+		async (subscriber: SubscriberType<StoreState[Key]>) => {
 			try {
+				const storeName: Key =
+					typeof scope === 'object' ? (scope.NAME as Key) : scope;
+				const persistStorage = store.local.simpleStorage();
+
+				store.cache.addItem(storeName, initData);
 				await store.cache.subscribe<
 					MaybeRemoteData<LoadedItem<StoreState[Key]>>
 				>(
@@ -116,69 +114,75 @@ export const syncObj = <
 			} catch (err) {
 				console.error(err);
 			}
-		},
-	};
+		};
 
 	Object.entries(scopeHandlers).forEach(([handlerName, handler]) => {
-		(result as any)[handlerName] = async (req) => {
-			const shouldPersistStore =
-				typeof persistData === 'boolean'
-					? persistData
-					: typeof scope === 'object';
-			const updater = async (handler) =>
-				store.cache.updateData(
-					storeName,
-					handler,
-					shouldPersistStore ? persistStorage : undefined,
-					getObjFunc,
-				);
+		(result as any)[handlerName] =
+			(store: Store<StoreState>) => async (req) => {
+				const storeName: Key =
+					typeof scope === 'object' ? (scope.NAME as Key) : scope;
+				const persistStorage = store.local.simpleStorage();
 
-			const isApiReq = Boolean(typeof scope === 'object' && scope[handlerName]);
-			if (isApiReq) {
-				let isError = false;
-				let actionResult: any;
-				const route = scope[handlerName];
-				await updater(requestHandler(handler, req, initData, route));
-				try {
-					const authData = await store.cache.getAuthData(
-						persistStorage,
-						store.authStorage,
+				const shouldPersistStore =
+					typeof persistData === 'boolean'
+						? persistData
+						: typeof scope === 'object';
+				const updater = async (handler) =>
+					store.cache.updateData(
+						storeName,
+						handler,
+						shouldPersistStore ? persistStorage : undefined,
+						getObjFunc,
 					);
-					const resData = await store.remote.fetch(route, authData, req);
-					if (resData.ok) {
-						await updater(
-							remoteSuccessHandler(handler, initData, resData, route),
+
+				const isApiReq = Boolean(
+					typeof scope === 'object' && scope[handlerName],
+				);
+				if (isApiReq) {
+					let isError = false;
+					let actionResult: any;
+					const route = scope[handlerName];
+					await updater(requestHandler(handler, req, initData, route));
+					try {
+						const authData = await store.cache.getAuthData(
+							persistStorage,
+							store.authStorage,
 						);
-					} else {
-						await updater(
-							remoteFailureHandler(handler, initData, resData, route),
-						);
+						const resData = await store.remote.fetch(route, authData, req);
+						if (resData.ok) {
+							await updater(
+								remoteSuccessHandler(handler, initData, resData, route),
+							);
+						} else {
+							await updater(
+								remoteFailureHandler(handler, initData, resData, route),
+							);
+							isError = true;
+						}
+						actionResult = resData;
+					} catch (err) {
+						await updater(catchFailureHandler(handler, initData, err));
+						actionResult = err;
 						isError = true;
+					} finally {
+						if (store.autoRemoveErrorIn && isError) {
+							// автоматически удалять ошибку через 15 секунд
+							setTimeout(() => {
+								updater(removeErrorHandler).then().catch(console.error);
+							}, store.autoRemoveErrorIn);
+						}
 					}
-					actionResult = resData;
-				} catch (err) {
-					await updater(catchFailureHandler(handler, initData, err));
-					actionResult = err;
-					isError = true;
-				} finally {
-					if (store.autoRemoveErrorIn && isError) {
-						// автоматически удалять ошибку через 15 секунд
-						setTimeout(() => {
-							updater(removeErrorHandler).then().catch(console.error);
-						}, store.autoRemoveErrorIn);
-					}
+					return actionResult;
+				} else {
+					await updater(successHandler(handler, req, initData));
 				}
-				return actionResult;
-			} else {
-				await updater(successHandler(handler, req, initData));
-			}
-		};
+			};
 	});
 
-	return result as any as SyncObjectType<Routes, StoreState[Key], OtherRoutes>;
-};
+	return result as any;
+}
 
-syncObj.update = {
+syncObject.update = {
 	request: (s): LoadedItem<any> => ({
 		data: s.data,
 		loadingStatus: {
@@ -216,7 +220,7 @@ syncObj.update = {
 	}),
 } as RemoteHandlers;
 
-syncObj.replace = {
+syncObject.replace = {
 	request: (s): LoadedItem<any> => ({
 		data: s.data,
 		loadingStatus: {
@@ -251,7 +255,7 @@ syncObj.replace = {
 	}),
 } as RemoteHandlers;
 
-syncObj.remove = {
+syncObject.remove = {
 	request: (s): LoadedItem<any> => ({
 		data: s.data,
 		loadingStatus: {
@@ -282,7 +286,7 @@ syncObj.remove = {
 	}),
 } as RemoteHandlers;
 
-syncObj.nothing = {
+syncObject.nothing = {
 	request: (s): LoadedItem<any> => {
 		return {
 			data: s.data,
@@ -317,7 +321,7 @@ syncObj.nothing = {
 	}),
 } as RemoteHandlers;
 
-syncObj.deepMerge = {
+syncObject.deepMerge = {
 	request: (s): LoadedItem<any> => ({
 		data: s.data,
 		loadingStatus: {
@@ -352,7 +356,7 @@ syncObj.deepMerge = {
 	}),
 } as RemoteHandlers;
 
-syncObj.custom = <T, D = any>(cb: (a: T, data: D) => T): RemoteHandlers => ({
+syncObject.custom = <T, D = any>(cb: (a: T, data: D) => T): RemoteHandlers => ({
 	request: nothingHandler,
 	success: (s: LoadedItem<T>, data): LoadedItem<T> => {
 		return {

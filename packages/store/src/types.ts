@@ -66,9 +66,9 @@ export type StoreStructure<StoreType> = {
 
 export type SubscriberType<T> = (state: MaybeRemoteData<LoadedItem<T>>) => any;
 
-export type SubsObj<Item> = {
-	subscribe: (subscriber: SubscriberType<Item>) => Promise<() => void>;
-};
+export type SubsObj<Item> = (
+	subscriber: SubscriberType<Item>,
+) => Promise<() => void>;
 
 export type SyncObjectType<
 	Routes extends Record<string, Route<any, any>> = Record<string, never>,
@@ -77,19 +77,19 @@ export type SyncObjectType<
 > = (Routes extends Record<string, never>
 	? {
 			[P in keyof OtherRoutes]: OtherRoutes[P] extends undefined
-				? () => Promise<void>
-				: (data: OtherRoutes[P]) => Promise<void>;
+				? (store: any) => () => Promise<void>
+				: (store: any) => (data: OtherRoutes[P]) => Promise<void>;
 	  }
 	: {
 			[P in keyof Routes | keyof OtherRoutes]: P extends keyof Routes
-				? RequestFunc<Routes[P]>
+				? (store: any) => RequestFunc<Routes[P]>
 				: P extends keyof OtherRoutes
 				? OtherRoutes[P] extends undefined
-					? () => Promise<void>
-					: (data: OtherRoutes[P]) => Promise<void>
+					? (store: any) => () => Promise<void>
+					: (store: any) => (data: OtherRoutes[P]) => Promise<void>
 				: never;
 	  }) &
-	SubsObj<Item>;
+	(<StoreState = any>(store: StoreState) => SubsObj<Item>);
 
 export type LocalHandler<
 	Data extends Record<string, any> = Record<string, any>,
@@ -148,9 +148,4 @@ export type MaybeRemoteData<
 	nothing: (() => R) | R;
 	failure: ((a: {data?: A | null; error: E}) => R) | R;
 	loading: ((a: {data?: A | null}) => R) | R;
-}) => R;
-
-export type IsOrNo = <R = null>(mapping: {
-	is: (() => R) | R;
-	no: (() => R) | R;
 }) => R;

@@ -47,8 +47,9 @@ export default function (config: WholeConfig) {
 		files: [
 			'test/@global.ts',
 			'packages/**/*(!.d).ts',
-			'test/**/*.test.tsx',
-			'test/**/*.test.ts',
+			// 'test/**/*.test.tsx',
+			// 'test/**/*.test.ts',
+			'test/**/sync.obj.test.tsx',
 		],
 
 		// frameworks to use

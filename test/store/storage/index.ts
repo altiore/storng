@@ -1,5 +1,6 @@
 import {GetScope, Route} from '@storng/common';
-import {ScopeHandlers, Store, SyncObjectType, syncObj} from '@storng/store';
+import {ScopeHandlers, Store, SyncObjectType} from '@storng/store';
+import {syncObject as getSyncObj} from '@storng/store/src/sync.object';
 
 import {mockSuccessItemFetch} from './mock.fetch';
 import {StoreType} from './store.type';
@@ -24,13 +25,11 @@ export const syncObject = <
 	Routes extends Record<string, Route<any, any>> = Record<string, never>,
 	OtherRoutes extends Record<string, any> = Record<string, never>,
 >(
-	storeName: string,
 	scope: GetScope<Routes, Key> | Key,
 	scopeHandlers: ScopeHandlers<StoreType, Key, Routes, OtherRoutes>,
 	initState?: StoreType[Key],
 ): SyncObjectType<Routes, StoreType[Key], OtherRoutes> => {
-	return syncObj<StoreType, Key, Routes, OtherRoutes>(
-		getStore(storeName),
+	return getSyncObj<StoreType, Key, Routes, OtherRoutes>(
 		scope,
 		scopeHandlers,
 		initState,
@@ -38,9 +37,9 @@ export const syncObject = <
 	);
 };
 
-syncObject.update = syncObj.update;
-syncObject.replace = syncObj.replace;
-syncObject.nothing = syncObj.nothing;
-syncObject.remove = syncObj.remove;
-syncObject.deepMerge = syncObj.deepMerge;
-syncObject.custom = syncObj.custom;
+syncObject.update = getSyncObj.update;
+syncObject.replace = getSyncObj.replace;
+syncObject.nothing = getSyncObj.nothing;
+syncObject.remove = getSyncObj.remove;
+syncObject.deepMerge = getSyncObj.deepMerge;
+syncObject.custom = getSyncObj.custom;
