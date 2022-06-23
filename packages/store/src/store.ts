@@ -11,6 +11,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 	public autoRemoveErrorIn = 7000;
 
 	public authStorage?: keyof T;
+	public name: string;
 
 	constructor(
 		name: string,
@@ -22,6 +23,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 		autoRemoveErrorIn?: number,
 	) {
 		this.cache = new StoreCache<T>(name);
+		this.name = name;
 		this.local = new StoreLocal<StoreStructure<T>>(
 			name,
 			version,

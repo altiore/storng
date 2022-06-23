@@ -98,7 +98,7 @@ export class Route<
 	public to(params?: Partial<Req>): string {
 		const [url, urlParams] = this.replaceUrlParams(this.path, params);
 
-		const queryParamArr = [];
+		const queryParamArr: string[] = [];
 		if (params) {
 			Object.entries(params).forEach(([paramName, paramValue]) => {
 				if (!urlParams.includes(paramName)) {
@@ -116,8 +116,8 @@ export class Route<
 		const preparedData =
 			typeof data === 'object' ? Object.assign({}, data) : undefined;
 
-		if (typeof data === 'object') {
-			Object.keys(data).forEach((fieldName) => {
+		if (preparedData) {
+			Object.keys(preparedData).forEach((fieldName) => {
 				if (urlParams.includes(fieldName)) {
 					delete preparedData[fieldName];
 				}
@@ -196,7 +196,7 @@ export class Route<
 		params?: Partial<Req>,
 	): [string, string[]] {
 		let preparedPath = path;
-		const urlParams = [];
+		const urlParams: string[] = [];
 		this.urlRequiredParams.forEach((paramWithTwoDots) => {
 			const paramName = paramWithTwoDots.replace(':', '');
 
@@ -277,7 +277,7 @@ export function RouteScope<
 	return new Scope(conf) as GetScope<T, NameType>;
 }
 
-export class Paginated<T> {
+export interface Paginated<T> {
 	data: T[];
 	count: number;
 	total: number;
@@ -285,12 +285,16 @@ export class Paginated<T> {
 	pageCount: number;
 }
 
-export type RequestFunc<T extends Route<any, any>> = T extends Route<
+export type ActionFunc<T extends any = any> = T extends Route<
 	infer Req,
 	infer Res
 >
 	? (data: Req) => Promise<Res>
-	: unknown;
+	: T extends undefined
+	? () => Promise<void>
+	: (data: T) => Promise<void>;
+
+export type GetActionFunc<T extends any = any> = (store: any) => ActionFunc<T>;
 
 export type RouteReq<T extends Route<any, any>> = T extends Route<
 	infer Req,

@@ -10,7 +10,7 @@ import {StoreType} from './storage/store.type';
 
 const renderSpy = sinon.spy();
 
-const STORE_NAME = 'sync.obj.test.tsx';
+const STORE_NAME = 'sync.obj.many-subscribers.test.tsx';
 
 const store = getStore(STORE_NAME);
 
@@ -37,13 +37,13 @@ const MyComponent = ({auth, registerConfirm}: MyComponentProps) => {
 
 const s = {
 	auth,
-} as any;
+};
 
 const a = {
 	registerConfirm: auth.registerConfirm,
-} as any;
+};
 
-const Wrapped = connect(MyComponent, s, a) as any;
+const Wrapped = connect(MyComponent, s, a);
 
 describe('sync.object.ts', () => {
 	let root: any;
@@ -75,6 +75,8 @@ describe('sync.object.ts', () => {
 		expect(root?.innerHTML).to.equal(
 			'<p>loading</p><p>loading</p><p>loading</p>',
 		);
+
+		expect(renderSpy).have.been.callCount(6);
 	});
 
 	it('вторая генерация', async () => {
@@ -83,6 +85,8 @@ describe('sync.object.ts', () => {
 		expect(root?.innerHTML).to.equal(
 			'<p>nothing</p><p>nothing</p><p>nothing</p>',
 		);
+
+		expect(renderSpy).have.been.callCount(9);
 	});
 
 	it('обновляем данные', async () => {
@@ -90,7 +94,7 @@ describe('sync.object.ts', () => {
 			const p = document.getElementsByTagName('p');
 			p[0].click();
 		});
-		await wait(1.3);
+		await wait(0.3);
 
 		expect(root?.innerHTML).to.equal(
 			'<p>correct</p><p>correct</p><p>correct</p>',

@@ -1,7 +1,7 @@
 import {
 	DataRes,
 	ErrorOrInfo,
-	RequestFunc,
+	GetActionFunc,
 	ResBase,
 	ResError,
 	Route,
@@ -14,9 +14,10 @@ export interface LoadingStatus<
 		ok: boolean;
 	},
 > {
-	isLoading: boolean;
-	isLoaded: boolean;
 	error: Error | undefined;
+	initial?: boolean;
+	isLoaded: boolean;
+	isLoading: boolean;
 }
 
 export interface LoadedItem<
@@ -44,6 +45,10 @@ export interface LoadedList<Key, Item extends Record<string, any>> {
 	};
 }
 
+export type LoadedData<T> =
+	| LoadedItem<T[keyof T]>
+	| LoadedList<keyof T, T[keyof T]>;
+
 export type PersistStore<T extends Record<keyof T, T[keyof T]>> = {
 	getItem: (tableName: keyof T, key?: string) => Promise<any>;
 	setItem: (tableName: keyof T, value: any) => Promise<any>;
@@ -64,7 +69,7 @@ export type StoreStructure<StoreType> = {
 	};
 };
 
-export type SubscriberType<T> = (state: MaybeRemoteData<LoadedItem<T>>) => any;
+export type SubscriberType<T> = (state: MaybeRemoteData<LoadedItem<T>>) => void;
 
 export type SubsObj<Item> = (
 	subscriber: SubscriberType<Item>,
@@ -76,18 +81,14 @@ export type SyncObjectType<
 	OtherRoutes extends Record<string, any> = Record<string, never>,
 > = (Routes extends Record<string, never>
 	? {
-			[P in keyof OtherRoutes]: OtherRoutes[P] extends undefined
-				? (store: any) => () => Promise<void>
-				: (store: any) => (data: OtherRoutes[P]) => Promise<void>;
+			[P in keyof OtherRoutes]: GetActionFunc<OtherRoutes[P]>;
 	  }
 	: {
 			[P in keyof Routes | keyof OtherRoutes]: P extends keyof Routes
-				? (store: any) => RequestFunc<Routes[P]>
+				? GetActionFunc<Routes[P]>
 				: P extends keyof OtherRoutes
-				? OtherRoutes[P] extends undefined
-					? (store: any) => () => Promise<void>
-					: (store: any) => (data: OtherRoutes[P]) => Promise<void>
-				: never;
+				? GetActionFunc<OtherRoutes[P]>
+				: GetActionFunc;
 	  }) &
 	(<StoreState = any>(store: StoreState) => SubsObj<Item>);
 
@@ -102,18 +103,24 @@ export type LocalHandler<
 
 export type RemoteHandlers<
 	Data extends Record<string, any> = Record<string, any>,
-	Req extends any = any,
-> = {
-	request: LocalHandler<Data, {route: Route<Req, ResBase<Data>>; req: Req}>;
-	success: LocalHandler<
-		Data,
-		{route: Route<Req, ResBase<Data>>; res: DataRes<Data>}
-	>;
-	failure: LocalHandler<
-		Data,
-		{route?: Route<Req, ResBase<Data>>; res: ErrorOrInfo}
-	>;
-};
+	Req extends Record<string, any> | undefined = undefined,
+> = Req extends Record<string, any>
+	? {
+			request: LocalHandler<Data, {route: Route<Req, ResBase<Data>>; req: Req}>;
+			success: LocalHandler<
+				Data,
+				{route: Route<Req, ResBase<Data>>; res: DataRes<Data>}
+			>;
+			failure: LocalHandler<
+				Data,
+				{route?: Route<Req, ResBase<Data>>; res: ErrorOrInfo}
+			>;
+	  }
+	: {
+			request: LocalHandler<Data>;
+			success: LocalHandler<Data>;
+			failure: LocalHandler<Data>;
+	  };
 
 export type ScopeHandlers<
 	StoreState extends Record<string, StoreState[keyof StoreState]>,
@@ -123,18 +130,14 @@ export type ScopeHandlers<
 > = {
 	[P in keyof Routes]: RemoteHandlers<
 		StoreState[Key],
-		Routes[P] extends Route<infer Req> ? Req : never
+		Routes[P] extends Route<infer Req> ? Req : undefined
 	>;
 } &
 	{[P in keyof OtherRoutes]: RemoteHandlers<StoreState[Key], OtherRoutes[P]>};
 
 export type FetchType = (url: string, init: RequestInit) => Promise<Response>;
 
-export type AuthData =
-	| {accessToken: string}
-	| null
-	| Record<string, never>
-	| undefined;
+export type AuthData = Record<'accessToken', string> | Record<string, never>;
 
 export type MaybeRemoteData<
 	A extends Record<string, any>,
@@ -146,6 +149,6 @@ export type MaybeRemoteData<
 > = <R = null>(mapping: {
 	correct: ((a: {data: A}) => R) | R;
 	nothing: (() => R) | R;
-	failure: ((a: {data?: A | null; error: E}) => R) | R;
-	loading: ((a: {data?: A | null}) => R) | R;
+	failure: ((a: {data?: A; error: E}) => R) | R;
+	loading: ((a: {data?: A}) => R) | R;
 }) => R;

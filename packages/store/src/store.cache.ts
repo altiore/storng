@@ -1,21 +1,13 @@
-import {
-	AuthData,
-	LoadedItem,
-	LoadedList,
-	PersistStore,
-	StructureType,
-} from './types';
-
-type LoadedData<T> = LoadedItem<T[keyof T]> | LoadedList<keyof T, T[keyof T]>;
+import {AuthData, LoadedItem, StructureType} from './types';
 
 type ObjKey<T extends Record<string, T[keyof T]>> = {
 	type: StructureType;
-	initData: LoadedData<T>;
+	initData: LoadedItem<T[keyof T]>;
 	name: keyof T;
 };
 
 type DataAndSubs<T extends Record<keyof T, T[keyof T]>> = {
-	data: LoadedData<T>;
+	data: LoadedItem<T[keyof T]>;
 	subscribers: Array<(val: any) => void>;
 };
 
@@ -24,7 +16,17 @@ type WeakStore<T extends Record<string, T[keyof T]>> = WeakMap<
 	DataAndSubs<T>
 >;
 
-const DEF_PREPARE_DATA = (t) => t;
+const DEF_PREPARE_DATA = (t: LoadedItem<any>): any => t;
+
+const SET_INITIAL_TO_FALSE = (s: LoadedItem<any>): LoadedItem<any> => ({
+	...s,
+	loadingStatus: {...s.loadingStatus, initial: false},
+});
+
+const SET_IS_LOADING_TO_FALSE = (s: LoadedItem<any>): LoadedItem<any> => ({
+	data: {...s.data},
+	loadingStatus: {...s.loadingStatus, initial: false, isLoading: false},
+});
 
 export class StoreCache<T extends Record<string, T[keyof T]>> {
 	/**
@@ -43,10 +45,17 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 	 */
 	private weakStore: WeakStore<T>;
 
+	constructor(name: string) {
+		this.name = name;
+		// TODO: возможно, здесь лучше использовать обычный Map
+		this.weakStore = new WeakMap() as WeakStore<T>;
+		this.structure = new Map();
+	}
+
 	/**
 	 * Получаем ключ в виде объекта для временных данных
 	 */
-	private getDataKey(name: keyof T): ObjKey<T> {
+	private getDataKey(name: keyof T): ObjKey<T> | undefined {
 		return this.structure.get(name);
 	}
 
@@ -55,219 +64,165 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 	 */
 	private setData(
 		key: keyof T,
-		data: LoadedData<T>,
+		data: LoadedItem<T[keyof T]>,
 		subscribers: Array<(val: any) => void>,
 	): void {
-		this.weakStore.set(this.getDataKey(key), {
+		const objKey = this.getDataKey(key);
+		if (!objKey) {
+			throw new Error('Вы пытаетесь установить данные с неизвестным ключом');
+		}
+
+		this.weakStore.set(objKey, {
 			data,
 			subscribers,
 		});
 	}
 	/**
-	 * Проверяем существование временных данных (кеш данных в оперативной памяти)
-	 */
-	private hasData(key: keyof T): boolean {
-		return this.weakStore.has(this.getDataKey(key));
-	}
-	/**
 	 * Получаем временные данные (кеш данные из оперативной памяти)
 	 */
-	private getData(key: keyof T): DataAndSubs<T> {
-		return this.weakStore.get(this.getDataKey(key));
+	private getData(key: keyof T): DataAndSubs<T> | undefined {
+		const objKey = this.getDataKey(key);
+
+		if (!objKey || !this.weakStore.has(objKey)) {
+			return undefined;
+		}
+		return this.weakStore.get(objKey);
 	}
 	/**
 	 * Удаляем временные данные (кеш данные из оперативной памяти)
 	 */
 	private deleteData(key: keyof T): void {
 		let keyPointer = this.getDataKey(key);
-		this.weakStore.delete(keyPointer);
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		keyPointer = null;
+		if (keyPointer) {
+			this.weakStore.delete(keyPointer);
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+			keyPointer = undefined;
+		}
 	}
 
-	constructor(name: string) {
-		this.name = name;
-		// TODO: возможно, здесь лучше использовать обычный Map
-		this.weakStore = new WeakMap() as WeakStore<T>;
-		this.structure = new Map();
-	}
-
-	public addItem(key: keyof T, initData: Partial<T[keyof T]> = {}): void {
-		this.structure.set(key, {
+	public addItem(key: keyof T, initData: Partial<T[keyof T]> = {}): ObjKey<T> {
+		const structureInfo: ObjKey<T> = {
 			initData: {
 				data: initData,
 				loadingStatus: {
 					error: undefined,
+					initial: true,
 					isLoaded: false,
-					isLoading: false,
+					isLoading: true,
 				},
 			},
 			name: key,
 			type: StructureType.ITEM,
-		});
+		};
+		this.structure.set(key, structureInfo);
+		return structureInfo;
 	}
 
-	// public addList(key: keyof T): void {
-	//   this.structure.set(key, {
-	//     initData: {
-	//       data: [],
-	//       id: key,
-	//       loadingStatus: {
-	//         error: undefined,
-	//         isLoaded: false,
-	//         isLoading: false,
-	//       },
-	//     },
-	//     keyPath: 'id',
-	//     name: key,
-	//     type: StructureType.LIST,
-	//   });
-	// }
-
-	public async getDataAsync(
-		key: keyof T,
-		persistStore: PersistStore<T>,
-	): Promise<LoadedData<T>> {
-		if (this.hasData(key)) {
-			const curData = this.getData(key);
+	public getDataAsync(key: keyof T): LoadedItem<T[keyof T]> | false {
+		const curData = this.getData(key);
+		if (curData) {
 			return curData.data;
-		} else {
-			// 1. Восстанавливаем данные
-			let data = persistStore ? await persistStore.getItem(key) : undefined;
-			if (typeof data === 'undefined') {
-				// 2. Если не удалось восстановить, создаем новые из начальных значений
-				const keyData = this.getDataKey(key);
-				data = keyData.initData;
-			}
-
-			return data;
 		}
+
+		return false;
 	}
 
-	public async getAuthData(
-		persistStore: PersistStore<T>,
-		key?: keyof T,
-	): Promise<LoadedItem<AuthData>> {
-		let authData: LoadedItem<AuthData>;
+	public getAuthData(key?: keyof T): LoadedItem<AuthData> | false {
+		let authData: LoadedItem<AuthData> | false = false;
 		if (key) {
-			authData = (await this.getDataAsync(key, persistStore)) as any;
+			authData = this.getDataAsync(key) as LoadedItem<T[keyof T]> | false;
 		}
 
-		return (
-			authData || {
-				data: {},
-				loadingStatus: {
-					error: undefined,
-					isLoaded: false,
-					isLoading: false,
-				},
-			}
-		);
+		return authData;
 	}
 
-	public subscribe<ResultData = LoadedData<T>>(
+	public subscribe<ResultData = LoadedItem<T[keyof T]>>(
 		key: keyof T,
 		subscriber: (value: ResultData) => void,
-		persistStore: PersistStore<T>,
 		prepareDataForSubscriber: (
-			value: LoadedData<T>,
-		) => ResultData = DEF_PREPARE_DATA as any,
-		restorePreparation: (
-			value: LoadedData<T>,
-		) => LoadedData<T> = DEF_PREPARE_DATA,
+			value: LoadedItem<T[keyof T]>,
+		) => ResultData = DEF_PREPARE_DATA,
+		cb?: (i: LoadedItem<T[keyof T]>, updateData: any) => Promise<void>,
+		initDataData?: Partial<T[keyof T]>,
 	): void {
-		setTimeout(async () => {
-			// 0. сохраняем в переменную наличие активных данных
-			const isHasActive = this.hasData(key);
-			let data;
+		console.log('subscribe', key);
+		let keyData = this.getDataKey(key);
 
-			// 1. сначала добавляем подписчика
-			if (isHasActive) {
-				const curData = this.getData(key);
-				data = curData.data;
-				curData.subscribers.push(subscriber);
+		if (!keyData) {
+			keyData = this.addItem(key, initDataData);
+		}
+
+		let data: LoadedItem<T[keyof T]>;
+
+		const curData = this.getData(key);
+		if (curData) {
+			data = curData.data;
+			curData.subscribers.push(subscriber);
+		} else {
+			data = (keyData as ObjKey<T>).initData;
+			this.setData(key, data, [subscriber]);
+		}
+
+		subscriber(prepareDataForSubscriber(data));
+		if (!curData) {
+			if (cb) {
+				this.updateData(key, SET_INITIAL_TO_FALSE, prepareDataForSubscriber);
+				cb(data, this.updateData.bind(this)).then().catch(console.error);
 			} else {
-				const keyData = this.getDataKey(key);
-				data = keyData.initData;
-				this.setData(key, keyData.initData, [subscriber]);
+				this.updateData(key, SET_IS_LOADING_TO_FALSE, prepareDataForSubscriber);
 			}
-
-			// 2. загружаем данные, если есть в хранилище
-			if (!isHasActive && persistStore) {
-				// 2.1. Восстанавливаем данные
-				let persistedData = await persistStore.getItem(key);
-				if (typeof persistedData !== 'undefined') {
-					persistedData = restorePreparation(persistedData);
-					if (JSON.stringify(data) !== JSON.stringify(persistedData)) {
-						data = persistedData;
-						await this.updateData(
-							key,
-							DEF_PREPARE_DATA,
-							persistStore,
-							prepareDataForSubscriber,
-						);
-					}
-				}
-			}
-
-			// 3. отсылаем данные подписчику
-			subscriber(prepareDataForSubscriber(data));
-		}, 0);
+		}
 	}
 
 	public unsubscribe(key: keyof T, subscriber: (value: any) => void): void {
-		setTimeout(() => {
-			console.log('store.cache unsubscribe', {
-				getData: Boolean(this.getData(key)),
-				hasData: this.hasData(key),
-				key,
-			});
-			if (this.hasData(key)) {
-				const curData = this.getData(key);
-
-				const subscriberRemoveIndex = curData.subscribers.findIndex(
-					(el) => el === subscriber,
-				);
-				if (subscriberRemoveIndex !== -1) {
-					curData.subscribers.splice(subscriberRemoveIndex, 1);
-				}
-
-				if (!curData.subscribers?.length) {
-					this.deleteData(key);
-				}
+		const curData = this.getData(key);
+		if (curData) {
+			const subscriberRemoveIndex = curData.subscribers.findIndex(
+				(el) => el === subscriber,
+			);
+			if (subscriberRemoveIndex !== -1) {
+				curData.subscribers.splice(subscriberRemoveIndex, 1);
 			}
-		}, 0);
+
+			if (!curData.subscribers?.length) {
+				this.deleteData(key);
+			}
+		} else {
+			throw new Error(
+				'Вы пытаетесь отписать подписчика, но он не был найден среди подписчиков',
+			);
+		}
 	}
 
 	public updateData<ResultData>(
 		key: keyof T,
-		getData: (data: LoadedData<T>) => LoadedData<T>,
-		persistStore?: PersistStore<T>,
-		prepareData: (value: LoadedData<T>) => ResultData = DEF_PREPARE_DATA as any,
+		getData: (data: LoadedItem<T[keyof T]>) => LoadedItem<T[keyof T]>,
+		prepareDataForSubscriber: (
+			value: LoadedItem<T[keyof T]>,
+		) => ResultData = DEF_PREPARE_DATA,
+		cb?: (i: LoadedItem<T[keyof T]> | false) => Promise<void>,
 	): void {
-		setTimeout(async () => {
-			if (this.hasData(key)) {
-				const curData = this.getData(key);
-				const newData = getData(curData.data);
+		const curData = this.getData(key);
+		if (curData) {
+			const newData = getData(curData.data);
 
-				this.setData(key, newData, curData.subscribers);
-				// Разослать данные всем подписчикам
-				curData.subscribers.forEach((subscriber) => {
-					subscriber(prepareData(newData));
-				});
-
-				if (persistStore) {
-					await persistStore.setItem(key, newData);
-				}
-			} else {
-				if (persistStore) {
-					const prevData = await persistStore.getItem(key);
-					const dataKey = this.getDataKey(key);
-
-					const newData = getData(prevData || dataKey.initData);
-					await persistStore.setItem(key, newData);
-				}
+			// console.log('>>>>>>>> 2update data', {
+			// 	cb,
+			// 	data: JSON.stringify(newData),
+			// 	subscribers: curData.subscribers.length,
+			// });
+			this.setData(key, newData, curData.subscribers);
+			// Разослать данные всем подписчикам
+			curData.subscribers.forEach((subscriber) => {
+				subscriber(prepareDataForSubscriber(newData));
+			});
+			if (cb) {
+				cb(newData).then().catch(console.error);
 			}
-		}, 0);
+		} else {
+			if (cb) {
+				cb(false).then().catch(console.error);
+			}
+		}
 	}
 }

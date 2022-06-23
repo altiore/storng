@@ -1,6 +1,6 @@
 import React, {ComponentProps, FC} from 'react';
 
-import {RequestFunc} from '@storng/common';
+import {ActionFunc, GetActionFunc} from '@storng/common';
 import {LoadedItem, MaybeRemoteData, SubsObj} from '@storng/store';
 
 import {ConnectComponent} from './connect.component';
@@ -20,21 +20,21 @@ type ValidStateProps<
 > = ComponentProps<C> extends SelectorLift<S> ? S : undefined;
 
 type ActionLift<
-	A extends {[P in string]: (store: any) => RequestFunc<any>} | undefined = {
-		[P in string]: (store: any) => RequestFunc<any>;
+	A extends {[P in string]: GetActionFunc} | undefined = {
+		[P in string]: GetActionFunc;
 	},
 > = {
-	[Prop in keyof A]: A[Prop] extends (store: any) => RequestFunc<infer R>
-		? RequestFunc<R>
+	[Prop in keyof A]: A[Prop] extends GetActionFunc<infer R>
+		? ActionFunc<R>
 		: never;
 };
 
 type ValidActionProps<
 	C extends FC<any>,
-	A extends {[P in string]: (store: any) => RequestFunc<any>} | undefined = {
-		[P in string]: (store: any) => RequestFunc<any>;
+	A extends {[P in string]: GetActionFunc} | undefined = {
+		[P in string]: GetActionFunc;
 	},
-> = ComponentProps<C> extends ActionLift<A> ? A : undefined;
+> = ComponentProps<C> extends ActionLift<A> ? A : never;
 
 export function connect<
 	C extends FC<any>,
@@ -55,15 +55,15 @@ export function connect<
 				[K in string]: (store: any) => SubsObj<any>;
 		  }
 		| undefined = {[K in string]: (store: any) => SubsObj<any>},
-	A extends {[P in string]: (store: any) => RequestFunc<any>} | undefined = {
-		[P in string]: (store: any) => RequestFunc<any>;
+	A extends {[P in string]: GetActionFunc} | undefined = {
+		[P in string]: GetActionFunc;
 	},
 >(
 	WrappedComponent: C,
 	selectors?: ValidStateProps<C, S>,
 	actions?: ValidActionProps<C, A>,
 ): typeof selectors extends {[K in string]: SubsObj<any>}
-	? typeof actions extends {[P in string]: (store: any) => RequestFunc<any>}
+	? typeof actions extends {[P in string]: (store: any) => ActionFunc<any>}
 		? React.FC<
 				Omit<
 					ComponentProps<typeof WrappedComponent>,
@@ -73,7 +73,7 @@ export function connect<
 		: React.FC<
 				Omit<ComponentProps<typeof WrappedComponent>, keyof typeof selectors>
 		  >
-	: typeof actions extends {[P in string]: (store: any) => RequestFunc<any>}
+	: typeof actions extends {[P in string]: (store: any) => ActionFunc<any>}
 	? React.FC<
 			Omit<ComponentProps<typeof WrappedComponent>, keyof typeof actions>
 	  >
@@ -86,15 +86,15 @@ export function connect<
 				[K in string]: (store: any) => SubsObj<any>;
 		  }
 		| undefined = {[K in string]: (store: any) => SubsObj<any>},
-	A extends {[P in string]: (store: any) => RequestFunc<any>} | undefined = {
-		[P in string]: (store: any) => RequestFunc<any>;
+	A extends {[P in string]: GetActionFunc} | undefined = {
+		[P in string]: GetActionFunc;
 	},
 >(
 	WrappedComponent: C,
 	selectors?: ValidStateProps<C, S>,
 	actions?: ValidActionProps<C, A>,
 ): typeof selectors extends {[K in string]: SubsObj<any>}
-	? typeof actions extends {[P in string]: (store: any) => RequestFunc<any>}
+	? typeof actions extends {[P in string]: (store: any) => ActionFunc<any>}
 		? React.FC<
 				Omit<
 					ComponentProps<typeof WrappedComponent>,
@@ -104,7 +104,7 @@ export function connect<
 		: React.FC<
 				Omit<ComponentProps<typeof WrappedComponent>, keyof typeof selectors>
 		  >
-	: typeof actions extends {[P in string]: (store: any) => RequestFunc<any>}
+	: typeof actions extends {[P in string]: (store: any) => ActionFunc<any>}
 	? React.FC<
 			Omit<ComponentProps<typeof WrappedComponent>, keyof typeof actions>
 	  >

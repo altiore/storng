@@ -27,23 +27,24 @@ const MyComponent = ({auth, registerConfirm}: MyComponentProps) => {
 	}, [registerConfirm]);
 
 	renderSpy();
+
 	return auth<JSX.Element>({
-		correct: <p onClick={onClick}>correct</p>,
-		failure: <p onClick={onClick}>failure</p>,
-		loading: <p onClick={onClick}>loading</p>,
-		nothing: <p onClick={onClick}>nothing</p>,
+		correct: <p onClick={onClick}>correct {typeof registerConfirm}</p>,
+		failure: <p onClick={onClick}>failure {typeof registerConfirm}</p>,
+		loading: <p onClick={onClick}>loading {typeof registerConfirm}</p>,
+		nothing: <p onClick={onClick}>nothing {typeof registerConfirm}</p>,
 	});
 };
 
 const s = {
 	auth,
-} as any;
+};
 
 const a = {
 	registerConfirm: auth.registerConfirm,
-} as any;
+};
 
-const Wrapped = connect(MyComponent, s, a) as any;
+const Wrapped = connect(MyComponent, s, a);
 
 describe('sync.object.ts', () => {
 	let root: any;
@@ -60,6 +61,10 @@ describe('sync.object.ts', () => {
 		}
 	});
 
+	it('auth is func', () => {
+		expect(typeof auth).to.be.eq('function');
+	});
+
 	it('первая генерация компонента', async () => {
 		await act(async (render) => {
 			await render(
@@ -70,22 +75,30 @@ describe('sync.object.ts', () => {
 			);
 		});
 
-		expect(root?.innerHTML).to.equal('<p>loading</p>');
+		expect(root?.innerHTML).to.equal('<p>loading function</p>');
+
+		expect(renderSpy).have.been.callCount(2);
 	});
 
 	it('вторая генерация', async () => {
 		await wait(0.3);
 
-		expect(root?.innerHTML).to.equal('<p>nothing</p>');
+		expect(root?.innerHTML).to.equal('<p>nothing function</p>');
+
+		expect(renderSpy).have.been.callCount(3);
 	});
 
 	it('обновляем данные', async () => {
 		await act(() => {
 			const p = document.getElementsByTagName('p');
 			p[0].click();
+			expect(root?.innerHTML).to.equal('<p>loading function</p>');
 		});
+
 		await wait(0.3);
 
-		expect(root?.innerHTML).to.equal('<p>correct</p>');
+		expect(root?.innerHTML).to.equal('<p>correct function</p>');
+
+		expect(renderSpy).have.been.callCount(5);
 	});
 });

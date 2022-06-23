@@ -13,6 +13,7 @@
 		"outDir": "./dist/",
 		"sourceMap": false,
 		"target": "es5",
+		"strict": true,
 
 		"paths": {
 			"@storng/common": ["./packages/common"],

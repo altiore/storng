@@ -1,6 +1,5 @@
-import {SyncObjectType} from '@storng/store';
+import {SyncObjectType, syncObject} from '@storng/store';
 
-import {syncObject} from './index';
 import {StoreType} from './store.type';
 
 type Actions = {
@@ -13,7 +12,7 @@ export const notify: SyncObjectType<
 	Record<string, never>,
 	StoreType['notify'],
 	Actions
-> = syncObject<'notify', Record<string, never>, Actions>(
+> = syncObject<StoreType, 'notify', Record<string, never>, Actions>(
 	'notify',
 	{
 		clear: syncObject.remove,

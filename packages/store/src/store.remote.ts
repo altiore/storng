@@ -43,7 +43,7 @@ export class StoreRemote {
 
 			return await res.json();
 		} catch (err) {
-			return err;
+			return err as ResBase;
 		}
 	}
 }

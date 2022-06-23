@@ -1,84 +1,19 @@
 import {DataRes, ErrorOrInfo, GetScope, Route} from '@storng/common';
+
+import {Store} from './store';
+import {defRestorePreparation} from './sync.object.helpers/def.restore.preparation';
+import {firstSubscriptionCb} from './sync.object.helpers/first-subscription-cb';
+import {getUpdater} from './sync.object.helpers/get-updater';
+import {prepareActions} from './sync.object.helpers/prepare-actions';
 import {
 	LoadedItem,
 	MaybeRemoteData,
 	RemoteHandlers,
 	ScopeHandlers,
-	Store,
 	SubscriberType,
-} from '@storng/store';
-
-import {getObjFunc} from './react/get.func-data';
+	SyncObjectType,
+} from './types';
 import {deepAssign} from './utils';
-
-const requestHandler = (handler, req, initData, route) => (state) =>
-	handler.request(state, initData, {
-		req,
-		route,
-	});
-
-const successHandler = (handler, req, initData) => (state) => {
-	try {
-		return handler.success(state, req || initData);
-	} catch (err) {
-		return handler.failure(state, initData, {
-			res: {message: String(err), ok: false},
-		});
-	}
-};
-
-const remoteSuccessHandler = (handler, initData, resData, route) => (state) => {
-	try {
-		return handler.success(state, initData, {
-			res: resData,
-			route,
-		});
-	} catch (err) {
-		return handler.failure(state, initData, {
-			res: {message: String(err), ok: false},
-			route,
-		});
-	}
-};
-
-const remoteFailureHandler = (handler, initData, resData, route) => (state) =>
-	handler.failure(state, initData, {
-		res: resData,
-		route,
-	});
-
-const removeErrorHandler = (state) => ({
-	data: state.data,
-	loadingStatus: {
-		error: undefined,
-		isLoaded: Boolean(state?.loadingStatus?.isLoaded),
-		isLoading: false,
-	},
-});
-
-const catchFailureHandler = (handler, initData, err) => (state) =>
-	handler.failure(
-		state,
-		initData,
-		err?.ok === false ? err : {message: String(err), ok: false},
-	);
-
-const nothingHandler = (s) => s;
-const defRestorePreparation = (s: LoadedItem<any>) => {
-	if (typeof s?.loadingStatus?.isLoading === 'boolean') {
-		return {
-			data: {...s.data},
-			loadingStatus: {
-				error: undefined,
-				isLoaded: s.loadingStatus.isLoaded,
-				isLoading: false,
-			},
-		};
-	}
-
-	console.error('NO DATA >>>>>>', s);
-	return s;
-};
 
 export function syncObject<
 	StoreState extends Record<string, StoreState[keyof StoreState]>,
@@ -90,97 +25,64 @@ export function syncObject<
 	scopeHandlers: ScopeHandlers<StoreState, Key, Routes, OtherRoutes>,
 	initData?: Partial<StoreState[Key]>,
 	persistData?: boolean,
-	restorePreparation = defRestorePreparation,
-): any {
+	restorePreparation: (
+		v: LoadedItem<StoreState[Key]>,
+	) => LoadedItem<StoreState[Key]> = defRestorePreparation,
+): SyncObjectType<Routes, StoreState[Key], OtherRoutes> {
 	const result =
-		(store: Store<StoreState>) =>
-		async (subscriber: SubscriberType<StoreState[Key]>) => {
+		(
+			store: Store<StoreState>,
+			getObjFunc: (
+				value: LoadedItem<StoreState[Key]>,
+			) => MaybeRemoteData<LoadedItem<StoreState[Key]>>,
+		) =>
+		(subscriber: SubscriberType<StoreState[Key]>) => {
 			try {
 				const storeName: Key =
 					typeof scope === 'object' ? (scope.NAME as Key) : scope;
-				const persistStorage = store.local.simpleStorage();
 
-				store.cache.addItem(storeName, initData);
-				await store.cache.subscribe<
-					MaybeRemoteData<LoadedItem<StoreState[Key]>>
-				>(
+				// TODO: не забыть добавить в экшены
+				const shouldPersistStore =
+					typeof persistData === 'boolean'
+						? persistData
+						: typeof scope === 'object';
+
+				const persistStorage = shouldPersistStore
+					? store.local.simpleStorage()
+					: undefined;
+
+				store.cache.subscribe<MaybeRemoteData<LoadedItem<StoreState[Key]>>>(
 					storeName,
 					subscriber,
-					persistStorage,
-					getObjFunc,
-					restorePreparation,
+					getObjFunc as any,
+					shouldPersistStore
+						? firstSubscriptionCb<StoreState>(
+								storeName,
+								restorePreparation as any,
+								getObjFunc as any,
+								persistStorage as any,
+						  )
+						: undefined,
+					initData,
 				);
-				return async () => await store.cache.unsubscribe(storeName, subscriber);
+				return () => store.cache.unsubscribe(storeName, subscriber);
 			} catch (err) {
 				console.error(err);
 			}
 		};
 
-	Object.entries(scopeHandlers).forEach(([handlerName, handler]) => {
-		(result as any)[handlerName] =
-			(store: Store<StoreState>) => async (req) => {
-				const storeName: Key =
-					typeof scope === 'object' ? (scope.NAME as Key) : scope;
-				const persistStorage = store.local.simpleStorage();
-
-				const shouldPersistStore =
-					typeof persistData === 'boolean'
-						? persistData
-						: typeof scope === 'object';
-				const updater = async (handler) =>
-					store.cache.updateData(
-						storeName,
-						handler,
-						shouldPersistStore ? persistStorage : undefined,
-						getObjFunc,
-					);
-
-				const isApiReq = Boolean(
-					typeof scope === 'object' && scope[handlerName],
-				);
-				if (isApiReq) {
-					let isError = false;
-					let actionResult: any;
-					const route = scope[handlerName];
-					await updater(requestHandler(handler, req, initData, route));
-					try {
-						const authData = await store.cache.getAuthData(
-							persistStorage,
-							store.authStorage,
-						);
-						const resData = await store.remote.fetch(route, authData, req);
-						if (resData.ok) {
-							await updater(
-								remoteSuccessHandler(handler, initData, resData, route),
-							);
-						} else {
-							await updater(
-								remoteFailureHandler(handler, initData, resData, route),
-							);
-							isError = true;
-						}
-						actionResult = resData;
-					} catch (err) {
-						await updater(catchFailureHandler(handler, initData, err));
-						actionResult = err;
-						isError = true;
-					} finally {
-						if (store.autoRemoveErrorIn && isError) {
-							// автоматически удалять ошибку через 15 секунд
-							setTimeout(() => {
-								updater(removeErrorHandler).then().catch(console.error);
-							}, store.autoRemoveErrorIn);
-						}
-					}
-					return actionResult;
-				} else {
-					await updater(successHandler(handler, req, initData));
-				}
-			};
-	});
+	prepareActions<StoreState, Key, Routes, OtherRoutes>(
+		result,
+		scope,
+		scopeHandlers,
+		getUpdater<StoreState>(scope, persistData as any),
+		initData,
+	);
 
 	return result as any;
 }
+
+const nothingHandler = (s) => s;
 
 syncObject.update = {
 	request: (s): LoadedItem<any> => ({
@@ -356,14 +258,15 @@ syncObject.deepMerge = {
 	}),
 } as RemoteHandlers;
 
-syncObject.custom = <T, D = any>(cb: (a: T, data: D) => T): RemoteHandlers => ({
-	request: nothingHandler,
-	success: (s: LoadedItem<T>, data): LoadedItem<T> => {
-		return {
-			data: cb(s.data as T, data as any),
-			loadingStatus: s.loadingStatus,
-		};
-	},
-	// eslint-disable-next-line sort-keys
-	failure: nothingHandler,
-});
+syncObject.custom = <T, D = any>(cb: (a: T, data: D) => T): RemoteHandlers =>
+	({
+		request: nothingHandler,
+		success: (s: LoadedItem<T>, data): LoadedItem<T> => {
+			return {
+				data: cb(s.data as T, data as any),
+				loadingStatus: s.loadingStatus,
+			};
+		},
+		// eslint-disable-next-line sort-keys
+		failure: nothingHandler,
+	} as any);

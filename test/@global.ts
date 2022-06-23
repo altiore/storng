@@ -31,7 +31,8 @@ const act: ActType = (cb) =>
 						new Promise((resolve) => {
 							ReactDOM.render(element, container, () => {
 								resolve({
-									unmount: () => ReactDOM.unmountComponentAtNode(container),
+									unmount: () =>
+										ReactDOM.unmountComponentAtNode(container as any),
 								});
 							});
 						}),

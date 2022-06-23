@@ -9,7 +9,7 @@ type KarmaWebpack = {
 };
 
 interface WholeConfig extends Config {
-	set: (config: ConfigOptions & KarmaWebpack) => void;
+	set: (config: ConfigOptions) => void;
 }
 
 export default function (config: WholeConfig) {
@@ -47,9 +47,8 @@ export default function (config: WholeConfig) {
 		files: [
 			'test/@global.ts',
 			'packages/**/*(!.d).ts',
-			// 'test/**/*.test.tsx',
-			// 'test/**/*.test.ts',
-			'test/**/sync.obj.many-subscribers.test.tsx',
+			'test/**/*.test.tsx',
+			'test/**/*.test.ts',
 		],
 
 		// frameworks to use
@@ -92,5 +91,5 @@ export default function (config: WholeConfig) {
 
 		webpack: webpackConfig.default,
 		webpackMiddleware: {},
-	});
+	} as ConfigOptions & KarmaWebpack);
 }

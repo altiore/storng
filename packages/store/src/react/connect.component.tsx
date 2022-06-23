@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Store, SubsObj} from '@storng/store';
 
 import {getLoading} from './func-data/maybe-remote.data';
+import {getObjFunc} from './get.func-data';
 
 interface IProps<T extends Record<string, T[keyof T]>> {
 	store: Store<T>;
@@ -30,41 +31,38 @@ export const ConnectComponent = <T extends Record<string, T[keyof T]>>({
 
 	const prepActions = useMemo(() => {
 		return Object.keys(actions || {}).reduce<any>((res, cur) => {
-			res[cur] = actions[cur](store);
+			res[cur] = actions[cur](store, getObjFunc);
 			return res;
 		}, {});
 	}, []);
 
 	const updateState = useCallback(
 		(propName: string) => (value: any) => {
-			console.log('updateState', {
-				componentName: Component?.name,
-				propName,
-				value,
+			setState((s: any) => {
+				const newState = {
+					...s,
+					[propName]: value,
+				};
+				return newState;
 			});
-			setState((s: any) => ({
-				...s,
-				[propName]: value,
-			}));
 		},
 		[],
 	);
 
 	useEffect(() => {
 		const subscribers: any[] = [];
-		console.log('subscribe', Object.keys(selectors || {}));
 		if (selectors) {
 			Object.entries(
-				selectors as {[K in string]: (store: any) => SubsObj<any>},
+				selectors as {
+					[K in string]: (store: any, prepareData: any) => SubsObj<any>;
+				},
 			).map(([propName, syncObj]) => {
-				syncObj(store)(updateState(propName)).then((unsubscribe) => {
-					subscribers.push(unsubscribe);
-				});
+				const unsubscribe = syncObj(store, getObjFunc)(updateState(propName));
+				subscribers.push(unsubscribe);
 			});
 		}
 
 		return () => {
-			console.log('unsubscribe', Object.keys(selectors || {}));
 			subscribers.forEach((unsubscribe) => unsubscribe());
 		};
 	}, []);
