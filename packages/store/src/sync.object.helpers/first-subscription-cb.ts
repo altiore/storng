@@ -22,10 +22,6 @@ export function firstSubscriptionCb<T extends Record<string, T[keyof T]>>(
 	) => void,
 ) => Promise<void> {
 	return async (item: LoadedItem<T[keyof T]>, updateData): Promise<void> => {
-		console.log('subscribe cb', {
-			initial: item.loadingStatus.initial,
-			persistStore: Boolean(persistStore),
-		});
 		if (item.loadingStatus.initial && persistStore) {
 			// 2.1. Восстанавливаем данные
 			let data: any;
