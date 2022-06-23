@@ -63,7 +63,7 @@ const catchFailureHandler =
 			err?.ok === false ? err : {message: String(err), ok: false},
 		);
 
-export function prepareActions<
+export const prepareActions = <
 	T extends Record<string, T[keyof T]>,
 	Key extends keyof T = keyof T,
 	Routes extends Record<string, Route<any, any>> = Record<string, never>,
@@ -79,7 +79,7 @@ export function prepareActions<
 		) => MaybeRemoteData<LoadedItem<T[keyof T]>>,
 	) => (item: (i: LoadedItem<T[keyof T]>) => LoadedItem<T[keyof T]>) => void,
 	initData?: Partial<T[Key]>,
-): void {
+): void => {
 	Object.entries(scopeHandlers).forEach(([handlerName, handler]) => {
 		(result as any)[handlerName] =
 			(
@@ -134,4 +134,4 @@ export function prepareActions<
 				}
 			};
 	});
-}
+};

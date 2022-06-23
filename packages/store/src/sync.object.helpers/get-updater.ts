@@ -43,5 +43,10 @@ export const getUpdater =
 		const asyncUpdater: (i: LoadedItem<T[keyof T]> | false) => Promise<void> =
 			getAsyncUpdater(scopeName, handler, persistStorage as any);
 
+		console.log('store.cache', {
+			self: this,
+			store,
+			'store.cache': store?.cache,
+		});
 		store.cache.updateData(scopeName, handler, getObjFunc, asyncUpdater);
 	};
