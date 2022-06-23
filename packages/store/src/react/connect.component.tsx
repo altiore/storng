@@ -32,6 +32,12 @@ export const ConnectComponent = <T extends Record<string, T[keyof T]>>({
 	const prepActions = useMemo(() => {
 		if (store && actions) {
 			return Object.keys(actions).reduce<any>((res, cur) => {
+				console.log('store for action', {
+					action: actions[cur],
+					store: store,
+					p: Object.getOwnPropertyNames(store),
+					storeCache: store?.cache,
+				});
 				res[cur] = actions[cur](store, getObjFunc);
 				return res;
 			}, {});
@@ -61,6 +67,12 @@ export const ConnectComponent = <T extends Record<string, T[keyof T]>>({
 					[K in string]: (store: any, prepareData: any) => SubsObj<any>;
 				},
 			).map(([propName, syncObj]) => {
+				console.log('store for state', {
+					syncObj,
+					store: store,
+					p: Object.getOwnPropertyNames(store),
+					storeCache: store?.cache,
+				});
 				const unsubscribe = syncObj(store, getObjFunc)(updateState(propName));
 				subscribers.push(unsubscribe);
 			});
