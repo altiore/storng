@@ -17,7 +17,6 @@ type ObjKey<T extends Record<string, T[keyof T]>> = {
 type DataAndSubs<T extends Record<keyof T, T[keyof T]>> = {
 	data: LoadedData<T>;
 	subscribers: Array<(val: any) => void>;
-	persistStore: PersistStore<T>;
 };
 
 type WeakStore<T extends Record<string, T[keyof T]>> = WeakMap<
@@ -58,11 +57,9 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 		key: keyof T,
 		data: LoadedData<T>,
 		subscribers: Array<(val: any) => void>,
-		persistStore: PersistStore<T>,
 	): void {
 		this.weakStore.set(this.getDataKey(key), {
 			data,
-			persistStore,
 			subscribers,
 		});
 	}
@@ -168,7 +165,7 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 		);
 	}
 
-	public async subscribe<ResultData = LoadedData<T>>(
+	public subscribe<ResultData = LoadedData<T>>(
 		key: keyof T,
 		subscriber: (value: ResultData) => void,
 		persistStore: PersistStore<T>,
@@ -178,93 +175,99 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 		restorePreparation: (
 			value: LoadedData<T>,
 		) => LoadedData<T> = DEF_PREPARE_DATA,
-	): Promise<void> {
-		console.log('store.cache subscribe', {
-			key,
-			getData: Boolean(this.getData(key)),
-			hasData: this.hasData(key),
-		});
-		if (this.hasData(key)) {
-			const curData = this.getData(key);
-			curData.subscribers.push(subscriber);
-			subscriber(prepareDataForSubscriber(curData.data));
-		} else {
-			// 1. Восстанавливаем данные
-			let data = persistStore ? await persistStore.getItem(key) : undefined;
-			if (typeof data === 'undefined') {
-				// 2. Если не удалось восстановить, создаем новые из начальных значений
+	): void {
+		setTimeout(async () => {
+			// 0. сохраняем в переменную наличие активных данных
+			const isHasActive = this.hasData(key);
+			let data;
+
+			// 1. сначала добавляем подписчика
+			if (isHasActive) {
+				const curData = this.getData(key);
+				data = curData.data;
+				curData.subscribers.push(subscriber);
+			} else {
 				const keyData = this.getDataKey(key);
 				data = keyData.initData;
-			} else {
-				const restorePreparedData = restorePreparation
-					? restorePreparation(data)
-					: data;
-				if (JSON.stringify(data) !== JSON.stringify(restorePreparedData)) {
-					data = restorePreparedData;
-					await this.updateData(
-						key,
-						DEF_PREPARE_DATA,
-						persistStore,
-						prepareDataForSubscriber,
-					);
+				this.setData(key, keyData.initData, [subscriber]);
+			}
+
+			// 2. загружаем данные, если есть в хранилище
+			if (!isHasActive && persistStore) {
+				// 2.1. Восстанавливаем данные
+				let persistedData = await persistStore.getItem(key);
+				if (typeof persistedData !== 'undefined') {
+					persistedData = restorePreparation(persistedData);
+					if (JSON.stringify(data) !== JSON.stringify(persistedData)) {
+						data = persistedData;
+						await this.updateData(
+							key,
+							DEF_PREPARE_DATA,
+							persistStore,
+							prepareDataForSubscriber,
+						);
+					}
 				}
 			}
 
-			this.setData(key, data, [subscriber], persistStore);
-
+			// 3. отсылаем данные подписчику
 			subscriber(prepareDataForSubscriber(data));
-		}
+		}, 0);
 	}
 
 	public unsubscribe(key: keyof T, subscriber: (value: any) => void): void {
-		console.log('store.cache unsubscribe', {
-			key,
-			getData: Boolean(this.getData(key)),
-			hasData: this.hasData(key),
-		});
-		if (this.hasData(key)) {
-			const curData = this.getData(key);
+		setTimeout(() => {
+			console.log('store.cache unsubscribe', {
+				getData: Boolean(this.getData(key)),
+				hasData: this.hasData(key),
+				key,
+			});
+			if (this.hasData(key)) {
+				const curData = this.getData(key);
 
-			const subscriberRemoveIndex = curData.subscribers.findIndex(
-				(el) => el === subscriber,
-			);
-			if (subscriberRemoveIndex !== -1) {
-				curData.subscribers.splice(subscriberRemoveIndex, 1);
-			}
+				const subscriberRemoveIndex = curData.subscribers.findIndex(
+					(el) => el === subscriber,
+				);
+				if (subscriberRemoveIndex !== -1) {
+					curData.subscribers.splice(subscriberRemoveIndex, 1);
+				}
 
-			if (!curData.subscribers?.length) {
-				this.deleteData(key);
+				if (!curData.subscribers?.length) {
+					this.deleteData(key);
+				}
 			}
-		}
+		}, 0);
 	}
 
-	public async updateData<ResultData>(
+	public updateData<ResultData>(
 		key: keyof T,
 		getData: (data: LoadedData<T>) => LoadedData<T>,
 		persistStore?: PersistStore<T>,
 		prepareData: (value: LoadedData<T>) => ResultData = DEF_PREPARE_DATA as any,
-	): Promise<void> {
-		if (this.hasData(key)) {
-			const curData = this.getData(key);
-			const newData = getData(curData.data);
+	): void {
+		setTimeout(async () => {
+			if (this.hasData(key)) {
+				const curData = this.getData(key);
+				const newData = getData(curData.data);
 
-			this.setData(key, newData, curData.subscribers, curData.persistStore);
-			// Разослать данные всем подписчикам
-			curData.subscribers.forEach((subscriber) => {
-				subscriber(prepareData(newData));
-			});
+				this.setData(key, newData, curData.subscribers);
+				// Разослать данные всем подписчикам
+				curData.subscribers.forEach((subscriber) => {
+					subscriber(prepareData(newData));
+				});
 
-			if (persistStore) {
-				await persistStore.setItem(key, newData);
+				if (persistStore) {
+					await persistStore.setItem(key, newData);
+				}
+			} else {
+				if (persistStore) {
+					const prevData = await persistStore.getItem(key);
+					const dataKey = this.getDataKey(key);
+
+					const newData = getData(prevData || dataKey.initData);
+					await persistStore.setItem(key, newData);
+				}
 			}
-		} else {
-			if (persistStore) {
-				const prevData = await persistStore.getItem(key);
-				const dataKey = this.getDataKey(key);
-
-				const newData = getData(prevData || dataKey.initData);
-				await persistStore.setItem(key, newData);
-			}
-		}
+		}, 0);
 	}
 }

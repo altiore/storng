@@ -49,7 +49,7 @@ export default function (config: WholeConfig) {
 			'packages/**/*(!.d).ts',
 			// 'test/**/*.test.tsx',
 			// 'test/**/*.test.ts',
-			'test/**/sync.obj.test.tsx',
+			'test/**/sync.obj.many-subscribers.test.tsx',
 		],
 
 		// frameworks to use
