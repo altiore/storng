@@ -55,18 +55,18 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 	/**
 	 * Получаем ключ в виде объекта для временных данных
 	 */
-	private getDataKey(name: keyof T): ObjKey<T> | undefined {
+	private getDataKey = (name: keyof T): ObjKey<T> | undefined => {
 		return this.structure.get(name);
-	}
+	};
 
 	/**
 	 * Устанавливаем временные данные (кеш данные в оперативной памяти)
 	 */
-	private setData(
+	private setData = (
 		key: keyof T,
 		data: LoadedItem<T[keyof T]>,
 		subscribers: Array<(val: any) => void>,
-	): void {
+	): void => {
 		const objKey = this.getDataKey(key);
 		if (!objKey) {
 			throw new Error('Вы пытаетесь установить данные с неизвестным ключом');
@@ -76,31 +76,34 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 			data,
 			subscribers,
 		});
-	}
+	};
 	/**
 	 * Получаем временные данные (кеш данные из оперативной памяти)
 	 */
-	private getData(key: keyof T): DataAndSubs<T> | undefined {
+	private getData = (key: keyof T): DataAndSubs<T> | undefined => {
 		const objKey = this.getDataKey(key);
 
 		if (!objKey || !this.weakStore.has(objKey)) {
 			return undefined;
 		}
 		return this.weakStore.get(objKey);
-	}
+	};
 	/**
 	 * Удаляем временные данные (кеш данные из оперативной памяти)
 	 */
-	private deleteData(key: keyof T): void {
+	private deleteData = (key: keyof T): void => {
 		let keyPointer = this.getDataKey(key);
 		if (keyPointer) {
 			this.weakStore.delete(keyPointer);
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			keyPointer = undefined;
 		}
-	}
+	};
 
-	public addItem(key: keyof T, initData: Partial<T[keyof T]> = {}): ObjKey<T> {
+	public addItem = (
+		key: keyof T,
+		initData: Partial<T[keyof T]> = {},
+	): ObjKey<T> => {
 		const structureInfo: ObjKey<T> = {
 			initData: {
 				data: initData,
@@ -116,27 +119,27 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 		};
 		this.structure.set(key, structureInfo);
 		return structureInfo;
-	}
+	};
 
-	public getDataAsync(key: keyof T): LoadedItem<T[keyof T]> | false {
+	public getDataAsync = (key: keyof T): LoadedItem<T[keyof T]> | false => {
 		const curData = this.getData(key);
 		if (curData) {
 			return curData.data;
 		}
 
 		return false;
-	}
+	};
 
-	public getAuthData(key?: keyof T): LoadedItem<AuthData> | false {
+	public getAuthData = (key?: keyof T): LoadedItem<AuthData> | false => {
 		let authData: LoadedItem<AuthData> | false = false;
 		if (key) {
 			authData = this.getDataAsync(key) as LoadedItem<T[keyof T]> | false;
 		}
 
 		return authData;
-	}
+	};
 
-	public subscribe<ResultData = LoadedItem<T[keyof T]>>(
+	public subscribe = <ResultData = LoadedItem<T[keyof T]>>(
 		key: keyof T,
 		subscriber: (value: ResultData) => void,
 		prepareDataForSubscriber: (
@@ -144,7 +147,7 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 		) => ResultData = DEF_PREPARE_DATA,
 		cb?: (i: LoadedItem<T[keyof T]>, updateData: any) => Promise<void>,
 		initDataData?: Partial<T[keyof T]>,
-	): void {
+	): void => {
 		console.log('subscribe', key);
 		let keyData = this.getDataKey(key);
 
@@ -172,9 +175,12 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 				this.updateData(key, SET_IS_LOADING_TO_FALSE, prepareDataForSubscriber);
 			}
 		}
-	}
+	};
 
-	public unsubscribe(key: keyof T, subscriber: (value: any) => void): void {
+	public unsubscribe = (
+		key: keyof T,
+		subscriber: (value: any) => void,
+	): void => {
 		const curData = this.getData(key);
 		if (curData) {
 			const subscriberRemoveIndex = curData.subscribers.findIndex(
@@ -192,16 +198,16 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 				'Вы пытаетесь отписать подписчика, но он не был найден среди подписчиков',
 			);
 		}
-	}
+	};
 
-	public updateData<ResultData>(
+	public updateData = <ResultData>(
 		key: keyof T,
 		getData: (data: LoadedItem<T[keyof T]>) => LoadedItem<T[keyof T]>,
 		prepareDataForSubscriber: (
 			value: LoadedItem<T[keyof T]>,
 		) => ResultData = DEF_PREPARE_DATA,
 		cb?: (i: LoadedItem<T[keyof T]> | false) => Promise<void>,
-	): void {
+	): void => {
 		const curData = this.getData(key);
 		if (curData) {
 			const newData = getData(curData.data);
@@ -224,5 +230,5 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 				cb(false).then().catch(console.error);
 			}
 		}
-	}
+	};
 }
