@@ -28,6 +28,6 @@ export const notify: SyncObjectType<
 );
 
 export const a = async (): Promise<void> => {
-	await notify.clear('')();
-	await notify.deepMerge('')({messages: []});
+	await notify.clear('', '')();
+	await notify.deepMerge('', '')({messages: []});
 };

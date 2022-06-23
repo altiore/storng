@@ -148,7 +148,6 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 		cb?: (i: LoadedItem<T[keyof T]>, updateData: any) => Promise<void>,
 		initDataData?: Partial<T[keyof T]>,
 	): void => {
-		console.log('subscribe', key);
 		let keyData = this.getDataKey(key);
 
 		if (!keyData) {
