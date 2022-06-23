@@ -30,11 +30,15 @@ export const ConnectComponent = <T extends Record<string, T[keyof T]>>({
 	);
 
 	const prepActions = useMemo(() => {
-		return Object.keys(actions || {}).reduce<any>((res, cur) => {
-			res[cur] = actions[cur](store, getObjFunc);
-			return res;
-		}, {});
-	}, []);
+		if (store && actions) {
+			return Object.keys(actions).reduce<any>((res, cur) => {
+				res[cur] = actions[cur](store, getObjFunc);
+				return res;
+			}, {});
+		}
+
+		return {};
+	}, [actions, store]);
 
 	const updateState = useCallback(
 		(propName: string) => (value: any) => {
@@ -46,12 +50,12 @@ export const ConnectComponent = <T extends Record<string, T[keyof T]>>({
 				return newState;
 			});
 		},
-		[],
+		[setState],
 	);
 
 	useEffect(() => {
 		const subscribers: any[] = [];
-		if (selectors) {
+		if (store && selectors) {
 			Object.entries(
 				selectors as {
 					[K in string]: (store: any, prepareData: any) => SubsObj<any>;
@@ -65,7 +69,7 @@ export const ConnectComponent = <T extends Record<string, T[keyof T]>>({
 		return () => {
 			subscribers.forEach((unsubscribe) => unsubscribe());
 		};
-	}, []);
+	}, [store, selectors]);
 
 	return <Component {...prepActions} {...state} {...componentProps} />;
 };

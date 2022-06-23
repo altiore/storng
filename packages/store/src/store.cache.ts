@@ -212,11 +212,6 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 		if (curData) {
 			const newData = getData(curData.data);
 
-			// console.log('>>>>>>>> 2update data', {
-			// 	cb,
-			// 	data: JSON.stringify(newData),
-			// 	subscribers: curData.subscribers.length,
-			// });
 			this.setData(key, newData, curData.subscribers);
 			// Разослать данные всем подписчикам
 			curData.subscribers.forEach((subscriber) => {
