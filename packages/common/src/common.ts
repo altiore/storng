@@ -37,6 +37,7 @@ export interface DataRes<
 	Data extends Record<string, any> = Record<string, any>,
 > {
 	data: Data;
+	message?: string;
 	ok: boolean;
 }
 
