@@ -193,12 +193,12 @@ syncObject.deepMerge = {
 } as ActionHandlers;
 
 syncObject.custom = <T, D = any>(
-	cb: (a: Partial<T>, data: D) => T,
+	cb: (a: T, data: D) => T,
 ): ActionHandlers<T, D> => ({
 	request: requestHandler,
 	success: (s: LoadedItem<T>, data: D): LoadedItem<T> => {
 		return {
-			data: cb(s.data, data),
+			data: cb(s.data as any, data),
 			loadingStatus: {
 				error: undefined,
 				isLoaded: true,
