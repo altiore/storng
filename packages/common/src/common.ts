@@ -8,12 +8,26 @@ export enum Method {
 
 type Request<
 	Req extends Record<string, string | never> = Record<string, never>,
-> = {
-	body: Partial<Req> | undefined;
-	params: Partial<Req> | undefined;
-	method: Method;
-	url: string;
-};
+> = Req extends Record<string, never>
+	? {
+			body: undefined;
+			params: undefined;
+			method: Method;
+			url: string;
+	  }
+	: Req['method'] extends Method.GET
+	? {
+			body: undefined;
+			params: Partial<Req>;
+			method: Method;
+			url: string;
+	  }
+	: {
+			body: Partial<Req>;
+			params: undefined;
+			method: Method;
+			url: string;
+	  };
 
 export interface RouteConf<
 	Req extends Record<string, any> = Record<string, never>,
