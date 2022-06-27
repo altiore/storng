@@ -72,17 +72,12 @@ export type SyncObjectType<
 	Routes extends Record<string, Route<any, any>> = Record<string, never>,
 	Item extends Record<string, any> = Record<string, any>,
 	OtherRoutes extends Record<string, any> = Record<string, never>,
-> = (Routes extends Record<string, never>
-	? {
-			[P in keyof OtherRoutes]: GetActionFunc<OtherRoutes[P]>;
-	  }
-	: {
-			[P in keyof Routes | keyof OtherRoutes]: P extends keyof Routes
-				? GetActionFunc<Routes[P]>
-				: P extends keyof OtherRoutes
-				? GetActionFunc<OtherRoutes[P]>
-				: GetActionFunc;
-	  }) &
+> = {
+	[P in keyof Routes]: GetActionFunc<Routes[P]>;
+} &
+	{
+		[P in keyof OtherRoutes]: GetActionFunc<OtherRoutes[P]>;
+	} &
 	(<StoreState = any>(store: StoreState) => SubsObj<Item>);
 
 export type ActionHandler<
