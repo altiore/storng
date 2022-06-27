@@ -125,8 +125,8 @@ export type MaybeRemoteData<
 		ok: boolean;
 	},
 > = <R = null>(mapping: {
-	correct: ((a: {data: A}) => R) | R;
-	nothing: (() => R) | R;
+	correct: ((a: {data: A; error?: E}) => R) | R;
+	nothing: ((a: {data?: A; error?: E}) => R) | R;
 	failure: ((a: {data?: A; error: E}) => R) | R;
-	loading: ((a: {data?: A}) => R) | R;
+	loading: ((a: {data?: A; error?: E}) => R) | R;
 }) => R;
