@@ -6,9 +6,9 @@ import {firstSubscriptionCb} from './sync.object.helpers/first-subscription-cb';
 import {getUpdater} from './sync.object.helpers/get-updater';
 import {prepareActions} from './sync.object.helpers/prepare-actions';
 import {
+	ActionHandlers,
 	LoadedItem,
 	MaybeRemoteData,
-	RemoteHandlers,
 	ScopeHandlers,
 	SubscriberType,
 	SyncObjectType,
@@ -82,16 +82,47 @@ export function syncObject<
 	return result as any;
 }
 
-const nothingHandler = (s) => s;
+const requestHandler = <T extends Record<string, any> = Record<string, any>>(
+	s: LoadedItem<T>,
+): LoadedItem<T> => ({
+	data: s.data,
+	loadingStatus: {
+		...s.loadingStatus,
+		isLoading: true,
+	},
+});
+
+const failureHandler = <T extends Record<string, any> = Record<string, any>>(
+	s: LoadedItem<T>,
+	_,
+	remote: {res: ErrorOrInfo; route: Route},
+): LoadedItem<T> => ({
+	data: s.data,
+	loadingStatus: {
+		...s.loadingStatus,
+		error: remote.res,
+		isLoading: false,
+	},
+});
+
+syncObject.nothing = {
+	request: requestHandler,
+	success: (s): LoadedItem<any> => {
+		return {
+			data: s.data,
+			loadingStatus: {
+				...s.loadingStatus,
+				error: undefined,
+				isLoading: false,
+			},
+		};
+	},
+	// eslint-disable-next-line sort-keys
+	failure: failureHandler,
+} as ActionHandlers;
 
 syncObject.update = {
-	request: (s): LoadedItem<any> => ({
-		data: s.data,
-		loadingStatus: {
-			...s.loadingStatus,
-			isLoading: true,
-		},
-	}),
+	request: requestHandler,
 	success: (
 		s,
 		data,
@@ -108,28 +139,11 @@ syncObject.update = {
 		},
 	}),
 	// eslint-disable-next-line sort-keys
-	failure: (
-		s,
-		_,
-		remote: {res: ErrorOrInfo; route: Route},
-	): LoadedItem<any> => ({
-		data: s.data,
-		loadingStatus: {
-			...s.loadingStatus,
-			error: remote.res,
-			isLoading: false,
-		},
-	}),
-} as RemoteHandlers | RemoteHandlers<Record<string, any>, Record<string, any>>;
+	failure: failureHandler,
+} as ActionHandlers;
 
 syncObject.replace = {
-	request: (s): LoadedItem<any> => ({
-		data: s.data,
-		loadingStatus: {
-			...s.loadingStatus,
-			isLoading: true,
-		},
-	}),
+	request: requestHandler,
 	success: (
 		s,
 		data,
@@ -143,28 +157,11 @@ syncObject.replace = {
 		},
 	}),
 	// eslint-disable-next-line sort-keys
-	failure: (
-		s,
-		_,
-		remote: {res: ErrorOrInfo; route: Route},
-	): LoadedItem<any> => ({
-		data: s.data,
-		loadingStatus: {
-			...s.loadingStatus,
-			error: remote.res,
-			isLoading: false,
-		},
-	}),
-} as RemoteHandlers | RemoteHandlers<Record<string, any>, Record<string, any>>;
+	failure: failureHandler,
+} as ActionHandlers;
 
 syncObject.remove = {
-	request: (s): LoadedItem<any> => ({
-		data: s.data,
-		loadingStatus: {
-			...s.loadingStatus,
-			isLoading: true,
-		},
-	}),
+	request: requestHandler,
 	success: (s, data): LoadedItem<any> => ({
 		data: data || {},
 		loadingStatus: {
@@ -174,63 +171,11 @@ syncObject.remove = {
 		},
 	}),
 	// eslint-disable-next-line sort-keys
-	failure: (
-		s,
-		_,
-		remote: {res: ErrorOrInfo; route: Route},
-	): LoadedItem<any> => ({
-		data: s.data,
-		loadingStatus: {
-			...s.loadingStatus,
-			error: remote.res,
-			isLoading: false,
-		},
-	}),
-} as RemoteHandlers | RemoteHandlers<Record<string, any>, Record<string, any>>;
-
-syncObject.nothing = {
-	request: (s): LoadedItem<any> => {
-		return {
-			data: s.data,
-			loadingStatus: {
-				...s.loadingStatus,
-				isLoading: true,
-			},
-		};
-	},
-	success: (s): LoadedItem<any> => {
-		return {
-			data: s.data,
-			loadingStatus: {
-				...s.loadingStatus,
-				error: undefined,
-				isLoading: false,
-			},
-		};
-	},
-	// eslint-disable-next-line sort-keys
-	failure: (
-		s,
-		_,
-		remote: {res: ErrorOrInfo; route: Route},
-	): LoadedItem<any> => ({
-		data: s.data,
-		loadingStatus: {
-			error: remote.res,
-			isLoaded: false,
-			isLoading: false,
-		},
-	}),
-} as RemoteHandlers | RemoteHandlers<Record<string, any>, Record<string, any>>;
+	failure: failureHandler,
+} as ActionHandlers;
 
 syncObject.deepMerge = {
-	request: (s): LoadedItem<any> => ({
-		data: s.data,
-		loadingStatus: {
-			...s.loadingStatus,
-			isLoading: true,
-		},
-	}),
+	request: requestHandler,
 	success: (
 		s,
 		data,
@@ -244,31 +189,23 @@ syncObject.deepMerge = {
 		},
 	}),
 	// eslint-disable-next-line sort-keys
-	failure: (
-		s,
-		_,
-		remote: {res: ErrorOrInfo; route: Route},
-	): LoadedItem<any> => ({
-		data: s.data,
-		loadingStatus: {
-			...s.loadingStatus,
-			error: remote.res,
-			isLoading: false,
-		},
-	}),
-} as RemoteHandlers | RemoteHandlers<Record<string, any>, Record<string, any>>;
+	failure: failureHandler,
+} as ActionHandlers;
 
 syncObject.custom = <T, D = any>(
-	cb: (a: T, data: D) => T,
-): RemoteHandlers | RemoteHandlers<Record<string, any>, Record<string, any>> =>
-	({
-		request: nothingHandler,
-		success: (s: LoadedItem<T>, data): LoadedItem<T> => {
-			return {
-				data: cb(s.data as T, data as any),
-				loadingStatus: s.loadingStatus,
-			};
-		},
-		// eslint-disable-next-line sort-keys
-		failure: nothingHandler,
-	} as any);
+	cb: (a: Partial<T>, data: D) => T,
+): ActionHandlers<T, D> => ({
+	request: requestHandler,
+	success: (s: LoadedItem<T>, data: D): LoadedItem<T> => {
+		return {
+			data: cb(s.data, data),
+			loadingStatus: {
+				error: undefined,
+				isLoaded: true,
+				isLoading: false,
+			},
+		};
+	},
+	// eslint-disable-next-line sort-keys
+	failure: failureHandler as any,
+});

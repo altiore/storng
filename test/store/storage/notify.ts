@@ -17,17 +17,19 @@ export const notify: SyncObjectType<
 	{
 		clear: syncObject.remove,
 		deepMerge: syncObject.deepMerge,
-		send: syncObject.custom<StoreType['notify'], number>((state, data) => {
-			return {
-				messages: Array.from(Array(data).keys()),
-				open: state.open,
-			};
-		}),
+		send: syncObject.custom<StoreType['notify'], number>(
+			(state, data): StoreType['notify'] => {
+				return {
+					messages: Array.from(Array(data).keys()),
+					open: Boolean(state.open),
+				};
+			},
+		),
 	},
 	{messages: [], open: false},
 );
 
 export const a = async (): Promise<void> => {
 	await notify.clear('', '')();
-	await notify.deepMerge('', '')({messages: []});
+	// await notify.deepMerge('', '')({messages: []});
 };

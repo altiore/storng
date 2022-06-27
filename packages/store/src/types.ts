@@ -1,11 +1,4 @@
-import {
-	DataRes,
-	ErrorOrInfo,
-	GetActionFunc,
-	ResBase,
-	ResError,
-	Route,
-} from '@storng/common';
+import {ErrorOrInfo, GetActionFunc, ResError, Route} from '@storng/common';
 
 export interface LoadingStatus<
 	Error extends ErrorOrInfo = {
@@ -92,35 +85,24 @@ export type SyncObjectType<
 	  }) &
 	(<StoreState = any>(store: StoreState) => SubsObj<Item>);
 
-export type LocalHandler<
-	Data extends Record<string, any> = Record<string, any>,
-	Remote = any,
+export type ActionHandler<
+	Item extends Record<string, any> = Record<string, any>,
+	Payload extends any = any,
+	Remote extends any = any,
 > = (
-	state: LoadedItem<Data>,
-	data: Partial<Data>,
+	s: LoadedItem<Item>,
+	payload: Payload,
 	remote?: Remote,
-) => LoadedItem<Data>;
+) => LoadedItem<Item>;
 
-export type RemoteHandlers<
-	Data extends Record<string, any> = Record<string, any>,
-	Req extends Record<string, any> | undefined = undefined,
-> = Req extends Record<string, any>
-	? {
-			request: LocalHandler<Data, {route: Route<Req, ResBase<Data>>; req: Req}>;
-			success: LocalHandler<
-				Data,
-				{route: Route<Req, ResBase<Data>>; res: DataRes<Data>}
-			>;
-			failure: LocalHandler<
-				Data,
-				{route?: Route<Req, ResBase<Data>>; res: ErrorOrInfo}
-			>;
-	  }
-	: {
-			request: LocalHandler<Data>;
-			success: LocalHandler<Data>;
-			failure: LocalHandler<Data>;
-	  };
+export type ActionHandlers<
+	Item extends Record<string, any> = Record<string, any>,
+	Payload extends any = any,
+> = {
+	request: ActionHandler<Item, Payload>;
+	success: ActionHandler<Item, Payload>;
+	failure: ActionHandler<Item, Payload>;
+};
 
 export type ScopeHandlers<
 	StoreState extends Record<string, StoreState[keyof StoreState]>,
@@ -128,14 +110,13 @@ export type ScopeHandlers<
 	Routes extends Record<string, Route<any, any>> = Record<string, never>,
 	OtherRoutes extends Record<string, any> = Record<string, never>,
 > = {
-	[P in keyof Routes]:
-		| RemoteHandlers<
+	[P in keyof (Routes | OtherRoutes)]:
+		| ActionHandlers<
 				StoreState[Key],
-				Routes[P] extends Route<infer Req> ? Req : undefined
+				Routes[P] extends Route<infer Req> ? Req : never
 		  >
-		| RemoteHandlers;
-} &
-	{[P in keyof OtherRoutes]: RemoteHandlers<StoreState[Key], OtherRoutes[P]>};
+		| ActionHandlers<StoreState[Key], OtherRoutes[P]>;
+};
 
 export type FetchType = (url: string, init: RequestInit) => Promise<Response>;
 
