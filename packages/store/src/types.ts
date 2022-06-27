@@ -128,10 +128,12 @@ export type ScopeHandlers<
 	Routes extends Record<string, Route<any, any>> = Record<string, never>,
 	OtherRoutes extends Record<string, any> = Record<string, never>,
 > = {
-	[P in keyof Routes]: RemoteHandlers<
-		StoreState[Key],
-		Routes[P] extends Route<infer Req> ? Req : undefined
-	>;
+	[P in keyof Routes]:
+		| RemoteHandlers<
+				StoreState[Key],
+				Routes[P] extends Route<infer Req> ? Req : undefined
+		  >
+		| RemoteHandlers;
 } &
 	{[P in keyof OtherRoutes]: RemoteHandlers<StoreState[Key], OtherRoutes[P]>};
 
