@@ -120,7 +120,7 @@ syncObject.update = {
 			isLoading: false,
 		},
 	}),
-} as RemoteHandlers;
+} as RemoteHandlers | RemoteHandlers<Record<string, any>, Record<string, any>>;
 
 syncObject.replace = {
 	request: (s): LoadedItem<any> => ({
@@ -155,7 +155,7 @@ syncObject.replace = {
 			isLoading: false,
 		},
 	}),
-} as RemoteHandlers;
+} as RemoteHandlers | RemoteHandlers<Record<string, any>, Record<string, any>>;
 
 syncObject.remove = {
 	request: (s): LoadedItem<any> => ({
@@ -186,7 +186,7 @@ syncObject.remove = {
 			isLoading: false,
 		},
 	}),
-} as RemoteHandlers;
+} as RemoteHandlers | RemoteHandlers<Record<string, any>, Record<string, any>>;
 
 syncObject.nothing = {
 	request: (s): LoadedItem<any> => {
@@ -221,7 +221,7 @@ syncObject.nothing = {
 			isLoading: false,
 		},
 	}),
-} as RemoteHandlers;
+} as RemoteHandlers | RemoteHandlers<Record<string, any>, Record<string, any>>;
 
 syncObject.deepMerge = {
 	request: (s): LoadedItem<any> => ({
@@ -256,9 +256,11 @@ syncObject.deepMerge = {
 			isLoading: false,
 		},
 	}),
-} as RemoteHandlers;
+} as RemoteHandlers | RemoteHandlers<Record<string, any>, Record<string, any>>;
 
-syncObject.custom = <T, D = any>(cb: (a: T, data: D) => T): RemoteHandlers =>
+syncObject.custom = <T, D = any>(
+	cb: (a: T, data: D) => T,
+): RemoteHandlers | RemoteHandlers<Record<string, any>, Record<string, any>> =>
 	({
 		request: nothingHandler,
 		success: (s: LoadedItem<T>, data): LoadedItem<T> => {
