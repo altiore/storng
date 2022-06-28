@@ -71,10 +71,12 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 		this.structure = new Map<keyof T, ObjKey<T>>();
 	}
 
-	logout = () => {
+	logout = (): void => {
 		Array.from(this.structure.keys()).forEach((key) => {
 			const data = this.getData(key);
 			if (data) {
+				// TODO: добавить возможность настраивать способ удаления данных из хранилища вместо
+				//    CLEAR_OBJ_DATA
 				this.updateData(key, CLEAR_OBJ_DATA);
 			}
 		});
@@ -234,7 +236,7 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 		}
 	};
 
-	public updateData = <ResultData>(
+	public updateData = (
 		key: keyof T,
 		getData: (data: LoadedItem<T[keyof T]>) => LoadedItem<T[keyof T]>,
 		cb?: (i: LoadedItem<T[keyof T]> | false) => Promise<void>,

@@ -50,6 +50,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 
 	async logout(): Promise<void> {
 		// TODO: удалить данные из локального хранилища
+		this.cache.logout();
 		// TODO: возможно удалить данные из кэша
 	}
 }

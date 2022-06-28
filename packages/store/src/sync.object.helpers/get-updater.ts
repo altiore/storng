@@ -1,5 +1,5 @@
 import {GetScope} from '@storng/common';
-import {LoadedItem, MaybeRemoteData, Store} from '@storng/store';
+import {LoadedItem, Store} from '@storng/store';
 
 import {PersistStore} from '../types';
 
