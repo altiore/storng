@@ -41,7 +41,6 @@ export function syncObject<
 				const storeName: Key =
 					typeof scope === 'object' ? (scope.NAME as Key) : scope;
 
-				// TODO: не забыть добавить в экшены
 				const shouldPersistStore =
 					typeof persistData === 'boolean'
 						? persistData

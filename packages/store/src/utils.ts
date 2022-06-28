@@ -26,3 +26,22 @@ export function deepAssign<T extends Record<string, any> = Record<string, any>>(
 	}
 	return target;
 }
+
+export function getIsExpiredSoon(
+	accessToken: string,
+	offsetSeconds = 60,
+): boolean {
+	if (!accessToken) {
+		throw new Error('Нет ключа для проверки');
+	}
+	const jwtPayload: {exp: number; iat: number; id?: string} = JSON.parse(
+		atob(accessToken.split('.')[1]),
+	);
+	const expireDate = new Date(jwtPayload.exp * 1000);
+
+	// добавляем количество минут, чтоб был запас времени для обновления запроса
+	const compareDate = new Date(new Date().getTime() + offsetSeconds * 1000);
+	const diff = compareDate.getTime() - expireDate.getTime();
+
+	return diff >= 0;
+}

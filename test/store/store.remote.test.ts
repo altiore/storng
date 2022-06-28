@@ -3,19 +3,30 @@ import {StoreRemote} from '@storng/store/src/store.remote';
 
 import {mockSuccessItemFetch} from './storage/mock.fetch';
 
-const remote = new StoreRemote(mockSuccessItemFetch);
+const remote = new StoreRemote(
+	mockSuccessItemFetch,
+	'',
+	new Route({method: Method.PATCH, path: '/refresh'}, '/base'),
+);
 
-const authData = {
-	data: {
-		accessToken: 'accessToken1',
-	},
+let token = '';
+const getAuthToken = () => {
+	if (token) {
+		return token;
+	}
+
+	return (token = `1.${btoa(
+		JSON.stringify({
+			exp: new Date().getTime() / 1000 + 120,
+		}),
+	)}`);
 };
 
 describe('StoreRemote src/store.remote.ts', () => {
 	describe('fetch with NOT private route', () => {
 		it('fetch with simplest route', async () => {
 			const r = new Route({method: Method.GET, path: '/route'}, '/base');
-			await remote.fetch(r, authData as any);
+			await remote.fetch(getAuthToken, r);
 
 			expect(mockSuccessItemFetch).to.have.been.calledWith('/base/route', {
 				body: undefined,
@@ -38,7 +49,7 @@ describe('StoreRemote src/store.remote.ts', () => {
 				{method: Method.POST, path: '/route', private: true},
 				'/base',
 			);
-			await remote.fetch(r, authData as any, {id: 'my-id'});
+			await remote.fetch(getAuthToken, r, {id: 'my-id'});
 
 			expect(mockSuccessItemFetch).to.have.been.calledWith('/base/route', {
 				body: JSON.stringify({id: 'my-id'}),
@@ -46,7 +57,7 @@ describe('StoreRemote src/store.remote.ts', () => {
 				credentials: 'same-origin',
 				headers: {
 					Accept: 'application/json',
-					Authorization: 'bearer accessToken1',
+					Authorization: `bearer ${token}`,
 					'Content-Type': 'application/json',
 				},
 				method: Method.POST,

@@ -45,8 +45,14 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 	 */
 	private weakStore: WeakStore<T>;
 
-	constructor(name: string) {
+	/**
+	 * это значение хранит имя записи для хранения данных авторизации
+	 */
+	private authStorage?: keyof T;
+
+	constructor(name: string, authStorage?: keyof T) {
 		this.name = name;
+		this.authStorage = authStorage;
 		// TODO: возможно, здесь лучше использовать обычный Map
 		this.weakStore = new WeakMap() as WeakStore<T>;
 		this.structure = new Map();
@@ -121,7 +127,7 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 		return structureInfo;
 	};
 
-	public getDataAsync = (key: keyof T): LoadedItem<T[keyof T]> | false => {
+	public getDataSync = (key: keyof T): LoadedItem<T[keyof T]> | false => {
 		const curData = this.getData(key);
 		if (curData) {
 			return curData.data;
@@ -130,13 +136,17 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 		return false;
 	};
 
-	public getAuthData = (key?: keyof T): LoadedItem<AuthData> | false => {
-		let authData: LoadedItem<AuthData> | false = false;
-		if (key) {
-			authData = this.getDataAsync(key) as LoadedItem<T[keyof T]> | false;
+	public getAuthToken = (): string | false => {
+		if (this.authStorage) {
+			const authData = this.getDataSync(
+				this.authStorage,
+			) as LoadedItem<AuthData>;
+			if (authData) {
+				return authData.data.accessToken ?? false;
+			}
 		}
 
-		return authData;
+		return false;
 	};
 
 	public subscribe = <ResultData = LoadedItem<T[keyof T]>>(

@@ -1,3 +1,5 @@
+import {Route} from '@storng/common';
+
 import {StoreCache} from './store.cache';
 import {StoreLocal} from './store.local';
 import {StoreRemote} from './store.remote';
@@ -21,15 +23,16 @@ export class Store<T extends Record<string, T[keyof T]>> {
 		prefix = '',
 		authStorage?: keyof T,
 		autoRemoveErrorIn?: number,
+		updateTokenRoute?: Route,
 	) {
-		this.cache = new StoreCache<T>(name);
+		this.cache = new StoreCache<T>(name, authStorage);
 		this.name = name;
 		this.local = new StoreLocal<StoreStructure<T>>(
 			name,
 			version,
 			entityKeyNames,
 		);
-		this.remote = new StoreRemote(customFetch, prefix);
+		this.remote = new StoreRemote(customFetch, prefix, updateTokenRoute);
 		this.authStorage = authStorage;
 		this.autoRemoveErrorIn = autoRemoveErrorIn ?? this.autoRemoveErrorIn;
 	}
