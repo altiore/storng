@@ -51,6 +51,7 @@ describe('StoreWeb src/store.web.ts + фактическое indexed.db хран
 						isLoading: true,
 					},
 				},
+				isPersist: true,
 				name: 'auth',
 				type: StructureType.ITEM,
 			});
@@ -77,6 +78,7 @@ describe('StoreWeb src/store.web.ts + фактическое indexed.db хран
 						isLoading: true,
 					},
 				},
+				isPersist: true,
 				name: 'profile',
 				type: StructureType.ITEM,
 			});
@@ -96,6 +98,7 @@ describe('StoreWeb src/store.web.ts + фактическое indexed.db хран
 						isLoading: true,
 					},
 				},
+				isPersist: true,
 				name: 'auth',
 				type: StructureType.ITEM,
 			});
@@ -160,17 +163,15 @@ describe('StoreWeb src/store.web.ts + фактическое indexed.db хран
 	});
 
 	describe('subscribe - подписка на изменения', () => {
-		it('первый подписчик получает текущие данные', async () => {
-			await storeWeb.subscribe('auth', subscriber1, undefined, (() =>
-				Promise.resolve({})) as any);
+		it('первый подписчик добавляется', () => {
+			storeWeb.subscribe('auth', subscriber1);
 			// вызывается дважды, потому что меняется флаг initial
-			expect(subscriber1).to.nth(0).have.been.calledTwice;
+			expect(storeWeb.getData('auth')?.subscribers.length).to.be.eq(1);
 		});
 
-		it('второй подписчик получает текущие данные', async () => {
-			await storeWeb.subscribe('auth', subscriber2, undefined, (() =>
-				Promise.resolve({})) as any);
-			expect(subscriber2).to.nth(0).have.been.calledOnce;
+		it('второй подписчик получает текущие данные', () => {
+			storeWeb.subscribe('auth', subscriber2);
+			expect(storeWeb.getData('auth')?.subscribers.length).to.be.eq(2);
 		});
 
 		it('после добавления второго подписчика ссылка на первого осталась прежней', () => {
@@ -201,34 +202,30 @@ describe('StoreWeb src/store.web.ts + фактическое indexed.db хран
 			});
 		it('После обновления данных, мы видим новые данные у первого подписчика', async () => {
 			await storeWeb.updateData('auth', updater);
-			expect(subscriber1)
-				.to.nth(2)
-				.have.been.calledWith({
+			expect(subscriber1).to.have.been.calledWith({
+				data: {
+					id: 'my-id',
+				},
+				loadingStatus: {
+					error: undefined,
+					initial: true,
+					isLoaded: true,
+					isLoading: true,
+				},
+			});
+			expect(subscriber2).to.have.been.calledWith(
+				sinon.match({
 					data: {
 						id: 'my-id',
 					},
 					loadingStatus: {
 						error: undefined,
-						initial: false,
+						initial: true,
 						isLoaded: true,
 						isLoading: true,
 					},
-				});
-			expect(subscriber2)
-				.to.nth(2)
-				.have.been.calledWith(
-					sinon.match({
-						data: {
-							id: 'my-id',
-						},
-						loadingStatus: {
-							error: undefined,
-							initial: false,
-							isLoaded: true,
-							isLoading: true,
-						},
-					}),
-				);
+				}),
+			);
 		});
 	});
 
@@ -248,9 +245,7 @@ describe('StoreWeb src/store.web.ts + фактическое indexed.db хран
 
 	describe('Восстановление данных из постоянного хранилища', () => {
 		it('восстанавливаем данные по ключу auth', async () => {
-			await storeWeb.subscribe('auth', subscriber1, undefined, () =>
-				Promise.resolve(),
-			);
+			await storeWeb.subscribe('auth', subscriber1);
 
 			expect(subscriber1)
 				.to.nth(3)

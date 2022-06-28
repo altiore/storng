@@ -49,6 +49,7 @@ describe('StoreCache src/store.cache.ts', () => {
 						isLoading: true,
 					},
 				},
+				isPersist: true,
 				name: 'auth',
 				type: StructureType.ITEM,
 			});
@@ -75,6 +76,7 @@ describe('StoreCache src/store.cache.ts', () => {
 						isLoading: true,
 					},
 				},
+				isPersist: true,
 				name: 'profile',
 				type: StructureType.ITEM,
 			});
@@ -94,6 +96,7 @@ describe('StoreCache src/store.cache.ts', () => {
 						isLoading: true,
 					},
 				},
+				isPersist: true,
 				name: 'auth',
 				type: StructureType.ITEM,
 			});
@@ -158,38 +161,14 @@ describe('StoreCache src/store.cache.ts', () => {
 	});
 
 	describe('subscribe - подписка на изменения', () => {
-		it('первый подписчик получает текущие данные', async () => {
-			await storeWeb.subscribe('auth', subscriber1, undefined, () =>
-				Promise.resolve(),
-			);
-			expect(subscriber1).to.have.been.calledWith(
-				sinon.match({
-					data: {},
-					loadingStatus: {
-						error: undefined,
-						initial: true,
-						isLoaded: false,
-						isLoading: true,
-					},
-				}),
-			);
+		it('первый подписчик добавляется', () => {
+			storeWeb.subscribe('auth', subscriber1);
+			expect(storeWeb.getData('auth')?.subscribers.length).to.be.eq(1);
 		});
 
-		it('второй подписчик получает текущие данные', async () => {
-			await storeWeb.subscribe('auth', subscriber2, undefined, () =>
-				Promise.resolve(),
-			);
-			expect(subscriber2).to.have.been.calledWith(
-				sinon.match({
-					data: {},
-					loadingStatus: {
-						error: undefined,
-						initial: false,
-						isLoaded: false,
-						isLoading: true,
-					},
-				}),
-			);
+		it('второй подписчик получает текущие данные', () => {
+			storeWeb.subscribe('auth', subscriber2);
+			expect(storeWeb.getData('auth')?.subscribers.length).to.be.eq(2);
 		});
 
 		it('после добавления второго подписчика ссылка на первого осталась прежней', () => {
@@ -219,7 +198,7 @@ describe('StoreCache src/store.cache.ts', () => {
 				},
 			});
 		it('После обновления данных, мы видим новые данные у первого подписчика', async () => {
-			await storeWeb.updateData('auth', updater, () => Promise.resolve());
+			await storeWeb.updateData('auth', updater);
 			expect(subscriber1)
 				.to.nth(2)
 				.calledWith({
@@ -228,7 +207,7 @@ describe('StoreCache src/store.cache.ts', () => {
 					},
 					loadingStatus: {
 						error: undefined,
-						initial: false,
+						initial: true,
 						isLoaded: true,
 						isLoading: false,
 					},
@@ -241,7 +220,7 @@ describe('StoreCache src/store.cache.ts', () => {
 					},
 					loadingStatus: {
 						error: undefined,
-						initial: false,
+						initial: true,
 						isLoaded: true,
 						isLoading: false,
 					},

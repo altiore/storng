@@ -99,5 +99,7 @@ describe('sync.object.ts', () => {
 		expect(root?.innerHTML).to.equal(
 			'<p>correct</p><p>correct</p><p>correct</p>',
 		);
+
+		expect(renderSpy).have.been.callCount(15);
 	});
 });

@@ -2,7 +2,6 @@ import {DataRes, ErrorOrInfo, GetScope, Route} from '@storng/common';
 
 import {Store} from './store';
 import {defRestorePreparation} from './sync.object.helpers/def.restore.preparation';
-import {firstSubscriptionCb} from './sync.object.helpers/first-subscription-cb';
 import {getUpdater} from './sync.object.helpers/get-updater';
 import {prepareActions} from './sync.object.helpers/prepare-actions';
 import {
@@ -32,7 +31,7 @@ export function syncObject<
 	const result =
 		(
 			store: Store<StoreState>,
-			getObjFunc: (
+			dataPreparer: (
 				value: LoadedItem<StoreState[Key]>,
 			) => MaybeRemoteData<LoadedItem<StoreState[Key]>>,
 		) =>
@@ -50,17 +49,12 @@ export function syncObject<
 					? store.local.simpleStorage()
 					: undefined;
 
-				store.cache.subscribe<MaybeRemoteData<LoadedItem<StoreState[Key]>>>(
+				store.subscribe<MaybeRemoteData<LoadedItem<StoreState[Key]>>>(
 					storeName,
 					subscriber,
-					getObjFunc as any,
-					shouldPersistStore
-						? firstSubscriptionCb<StoreState>(
-								storeName,
-								restorePreparation as any,
-								persistStorage as any,
-						  )
-						: undefined,
+					dataPreparer as any,
+					restorePreparation as any,
+					persistStorage as any,
 					initData,
 				);
 				return () => store.cache.unsubscribe(storeName, subscriber);

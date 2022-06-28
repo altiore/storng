@@ -3,14 +3,15 @@ import {AuthData, LoadedItem, StructureType} from './types';
 type ObjKey<T extends Record<string, T[keyof T]>> = {
 	type: StructureType;
 	initData: LoadedItem<T[keyof T]>;
+	isPersist: boolean;
 	name: keyof T;
 };
 
 type DataAndSubs<T extends Record<keyof T, T[keyof T]>> = {
 	data: LoadedItem<T[keyof T]>;
 	subscribers: Array<{
-		subscriber: (val: any) => void;
 		dataPreparer: (data: LoadedItem<T[keyof T]>) => any;
+		subscriber: (val: any) => void;
 	}>;
 };
 
@@ -21,32 +22,12 @@ type WeakStore<T extends Record<string, T[keyof T]>> = WeakMap<
 
 const DEF_PREPARE_DATA = (t: LoadedItem<any>): any => t;
 
-const CLEAR_OBJ_DATA = (): LoadedItem<any> => ({
-	data: {},
-	loadingStatus: {
-		error: undefined,
-		initial: false,
-		isLoaded: false,
-		isLoading: false,
-	},
-});
-
-const SET_INITIAL_TO_FALSE = (s: LoadedItem<any>): LoadedItem<any> => ({
-	...s,
-	loadingStatus: {...s.loadingStatus, initial: false},
-});
-
-const SET_IS_LOADING_TO_FALSE = (s: LoadedItem<any>): LoadedItem<any> => ({
-	data: {...s.data},
-	loadingStatus: {...s.loadingStatus, initial: false, isLoading: false},
-});
-
 export class StoreCache<T extends Record<string, T[keyof T]>> {
 	/**
 	 * Структура хранилища должна оставаться неизменной все время
 	 * Здесь должен храниться необходимый минимум данных о структуре таблиц в базе данных
 	 */
-	private structure: Map<keyof T, ObjKey<T>>;
+	public structure: Map<keyof T, ObjKey<T>>;
 
 	/**
 	 * Название хранилища
@@ -61,7 +42,7 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 	/**
 	 * это значение хранит имя записи для хранения данных авторизации
 	 */
-	private authStorage?: keyof T;
+	private readonly authStorage?: keyof T;
 
 	constructor(name: string, authStorage?: keyof T) {
 		this.name = name;
@@ -70,17 +51,6 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 		this.weakStore = new WeakMap() as WeakStore<T>;
 		this.structure = new Map<keyof T, ObjKey<T>>();
 	}
-
-	logout = (): void => {
-		Array.from(this.structure.keys()).forEach((key) => {
-			const data = this.getData(key);
-			if (data) {
-				// TODO: добавить возможность настраивать способ удаления данных из хранилища вместо
-				//    CLEAR_OBJ_DATA
-				this.updateData(key, CLEAR_OBJ_DATA);
-			}
-		});
-	};
 
 	/**
 	 * Получаем ключ в виде объекта для временных данных
@@ -96,8 +66,8 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 		key: keyof T,
 		data: LoadedItem<T[keyof T]>,
 		subscribers: Array<{
-			subscriber: (val: any) => void;
 			dataPreparer: (data: LoadedItem<T[keyof T]>) => any;
+			subscriber: (val: any) => void;
 		}>,
 	): void => {
 		const objKey = this.getDataKey(key);
@@ -113,7 +83,7 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 	/**
 	 * Получаем временные данные (кеш данные из оперативной памяти)
 	 */
-	private getData = (key: keyof T): DataAndSubs<T> | undefined => {
+	public getData = (key: keyof T): DataAndSubs<T> | undefined => {
 		const objKey = this.getDataKey(key);
 
 		if (!objKey || !this.weakStore.has(objKey)) {
@@ -136,6 +106,7 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 	public addItem = (
 		key: keyof T,
 		initData: Partial<T[keyof T]> = {},
+		isPersist = true,
 	): ObjKey<T> => {
 		const structureInfo: ObjKey<T> = {
 			initData: {
@@ -147,6 +118,7 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 					isLoading: true,
 				},
 			},
+			isPersist,
 			name: key,
 			type: StructureType.ITEM,
 		};
@@ -182,13 +154,13 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 		dataPreparer: (
 			value: LoadedItem<T[keyof T]>,
 		) => ResultData = DEF_PREPARE_DATA,
-		cb?: (i: LoadedItem<T[keyof T]>, updateData: any) => Promise<void>,
 		initDataData?: Partial<T[keyof T]>,
-	): void => {
+		isPersist = true,
+	): LoadedItem<T[keyof T]> => {
 		let keyData = this.getDataKey(key);
 
 		if (!keyData) {
-			keyData = this.addItem(key, initDataData);
+			keyData = this.addItem(key, initDataData, isPersist);
 		}
 
 		let data: LoadedItem<T[keyof T]>;
@@ -202,15 +174,7 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 			this.setData(key, data, [{dataPreparer, subscriber}]);
 		}
 
-		subscriber(dataPreparer(data));
-		if (!curData) {
-			if (cb) {
-				this.updateData(key, SET_INITIAL_TO_FALSE);
-				cb(data, this.updateData.bind(this)).then().catch(console.error);
-			} else {
-				this.updateData(key, SET_IS_LOADING_TO_FALSE);
-			}
-		}
+		return data;
 	};
 
 	public unsubscribe = (
@@ -239,7 +203,6 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 	public updateData = (
 		key: keyof T,
 		getData: (data: LoadedItem<T[keyof T]>) => LoadedItem<T[keyof T]>,
-		cb?: (i: LoadedItem<T[keyof T]> | false) => Promise<void>,
 	): void => {
 		const curData = this.getData(key);
 		if (curData) {
@@ -250,13 +213,6 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 			curData.subscribers.forEach(({subscriber, dataPreparer}) => {
 				subscriber(dataPreparer(newData));
 			});
-			if (cb) {
-				cb(newData).then().catch(console.error);
-			}
-		} else {
-			if (cb) {
-				cb(false).then().catch(console.error);
-			}
 		}
 	};
 }

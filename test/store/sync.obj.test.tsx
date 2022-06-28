@@ -92,8 +92,9 @@ describe('sync.object.ts', () => {
 		await act(() => {
 			const p = document.getElementsByTagName('p');
 			p[0].click();
-			expect(root?.innerHTML).to.equal('<p>loading function</p>');
 		});
+
+		expect(root?.innerHTML).to.equal('<p>loading function</p>');
 
 		await wait(0.3);
 

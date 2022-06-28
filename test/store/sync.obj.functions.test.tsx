@@ -104,8 +104,9 @@ describe('sync.obj.ts Подписка на данные из syncObj - как �
 		await act(() => {
 			const p = document.getElementsByTagName('p');
 			p[0].click();
-			expect(root?.innerHTML).to.equal('<p>...loading</p>');
 		});
+
+		expect(root?.innerHTML).to.equal('<p>...loading</p>');
 
 		await wait(0.3);
 
