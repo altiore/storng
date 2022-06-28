@@ -86,9 +86,6 @@ export class Store<T extends Record<string, T[keyof T]>> {
 	}
 
 	async logout(): Promise<void> {
-		console.log('logout', {
-			keys: Array.from(this.cache.structure.keys()),
-		});
 		await Promise.all(
 			Array.from(this.cache.structure.keys()).map(async (key) => {
 				if (!this.publicStorages.includes(key)) {

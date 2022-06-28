@@ -90,7 +90,6 @@ export class StoreRemote {
 								this.updateTokenRoute as Route,
 							);
 							this.isUpdating = false;
-							console.log('updateTokenResult', updateTokenResult);
 							if (!updateTokenResult.ok) {
 								while (this.requestsQueue.length) {
 									const cur = this.requestsQueue.shift();
