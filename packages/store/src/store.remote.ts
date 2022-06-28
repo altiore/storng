@@ -90,19 +90,29 @@ export class StoreRemote {
 								this.updateTokenRoute as Route,
 							);
 							this.isUpdating = false;
+							console.log('updateTokenResult', updateTokenResult);
 							if (!updateTokenResult.ok) {
-								this.requestsQueue.forEach(({cb}) => {
-									cb({
-										message: 'Пользователь не авторизован',
-										ok: false,
-									});
-								});
+								while (this.requestsQueue.length) {
+									const cur = this.requestsQueue.shift();
+									if (cur) {
+										cur.cb({
+											message: 'Пользователь не авторизован',
+											ok: false,
+										});
+									}
+								}
+								return;
 							}
 
 							// 2.3. выполнить запросы из очереди с новым ключом
-							this.requestsQueue.forEach(({data, route, cb}) => {
-								this.makeRequest(route, data).then(cb).catch(console.error);
-							});
+							while (this.requestsQueue.length) {
+								const cur = this.requestsQueue.shift();
+								if (cur) {
+									this.makeRequest(cur.route, cur.data)
+										.then(cur.cb)
+										.catch(console.error);
+								}
+							}
 						} catch (err: any) {
 							if (err.ok === false) {
 								resolve(err);

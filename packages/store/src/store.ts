@@ -84,6 +84,9 @@ export class Store<T extends Record<string, T[keyof T]>> {
 	}
 
 	async logout(): Promise<void> {
+		console.log('logout', {
+			structLength: Array.from(this.cache.structure.keys()).length,
+		});
 		Array.from(this.cache.structure.keys()).forEach((key) => {
 			if (!this.publicStorages.includes(key)) {
 				const isPersist = this.cache.structure.get(key)?.isPersist;
