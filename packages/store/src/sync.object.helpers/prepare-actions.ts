@@ -1,5 +1,5 @@
 import {GetScope, Route} from '@storng/common';
-import {LoadedItem, MaybeRemoteData, ScopeHandlers, Store} from '@storng/store';
+import {LoadedItem, ScopeHandlers, Store} from '@storng/store';
 
 const requestHandler =
 	(handler, req, initData, route): any =>
@@ -74,58 +74,46 @@ export const prepareActions = <
 	scopeHandlers: ScopeHandlers<T, Key, Routes, OtherRoutes>,
 	getUpdater: (
 		store: Store<T>,
-		getObjFunc: (
-			value: LoadedItem<T[keyof T]>,
-		) => MaybeRemoteData<LoadedItem<T[keyof T]>>,
 	) => (item: (i: LoadedItem<T[keyof T]>) => LoadedItem<T[keyof T]>) => void,
 	initData?: Partial<T[Key]>,
 ): void => {
 	Object.entries(scopeHandlers).forEach(([handlerName, handler]) => {
-		(result as any)[handlerName] =
-			(
-				store: Store<T>,
-				getObjFunc: (
-					value: LoadedItem<T[keyof T]>,
-				) => MaybeRemoteData<LoadedItem<T[keyof T]>>,
-			) =>
-			async (req) => {
-				const updater: (
-					item: (i: LoadedItem<T[keyof T]>) => LoadedItem<T[keyof T]>,
-				) => void = getUpdater(store, getObjFunc);
+		(result as any)[handlerName] = (store: Store<T>) => async (req) => {
+			const updater: (
+				item: (i: LoadedItem<T[keyof T]>) => LoadedItem<T[keyof T]>,
+			) => void = getUpdater(store);
 
-				const isApiReq = Boolean(
-					typeof scope === 'object' && scope[handlerName],
-				);
-				if (isApiReq) {
-					let isError = false;
-					let actionResult: any;
-					const route = scope[handlerName];
-					updater(requestHandler(handler, req, initData, route));
-					try {
-						const resData = await store.remote.fetch(route, req);
-						if (resData.ok) {
-							updater(remoteSuccessHandler(handler, initData, resData, route));
-						} else {
-							updater(remoteFailureHandler(handler, initData, resData, route));
-							isError = true;
-						}
-						actionResult = resData;
-					} catch (err) {
-						updater(catchFailureHandler(handler, initData, err));
-						actionResult = err;
+			const isApiReq = Boolean(typeof scope === 'object' && scope[handlerName]);
+			if (isApiReq) {
+				let isError = false;
+				let actionResult: any;
+				const route = scope[handlerName];
+				updater(requestHandler(handler, req, initData, route));
+				try {
+					const resData = await store.remote.fetch(route, req);
+					if (resData.ok) {
+						updater(remoteSuccessHandler(handler, initData, resData, route));
+					} else {
+						updater(remoteFailureHandler(handler, initData, resData, route));
 						isError = true;
-					} finally {
-						if (store.autoRemoveErrorIn && isError) {
-							// автоматически удалять ошибку через 15 секунд
-							setTimeout(() => {
-								updater(removeErrorHandler);
-							}, store.autoRemoveErrorIn);
-						}
 					}
-					return actionResult;
-				} else {
-					updater(successHandler(handler, req, initData));
+					actionResult = resData;
+				} catch (err) {
+					updater(catchFailureHandler(handler, initData, err));
+					actionResult = err;
+					isError = true;
+				} finally {
+					if (store.autoRemoveErrorIn && isError) {
+						// автоматически удалять ошибку через 15 секунд
+						setTimeout(() => {
+							updater(removeErrorHandler);
+						}, store.autoRemoveErrorIn);
+					}
 				}
-			};
+				return actionResult;
+			} else {
+				updater(successHandler(handler, req, initData));
+			}
+		};
 	});
 };

@@ -8,7 +8,10 @@ type ObjKey<T extends Record<string, T[keyof T]>> = {
 
 type DataAndSubs<T extends Record<keyof T, T[keyof T]>> = {
 	data: LoadedItem<T[keyof T]>;
-	subscribers: Array<(val: any) => void>;
+	subscribers: Array<{
+		subscriber: (val: any) => void;
+		dataPreparer: (data: LoadedItem<T[keyof T]>) => any;
+	}>;
 };
 
 type WeakStore<T extends Record<string, T[keyof T]>> = WeakMap<
@@ -17,6 +20,16 @@ type WeakStore<T extends Record<string, T[keyof T]>> = WeakMap<
 >;
 
 const DEF_PREPARE_DATA = (t: LoadedItem<any>): any => t;
+
+const CLEAR_OBJ_DATA = (): LoadedItem<any> => ({
+	data: {},
+	loadingStatus: {
+		error: undefined,
+		initial: false,
+		isLoaded: false,
+		isLoading: false,
+	},
+});
 
 const SET_INITIAL_TO_FALSE = (s: LoadedItem<any>): LoadedItem<any> => ({
 	...s,
@@ -55,11 +68,16 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 		this.authStorage = authStorage;
 		// TODO: возможно, здесь лучше использовать обычный Map
 		this.weakStore = new WeakMap() as WeakStore<T>;
-		this.structure = new Map();
+		this.structure = new Map<keyof T, ObjKey<T>>();
 	}
 
 	logout = () => {
-		this.weakStore = new WeakMap() as WeakStore<T>;
+		Array.from(this.structure.keys()).forEach((key) => {
+			const data = this.getData(key);
+			if (data) {
+				this.updateData(key, CLEAR_OBJ_DATA);
+			}
+		});
 	};
 
 	/**
@@ -75,7 +93,10 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 	private setData = (
 		key: keyof T,
 		data: LoadedItem<T[keyof T]>,
-		subscribers: Array<(val: any) => void>,
+		subscribers: Array<{
+			subscriber: (val: any) => void;
+			dataPreparer: (data: LoadedItem<T[keyof T]>) => any;
+		}>,
 	): void => {
 		const objKey = this.getDataKey(key);
 		if (!objKey) {
@@ -156,7 +177,7 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 	public subscribe = <ResultData = LoadedItem<T[keyof T]>>(
 		key: keyof T,
 		subscriber: (value: ResultData) => void,
-		prepareDataForSubscriber: (
+		dataPreparer: (
 			value: LoadedItem<T[keyof T]>,
 		) => ResultData = DEF_PREPARE_DATA,
 		cb?: (i: LoadedItem<T[keyof T]>, updateData: any) => Promise<void>,
@@ -173,19 +194,19 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 		const curData = this.getData(key);
 		if (curData) {
 			data = curData.data;
-			curData.subscribers.push(subscriber);
+			curData.subscribers.push({dataPreparer, subscriber});
 		} else {
 			data = (keyData as ObjKey<T>).initData;
-			this.setData(key, data, [subscriber]);
+			this.setData(key, data, [{dataPreparer, subscriber}]);
 		}
 
-		subscriber(prepareDataForSubscriber(data));
+		subscriber(dataPreparer(data));
 		if (!curData) {
 			if (cb) {
-				this.updateData(key, SET_INITIAL_TO_FALSE, prepareDataForSubscriber);
+				this.updateData(key, SET_INITIAL_TO_FALSE);
 				cb(data, this.updateData.bind(this)).then().catch(console.error);
 			} else {
-				this.updateData(key, SET_IS_LOADING_TO_FALSE, prepareDataForSubscriber);
+				this.updateData(key, SET_IS_LOADING_TO_FALSE);
 			}
 		}
 	};
@@ -197,7 +218,7 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 		const curData = this.getData(key);
 		if (curData) {
 			const subscriberRemoveIndex = curData.subscribers.findIndex(
-				(el) => el === subscriber,
+				(el) => el.subscriber === subscriber,
 			);
 			if (subscriberRemoveIndex !== -1) {
 				curData.subscribers.splice(subscriberRemoveIndex, 1);
@@ -216,9 +237,6 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 	public updateData = <ResultData>(
 		key: keyof T,
 		getData: (data: LoadedItem<T[keyof T]>) => LoadedItem<T[keyof T]>,
-		prepareDataForSubscriber: (
-			value: LoadedItem<T[keyof T]>,
-		) => ResultData = DEF_PREPARE_DATA,
 		cb?: (i: LoadedItem<T[keyof T]> | false) => Promise<void>,
 	): void => {
 		const curData = this.getData(key);
@@ -227,8 +245,8 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 
 			this.setData(key, newData, curData.subscribers);
 			// Разослать данные всем подписчикам
-			curData.subscribers.forEach((subscriber) => {
-				subscriber(prepareDataForSubscriber(newData));
+			curData.subscribers.forEach(({subscriber, dataPreparer}) => {
+				subscriber(dataPreparer(newData));
 			});
 			if (cb) {
 				cb(newData).then().catch(console.error);

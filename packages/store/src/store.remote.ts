@@ -76,7 +76,7 @@ export class StoreRemote {
 				// 2. если ключ истекает в ближайшие x секунд или уже истек, то
 				if (isExpiredSoon) {
 					this.isUpdating = true;
-					return await new Promise(async (resolve, reject) => {
+					return await new Promise(async (resolve) => {
 						try {
 							// 2.1. отложить выполнения запроса в очередь
 							this.requestsQueue.push({
@@ -86,22 +86,44 @@ export class StoreRemote {
 							});
 
 							// 2.2. выполнить обновление ключа
-							await this.makeRequest(this.updateTokenRoute as Route);
+							const updateTokenResult = await this.makeRequest(
+								this.updateTokenRoute as Route,
+							);
 							this.isUpdating = false;
+							if (!updateTokenResult.ok) {
+								this.requestsQueue.forEach(({cb}) => {
+									cb({
+										message: 'Пользователь не авторизован',
+										ok: false,
+									});
+								});
+							}
 
 							// 2.3. выполнить запросы из очереди с новым ключом
 							this.requestsQueue.forEach(({data, route, cb}) => {
 								this.makeRequest(route, data).then(cb).catch(console.error);
 							});
-						} catch (err) {
-							reject(err);
+						} catch (err: any) {
+							if (err.ok === false) {
+								resolve(err);
+							}
+							resolve({
+								message: String(err),
+								ok: false,
+							});
 						}
 					});
 				}
 			}
 
 			return await this.makeRequest(route, data);
-		} catch (err) {
+		} catch (err: any) {
+			if (err?.ok !== false) {
+				return {
+					message: String(err),
+					ok: false,
+				};
+			}
 			return err as ResBase;
 		}
 	}
@@ -126,7 +148,7 @@ export class StoreRemote {
 
 			return await res.json();
 		} catch (err: any) {
-			if (typeof err?.ok !== 'boolean') {
+			if (err?.ok !== false) {
 				return {
 					message: String(err),
 					ok: false,

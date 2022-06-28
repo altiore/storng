@@ -58,7 +58,6 @@ export function syncObject<
 						? firstSubscriptionCb<StoreState>(
 								storeName,
 								restorePreparation as any,
-								getObjFunc as any,
 								persistStorage as any,
 						  )
 						: undefined,

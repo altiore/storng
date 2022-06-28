@@ -194,12 +194,16 @@ describe('StoreCache src/store.cache.ts', () => {
 
 		it('после добавления второго подписчика ссылка на первого осталась прежней', () => {
 			// @ts-ignore
-			expect(storeWeb.getData('auth').subscribers[0]).to.be.eq(subscriber1);
+			expect(storeWeb.getData('auth').subscribers[0].subscriber).to.be.eq(
+				subscriber1,
+			);
 		});
 
 		it('после добавления второго подписчика ссылка на второй верная', () => {
 			// @ts-ignore
-			expect(storeWeb.getData('auth').subscribers[1]).to.be.eq(subscriber2);
+			expect(storeWeb.getData('auth').subscribers[1].subscriber).to.be.eq(
+				subscriber2,
+			);
 		});
 	});
 
@@ -215,9 +219,7 @@ describe('StoreCache src/store.cache.ts', () => {
 				},
 			});
 		it('После обновления данных, мы видим новые данные у первого подписчика', async () => {
-			await storeWeb.updateData('auth', updater, undefined, () =>
-				Promise.resolve(),
-			);
+			await storeWeb.updateData('auth', updater, () => Promise.resolve());
 			expect(subscriber1)
 				.to.nth(2)
 				.calledWith({

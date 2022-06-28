@@ -27,12 +27,7 @@ export const getUpdater =
 		scope: GetScope<any, keyof T> | keyof T,
 		persistData: boolean,
 	) =>
-	(
-		store: Store<T>,
-		getObjFunc: (
-			value: LoadedItem<T[keyof T]>,
-		) => MaybeRemoteData<LoadedItem<T[keyof T]>>,
-	) =>
+	(store: Store<T>) =>
 	(handler: (i: LoadedItem<T[keyof T]>) => LoadedItem<T[keyof T]>): void => {
 		const scopeName: keyof T =
 			typeof scope === 'object' ? (scope.NAME as keyof T) : scope;
@@ -43,5 +38,5 @@ export const getUpdater =
 		const asyncUpdater: (i: LoadedItem<T[keyof T]> | false) => Promise<void> =
 			getAsyncUpdater(scopeName, handler, persistStorage as any);
 
-		store.cache.updateData(scopeName, handler, getObjFunc, asyncUpdater);
+		store.cache.updateData(scopeName, handler, asyncUpdater);
 	};

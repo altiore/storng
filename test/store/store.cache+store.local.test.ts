@@ -175,12 +175,16 @@ describe('StoreWeb src/store.web.ts + фактическое indexed.db хран
 
 		it('после добавления второго подписчика ссылка на первого осталась прежней', () => {
 			// @ts-ignore
-			expect(storeWeb.getData('auth').subscribers[0]).to.be.eq(subscriber1);
+			expect(storeWeb.getData('auth').subscribers[0].subscriber).to.be.eq(
+				subscriber1,
+			);
 		});
 
 		it('после добавления второго подписчика ссылка на второй верная', () => {
 			// @ts-ignore
-			expect(storeWeb.getData('auth').subscribers[1]).to.be.eq(subscriber2);
+			expect(storeWeb.getData('auth').subscribers[1].subscriber).to.be.eq(
+				subscriber2,
+			);
 		});
 	});
 

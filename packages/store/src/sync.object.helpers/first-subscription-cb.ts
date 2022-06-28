@@ -1,4 +1,4 @@
-import {LoadedItem, MaybeRemoteData, PersistStore} from '../types';
+import {LoadedItem, PersistStore} from '../types';
 
 const getDataPreparation =
 	<T>(data: LoadedItem<T[keyof T]>) =>
@@ -8,16 +8,12 @@ const getDataPreparation =
 export function firstSubscriptionCb<T extends Record<string, T[keyof T]>>(
 	key: keyof T,
 	restorePreparation: (i: LoadedItem<T[keyof T]>) => LoadedItem<T[keyof T]>,
-	getObjFunc: (
-		value: LoadedItem<T[keyof T]>,
-	) => MaybeRemoteData<LoadedItem<T[keyof T]>>,
 	persistStore?: PersistStore<T>,
 ): (
 	i: LoadedItem<T[keyof T]>,
 	updateData: (
 		key: keyof T,
 		getData: (data: LoadedItem<T[keyof T]>) => LoadedItem<T[keyof T]>,
-		prepareDataForSubscriber: (value: LoadedItem<T[keyof T]>) => any,
 		cb?: (i: LoadedItem<T[keyof T]> | false) => Promise<void>,
 	) => void,
 ) => Promise<void> {
@@ -32,13 +28,13 @@ export function firstSubscriptionCb<T extends Record<string, T[keyof T]>>(
 				data = restorePreparation(item);
 			}
 
-			updateData(key, getDataPreparation(data), getObjFunc);
+			updateData(key, getDataPreparation(data));
 
 			await persistStore.setItem(key, data);
 		}
 
 		if (item.loadingStatus.initial && !persistStore) {
-			updateData(key, restorePreparation, getObjFunc);
+			updateData(key, restorePreparation);
 		}
 	};
 }
