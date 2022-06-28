@@ -17,7 +17,7 @@ const SET_INITIAL_TO_FALSE = (s: LoadedItem<any>): LoadedItem<any> => ({
 });
 
 const SET_IS_LOADING_TO_FALSE = (s: LoadedItem<any>): LoadedItem<any> => ({
-	data: {...s.data},
+	data: s.data,
 	loadingStatus: {...s.loadingStatus, initial: false, isLoading: false},
 });
 
@@ -26,15 +26,17 @@ const getDataPreparation =
 	() =>
 		data;
 
-const CLEAR_OBJ_DATA = (): LoadedItem<any> => ({
-	data: {},
-	loadingStatus: {
-		error: undefined,
-		initial: false,
-		isLoaded: false,
-		isLoading: false,
-	},
-});
+const GET_CLEAR_OBJ_DATA =
+	(initial: LoadedItem<any>['data'] = {}) =>
+	(): LoadedItem<any> => ({
+		data: initial,
+		loadingStatus: {
+			error: undefined,
+			initial: false,
+			isLoaded: false,
+			isLoading: false,
+		},
+	});
 
 export class Store<T extends Record<string, T[keyof T]>> {
 	public cache: StoreCache<T>;
@@ -85,18 +87,25 @@ export class Store<T extends Record<string, T[keyof T]>> {
 
 	async logout(): Promise<void> {
 		console.log('logout', {
-			structLength: Array.from(this.cache.structure.keys()).length,
+			structLength: this.cache.structure.keys(),
 		});
-		Array.from(this.cache.structure.keys()).forEach((key) => {
-			if (!this.publicStorages.includes(key)) {
-				const isPersist = this.cache.structure.get(key)?.isPersist;
-				let persistStore: any = undefined;
-				if (isPersist) {
-					persistStore = this.local.simpleStorage();
+		await Promise.all(
+			Array.from(this.cache.structure.keys()).map(async (key) => {
+				if (!this.publicStorages.includes(key)) {
+					const struct = this.cache.structure.get(key);
+					const isPersist = struct?.isPersist;
+					let persistStore: PersistStore<T> | undefined = undefined;
+					if (isPersist) {
+						persistStore = this.local.simpleStorage();
+					}
+					await this.updateData(
+						key,
+						GET_CLEAR_OBJ_DATA(struct?.initData),
+						persistStore,
+					);
 				}
-				this.updateData(key, CLEAR_OBJ_DATA, persistStore);
-			}
-		});
+			}),
+		);
 	}
 
 	subscribe = <ResultData = LoadedItem<T[keyof T]>>(
