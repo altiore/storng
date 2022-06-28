@@ -44,9 +44,7 @@ export function connect<
 >(
 	WrappedComponent: C,
 	selectors: ValidStateProps<C, S>,
-): React.FC<
-	Omit<ComponentProps<typeof WrappedComponent>, keyof typeof selectors>
->;
+): (props: Omit<ComponentProps<C>, keyof S>) => JSX.Element;
 
 export function connect<
 	C extends FC<any>,
@@ -62,22 +60,13 @@ export function connect<
 	WrappedComponent: C,
 	selectors?: ValidStateProps<C, S>,
 	actions?: ValidActionProps<C, A>,
-): typeof selectors extends {[K in string]: SubsObj<any>}
-	? typeof actions extends {[P in string]: (store: any) => ActionFunc<any>}
-		? React.FC<
-				Omit<
-					ComponentProps<typeof WrappedComponent>,
-					keyof typeof selectors | keyof typeof actions
-				>
-		  >
-		: React.FC<
-				Omit<ComponentProps<typeof WrappedComponent>, keyof typeof selectors>
-		  >
-	: typeof actions extends {[P in string]: (store: any) => ActionFunc<any>}
-	? React.FC<
-			Omit<ComponentProps<typeof WrappedComponent>, keyof typeof actions>
-	  >
-	: React.FC;
+): typeof selectors extends undefined
+	? typeof actions extends undefined
+		? never
+		: (props: Omit<ComponentProps<C>, keyof A>) => JSX.Element
+	: typeof actions extends undefined
+	? (props: Omit<ComponentProps<C>, keyof S>) => JSX.Element
+	: (props: Omit<ComponentProps<C>, keyof A | keyof S>) => JSX.Element;
 
 export function connect<
 	C extends FC<any>,
@@ -93,22 +82,13 @@ export function connect<
 	WrappedComponent: C,
 	selectors?: ValidStateProps<C, S>,
 	actions?: ValidActionProps<C, A>,
-): typeof selectors extends {[K in string]: SubsObj<any>}
-	? typeof actions extends {[P in string]: (store: any) => ActionFunc<any>}
-		? React.FC<
-				Omit<
-					ComponentProps<typeof WrappedComponent>,
-					keyof typeof selectors | keyof typeof actions
-				>
-		  >
-		: React.FC<
-				Omit<ComponentProps<typeof WrappedComponent>, keyof typeof selectors>
-		  >
-	: typeof actions extends {[P in string]: (store: any) => ActionFunc<any>}
-	? React.FC<
-			Omit<ComponentProps<typeof WrappedComponent>, keyof typeof actions>
-	  >
-	: never {
+): typeof selectors extends undefined
+	? typeof actions extends undefined
+		? never
+		: (props: Omit<ComponentProps<C>, keyof A>) => JSX.Element
+	: typeof actions extends undefined
+	? (props: Omit<ComponentProps<C>, keyof S>) => JSX.Element
+	: (props: Omit<ComponentProps<C>, keyof A | keyof S>) => JSX.Element {
 	return ((ownProps: any) => {
 		return (
 			<StoreContext.Consumer>
