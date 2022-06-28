@@ -32,12 +32,23 @@ export class Store<T extends Record<string, T[keyof T]>> {
 			version,
 			entityKeyNames,
 		);
-		this.remote = new StoreRemote(customFetch, prefix, updateTokenRoute);
+		this.remote = new StoreRemote(
+			customFetch,
+			prefix,
+			this.cache.getAuthToken.bind(this.cache),
+			this.logout.bind(this),
+			updateTokenRoute,
+		);
 		this.authStorage = authStorage;
 		this.autoRemoveErrorIn = autoRemoveErrorIn ?? this.autoRemoveErrorIn;
 	}
 
-	async remove(name?: string): Promise<void> {
-		await this.local.deleteStorage(name);
+	async remove(): Promise<void> {
+		await this.local.deleteStorage();
+	}
+
+	async logout(): Promise<void> {
+		this.cache.logout();
+		await this.remove();
 	}
 }

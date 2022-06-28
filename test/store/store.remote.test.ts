@@ -3,12 +3,6 @@ import {StoreRemote} from '@storng/store/src/store.remote';
 
 import {mockSuccessItemFetch} from './storage/mock.fetch';
 
-const remote = new StoreRemote(
-	mockSuccessItemFetch,
-	'',
-	new Route({method: Method.PATCH, path: '/refresh'}, '/base'),
-);
-
 let token = '';
 const getAuthToken = () => {
 	if (token) {
@@ -22,11 +16,24 @@ const getAuthToken = () => {
 	)}`);
 };
 
+const logout = () => {
+	token = '';
+	return Promise.resolve();
+};
+
+const remote = new StoreRemote(
+	mockSuccessItemFetch,
+	'',
+	getAuthToken,
+	logout,
+	new Route({method: Method.PATCH, path: '/refresh'}, '/base'),
+);
+
 describe('StoreRemote src/store.remote.ts', () => {
 	describe('fetch with NOT private route', () => {
 		it('fetch with simplest route', async () => {
 			const r = new Route({method: Method.GET, path: '/route'}, '/base');
-			await remote.fetch(getAuthToken, r);
+			await remote.fetch(r);
 
 			expect(mockSuccessItemFetch).to.have.been.calledWith('/base/route', {
 				body: undefined,
@@ -49,7 +56,7 @@ describe('StoreRemote src/store.remote.ts', () => {
 				{method: Method.POST, path: '/route', private: true},
 				'/base',
 			);
-			await remote.fetch(getAuthToken, r, {id: 'my-id'});
+			await remote.fetch(r, {id: 'my-id'});
 
 			expect(mockSuccessItemFetch).to.have.been.calledWith('/base/route', {
 				body: JSON.stringify({id: 'my-id'}),

@@ -51,7 +51,7 @@ describe('sync.obj.ts Подписка на данные из syncObj - Как �
 	let root: any;
 
 	before(async () => {
-		await store.remove(STORE_NAME);
+		await store.remove();
 		root = getRoot();
 	});
 

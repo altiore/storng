@@ -49,7 +49,7 @@ describe('sync.obj.ts сущность без API', () => {
 	let root: any;
 
 	before(async () => {
-		await store.remove(STORE_NAME);
+		await store.remove();
 		root = getRoot();
 	});
 

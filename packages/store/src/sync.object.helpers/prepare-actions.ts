@@ -102,15 +102,7 @@ export const prepareActions = <
 					const route = scope[handlerName];
 					updater(requestHandler(handler, req, initData, route));
 					try {
-						const getAuth = store.cache.getAuthToken.bind(
-							store.cache,
-						) as typeof store.cache.getAuthToken;
-						// TODO: restore from persistStorage
-						// не нужно восстанавливать данные getAuth из хранилища, т.к. в приложении всегда есть
-						// элемент, который зависит от данных авторизации, а если предположить, что такого
-						// элемента нет в видимой области, то это означает, что и авторизованных запросов
-						// на такой странице быть не может
-						const resData = await store.remote.fetch(getAuth, route, req);
+						const resData = await store.remote.fetch(route, req);
 						if (resData.ok) {
 							updater(remoteSuccessHandler(handler, initData, resData, route));
 						} else {

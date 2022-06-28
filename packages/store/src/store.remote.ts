@@ -7,11 +7,21 @@ export class StoreRemote {
 	private readonly prefix: string;
 	private readonly apiFetch: FetchType;
 	private readonly updateTokenRoute?: Route;
+	private readonly logout: () => Promise<void>;
+	private readonly getAuthToken: () => string | false;
 
-	constructor(apiFetch: FetchType, prefix = '', updateTokenRoute?: Route) {
+	constructor(
+		apiFetch: FetchType,
+		prefix = '',
+		getAuthToken: () => string | false,
+		logout: () => Promise<void>,
+		updateTokenRoute?: Route,
+	) {
 		this.apiFetch = apiFetch;
 		this.prefix = prefix;
+		this.getAuthToken = getAuthToken;
 		this.updateTokenRoute = updateTokenRoute;
+		this.logout = logout;
 	}
 
 	private isUpdating = false;
@@ -23,7 +33,6 @@ export class StoreRemote {
 	}> = [];
 
 	public async fetch(
-		getAuthToken: () => string | false,
 		route: Route<any, any>,
 		data?: Record<string, any>,
 	): Promise<
@@ -33,7 +42,7 @@ export class StoreRemote {
 	> {
 		try {
 			if (route.private) {
-				const accessToken = getAuthToken();
+				const accessToken = this.getAuthToken();
 				if (!this.updateTokenRoute) {
 					throw new Error(
 						'Вы пытаетесь использовать маршрут, который требует авторизацию, но' +
@@ -77,17 +86,12 @@ export class StoreRemote {
 							});
 
 							// 2.2. выполнить обновление ключа
-							await this.makeRequest(
-								getAuthToken,
-								this.updateTokenRoute as Route,
-							);
+							await this.makeRequest(this.updateTokenRoute as Route);
 							this.isUpdating = false;
 
 							// 2.3. выполнить запросы из очереди с новым ключом
 							this.requestsQueue.forEach(({data, route, cb}) => {
-								this.makeRequest(getAuthToken, route, data)
-									.then(cb)
-									.catch(console.error);
+								this.makeRequest(route, data).then(cb).catch(console.error);
 							});
 						} catch (err) {
 							reject(err);
@@ -96,26 +100,31 @@ export class StoreRemote {
 				}
 			}
 
-			return await this.makeRequest(getAuthToken, route, data);
+			return await this.makeRequest(route, data);
 		} catch (err) {
 			return err as ResBase;
 		}
 	}
 
-	private async makeRequest(
-		getAuthToken: () => string | false,
+	private makeRequest = async (
 		route: Route<any, any>,
 		data?: Record<string, any>,
-	) {
+	) => {
 		try {
 			const requestInit: Partial<RequestInit> = {};
-			const accessToken = getAuthToken();
+			const accessToken = this.getAuthToken();
 			if (route.private && accessToken) {
 				requestInit.headers = {Authorization: `bearer ${accessToken}`};
 			}
 
 			const [url, init] = route.fetchParams(data, this.prefix, requestInit);
 			const res = await this.apiFetch(url, init);
+
+			console.log('res is', res);
+			if (res.status === 401) {
+				console.log('res.status', res.status);
+				await this.logout();
+			}
 
 			return await res.json();
 		} catch (err: any) {
@@ -127,5 +136,5 @@ export class StoreRemote {
 			}
 			return err as ResBase;
 		}
-	}
+	};
 }

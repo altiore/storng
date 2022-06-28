@@ -58,6 +58,10 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 		this.structure = new Map();
 	}
 
+	logout = () => {
+		this.weakStore = new WeakMap() as WeakStore<T>;
+	};
+
 	/**
 	 * Получаем ключ в виде объекта для временных данных
 	 */
