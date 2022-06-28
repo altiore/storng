@@ -120,9 +120,7 @@ export class StoreRemote {
 			const [url, init] = route.fetchParams(data, this.prefix, requestInit);
 			const res = await this.apiFetch(url, init);
 
-			console.log('res is', res);
 			if (res.status === 401) {
-				console.log('res.status', res.status);
 				await this.logout();
 			}
 

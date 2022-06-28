@@ -45,10 +45,11 @@ export class Store<T extends Record<string, T[keyof T]>> {
 
 	async remove(): Promise<void> {
 		await this.local.deleteStorage();
+		// TODO: возможно, нужно так же удалить данные из кэша
 	}
 
 	async logout(): Promise<void> {
-		this.cache.logout();
-		await this.remove();
+		// TODO: удалить данные из локального хранилища
+		// TODO: возможно удалить данные из кэша
 	}
 }
