@@ -21,11 +21,17 @@ const logout = () => {
 	return Promise.resolve();
 };
 
+const updateAuthData = (d: any) => {
+	token = d?.accessToken;
+	return Promise.resolve();
+};
+
 const remote = new StoreRemote(
 	mockSuccessItemFetch,
 	'',
 	getAuthToken,
 	logout,
+	updateAuthData,
 	new Route({method: Method.PATCH, path: '/refresh'}, '/base'),
 );
 

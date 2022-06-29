@@ -4,6 +4,7 @@ import {StoreCache} from './store.cache';
 import {StoreLocal} from './store.local';
 import {StoreRemote} from './store.remote';
 import {
+	AuthData,
 	FetchType,
 	KeyNames,
 	LoadedItem,
@@ -25,6 +26,13 @@ const getDataPreparation =
 	<T>(data: LoadedItem<T[keyof T]>) =>
 	() =>
 		data;
+
+const getDataPreparationByData =
+	<T>(data: T) =>
+	(s: LoadedItem<T[keyof T]>): LoadedItem<T[keyof T]> => ({
+		data,
+		loadingStatus: s.loadingStatus,
+	});
 
 const GET_CLEAR_OBJ_DATA =
 	(initial: LoadedItem<any>['data'] = {}) =>
@@ -73,6 +81,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 			prefix,
 			this.cache.getAuthToken.bind(this.cache),
 			this.logout.bind(this),
+			this.updateAuthData.bind(this),
 			updateTokenRoute,
 		);
 		this.authStorage = authStorage;
@@ -174,6 +183,16 @@ export class Store<T extends Record<string, T[keyof T]>> {
 			}
 		} else {
 			this.cache.updateData(key, getData);
+		}
+	};
+
+	updateAuthData = async (authData: AuthData): Promise<void> => {
+		if (this.authStorage) {
+			await this.updateData(
+				this.authStorage,
+				getDataPreparationByData<any>(authData),
+				this.local.simpleStorage(),
+			);
 		}
 	};
 }

@@ -1,6 +1,6 @@
 import {ResBase, Route} from '@storng/common';
 
-import {FetchType} from './types';
+import {AuthData, FetchType} from './types';
 import {getIsExpiredSoon} from './utils';
 
 export class StoreRemote {
@@ -9,17 +9,20 @@ export class StoreRemote {
 	private readonly updateTokenRoute?: Route;
 	private readonly logout: () => Promise<void>;
 	private readonly getAuthToken: () => string | false;
+	private readonly updateAuthData?: (authData: AuthData) => Promise<void>;
 
 	constructor(
 		apiFetch: FetchType,
 		prefix = '',
 		getAuthToken: () => string | false,
 		logout: () => Promise<void>,
+		updateAuthData?: (authData: AuthData) => Promise<void>,
 		updateTokenRoute?: Route,
 	) {
 		this.apiFetch = apiFetch;
 		this.prefix = prefix;
 		this.getAuthToken = getAuthToken;
+		this.updateAuthData = updateAuthData;
 		this.updateTokenRoute = updateTokenRoute;
 		this.logout = logout;
 	}
@@ -90,7 +93,10 @@ export class StoreRemote {
 								this.updateTokenRoute as Route,
 							);
 							this.isUpdating = false;
-							if (!updateTokenResult.ok) {
+
+							if (updateTokenResult.ok && this.updateAuthData) {
+								await this.updateAuthData(updateTokenResult.data);
+							} else {
 								while (this.requestsQueue.length) {
 									const cur = this.requestsQueue.shift();
 									if (cur) {
