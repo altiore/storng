@@ -200,12 +200,15 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 
 	public updateData = (
 		key: keyof T,
-		getData: (data: LoadedItem<T[keyof T]>) => LoadedItem<T[keyof T]>,
+		getData:
+			| ((data: LoadedItem<T[keyof T]>) => LoadedItem<T[keyof T]>)
+			| LoadedItem<T[keyof T]>,
 		runSubscribers = true,
 	): void => {
 		const curData = this.getData(key);
 		if (curData) {
-			const newData = getData(curData.data);
+			const newData =
+				typeof getData === 'function' ? getData(curData.data) : getData;
 
 			this.setData(key, newData, curData.subscribers);
 			// Разослать данные всем подписчикам

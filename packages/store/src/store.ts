@@ -21,11 +21,6 @@ const getDataPreparationByData =
 		loadingStatus: s.loadingStatus,
 	});
 
-const getDataPreparation =
-	<T>(data: LoadedItem<T[keyof T]>) =>
-	(): LoadedItem<T[keyof T]> =>
-		data;
-
 const GET_CLEAR_OBJ_DATA =
 	(initial: LoadedItem<any>['data'] = {}) =>
 	(): LoadedItem<any> => ({
@@ -172,7 +167,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 					isLocalLoading: false,
 				});
 				if (!this.loadingStatus.get(key)?.declinedRestore) {
-					this.cache.updateData(key, getDataPreparation(data), false);
+					this.cache.updateData(key, data, false);
 					subscriber(dataPreparer(data));
 				}
 			})
@@ -202,7 +197,6 @@ export class Store<T extends Record<string, T[keyof T]>> {
 		this.updateLoadingStatus(key, {
 			declinedRestore: true,
 		});
-
 		const loadingStatus = this.loadingStatus.get(key);
 
 		if (loadingStatus?.isLocalLoading || !loadingStatus?.isLocalLoaded) {
@@ -225,8 +219,8 @@ export class Store<T extends Record<string, T[keyof T]>> {
 					existingData.data.loadingStatus.isLoading !== true ||
 					newData1.loadingStatus.isLoading !== true
 				) {
-					await persistStore.setItem(key, getData(existingData.data));
-					this.cache.updateData(key, getData);
+					await persistStore.setItem(key, newData1);
+					this.cache.updateData(key, newData1);
 				}
 			} else {
 				const prevData = await persistStore.getItem(key);
@@ -239,6 +233,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 		}
 
 		this.updateLoadingStatus(key, {
+			declinedRestore: false,
 			isLocalLoading: false,
 		});
 	};
