@@ -44,9 +44,9 @@ describe('StoreCache src/store.cache.ts', () => {
 					data: {},
 					loadingStatus: {
 						error: undefined,
-						initial: true,
 						isLoaded: false,
 						isLoading: true,
+						updatedAt: 0,
 					},
 				},
 				isPersist: true,
@@ -71,9 +71,9 @@ describe('StoreCache src/store.cache.ts', () => {
 					data: {image: 'my-image'},
 					loadingStatus: {
 						error: undefined,
-						initial: true,
 						isLoaded: false,
 						isLoading: true,
+						updatedAt: 0,
 					},
 				},
 				isPersist: true,
@@ -91,9 +91,9 @@ describe('StoreCache src/store.cache.ts', () => {
 					data: {},
 					loadingStatus: {
 						error: undefined,
-						initial: true,
 						isLoaded: false,
 						isLoading: true,
+						updatedAt: 0,
 					},
 				},
 				isPersist: true,
@@ -118,9 +118,9 @@ describe('StoreCache src/store.cache.ts', () => {
 				data: {accessToken: 'accessToken', refreshToken: 'refreshToken'},
 				loadingStatus: {
 					error: undefined,
-					initial: false,
 					isLoaded: true,
 					isLoading: false,
+					updatedAt: 0,
 				},
 			},
 			[],
@@ -138,9 +138,9 @@ describe('StoreCache src/store.cache.ts', () => {
 					data: {accessToken: 'accessToken', refreshToken: 'refreshToken'},
 					loadingStatus: {
 						error: undefined,
-						initial: false,
 						isLoaded: true,
 						isLoading: false,
+						updatedAt: 0,
 					},
 				},
 				subscribers: [],
@@ -207,9 +207,9 @@ describe('StoreCache src/store.cache.ts', () => {
 					},
 					loadingStatus: {
 						error: undefined,
-						initial: true,
 						isLoaded: true,
 						isLoading: false,
+						updatedAt: 0,
 					},
 				});
 			expect(subscriber2)
@@ -220,9 +220,9 @@ describe('StoreCache src/store.cache.ts', () => {
 					},
 					loadingStatus: {
 						error: undefined,
-						initial: true,
 						isLoaded: true,
 						isLoading: false,
+						updatedAt: 0,
 					},
 				});
 		});

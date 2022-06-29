@@ -76,7 +76,7 @@ describe('sync.object.ts', () => {
 			'<p>loading</p><p>loading</p><p>loading</p>',
 		);
 
-		expect(renderSpy).have.been.callCount(6);
+		expect(renderSpy).have.been.callCount(3);
 	});
 
 	it('вторая генерация', async () => {
@@ -86,7 +86,7 @@ describe('sync.object.ts', () => {
 			'<p>nothing</p><p>nothing</p><p>nothing</p>',
 		);
 
-		expect(renderSpy).have.been.callCount(9);
+		expect(renderSpy).have.been.callCount(6);
 	});
 
 	it('обновляем данные', async () => {
@@ -94,12 +94,17 @@ describe('sync.object.ts', () => {
 			const p = document.getElementsByTagName('p');
 			p[0].click();
 		});
+
+		expect(root?.innerHTML).to.equal(
+			'<p>loading</p><p>loading</p><p>loading</p>',
+		);
+
 		await wait(0.3);
 
 		expect(root?.innerHTML).to.equal(
 			'<p>correct</p><p>correct</p><p>correct</p>',
 		);
 
-		expect(renderSpy).have.been.callCount(15);
+		expect(renderSpy).have.been.callCount(12);
 	});
 });

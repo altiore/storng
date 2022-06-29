@@ -3,11 +3,12 @@ import {LoadedItem, ScopeHandlers, Store} from '@storng/store';
 
 const requestHandler =
 	(handler, req, initData, route): any =>
-	(state): any =>
-		handler.request(state, initData, {
+	(state): any => {
+		return handler.request(state, initData, {
 			req,
 			route,
 		});
+	};
 
 const successHandler =
 	(handler, req, initData): any =>
@@ -48,6 +49,7 @@ const remoteFailureHandler =
 const removeErrorHandler = (state) => ({
 	data: state.data,
 	loadingStatus: {
+		...state.loadingStatus,
 		error: undefined,
 		isLoaded: Boolean(state?.loadingStatus?.isLoaded),
 		isLoading: false,

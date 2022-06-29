@@ -47,27 +47,6 @@ const Wrapped = connect(
 	},
 );
 
-interface MyComponent2Props {
-	registerConfirm: ActionFunc<AuthUrls['registerConfirm']>;
-}
-
-const MyComponent2 = React.memo<MyComponent2Props>(({registerConfirm}) => {
-	renderSpy();
-	return <p>{typeof registerConfirm}</p>;
-});
-
-const Wrapped2 = connect(MyComponent2, undefined, {
-	registerConfirm: auth.registerConfirm,
-});
-
-export const MyCom = (): JSX.Element => {
-	return (
-		<div>
-			<Wrapped2 />
-		</div>
-	);
-};
-
 describe('sync.obj.ts Подписка на данные из syncObj - как функции', () => {
 	let root: any;
 
@@ -96,7 +75,7 @@ describe('sync.obj.ts Подписка на данные из syncObj - как �
 		expect(root?.innerHTML).to.equal('<p>...loading</p>');
 
 		await wait(0.3);
-		expect(renderSpy).to.have.been.calledThrice;
+		expect(renderSpy).to.have.been.calledTwice;
 		expect(root?.innerHTML).to.equal('<p>function</p>');
 	});
 

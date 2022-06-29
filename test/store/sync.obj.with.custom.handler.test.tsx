@@ -82,6 +82,7 @@ describe('sync.obj.ts сущность без API', () => {
 			p[0].click();
 		});
 
+		await wait(0.3);
 		expect(root?.innerHTML).to.equal('<p>correct: 3</p>');
 
 		expect(renderSpy).to.have.been.calledThrice;

@@ -1,4 +1,5 @@
 import {AuthData, LoadedItem, StructureType} from './types';
+import {getInitData} from './utils';
 
 type ObjKey<T extends Record<string, T[keyof T]>> = {
 	type: StructureType;
@@ -55,7 +56,7 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 	/**
 	 * Получаем ключ в виде объекта для временных данных
 	 */
-	private getDataKey = (name: keyof T): ObjKey<T> | undefined => {
+	public getDataKey = (name: keyof T): ObjKey<T> | undefined => {
 		return this.structure.get(name);
 	};
 
@@ -109,15 +110,7 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 		isPersist = true,
 	): ObjKey<T> => {
 		const structureInfo: ObjKey<T> = {
-			initData: {
-				data: initData,
-				loadingStatus: {
-					error: undefined,
-					initial: true,
-					isLoaded: false,
-					isLoading: true,
-				},
-			},
+			initData: getInitData(initData, isPersist),
 			isPersist,
 			name: key,
 			type: StructureType.ITEM,
@@ -177,10 +170,14 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 		return data;
 	};
 
+	/**
+	 * Возвращает true, если успешно отписан и есть еще другие подписчики.
+	 * Возвращает false, если нет подписчиков
+	 */
 	public unsubscribe = (
 		key: keyof T,
 		subscriber: (value: any) => void,
-	): void => {
+	): boolean => {
 		const curData = this.getData(key);
 		if (curData) {
 			const subscriberRemoveIndex = curData.subscribers.findIndex(
@@ -192,17 +189,19 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 
 			if (!curData.subscribers?.length) {
 				this.deleteData(key);
+				return false;
 			}
 		} else {
-			throw new Error(
-				'Вы пытаетесь отписать подписчика, но он не был найден среди подписчиков',
-			);
+			return false;
 		}
+
+		return true;
 	};
 
 	public updateData = (
 		key: keyof T,
 		getData: (data: LoadedItem<T[keyof T]>) => LoadedItem<T[keyof T]>,
+		runSubscribers = true,
 	): void => {
 		const curData = this.getData(key);
 		if (curData) {
@@ -210,9 +209,11 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 
 			this.setData(key, newData, curData.subscribers);
 			// Разослать данные всем подписчикам
-			curData.subscribers.forEach(({subscriber, dataPreparer}) => {
-				subscriber(dataPreparer(newData));
-			});
+			if (runSubscribers) {
+				curData.subscribers.forEach(({subscriber, dataPreparer}) => {
+					subscriber(dataPreparer(newData));
+				});
+			}
 		}
 	};
 }

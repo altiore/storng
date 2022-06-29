@@ -77,7 +77,7 @@ describe('sync.object.ts', () => {
 
 		expect(root?.innerHTML).to.equal('<p>loading function</p>');
 
-		expect(renderSpy).have.been.callCount(2);
+		expect(renderSpy).have.been.callCount(1);
 	});
 
 	it('вторая генерация', async () => {
@@ -85,7 +85,7 @@ describe('sync.object.ts', () => {
 
 		expect(root?.innerHTML).to.equal('<p>nothing function</p>');
 
-		expect(renderSpy).have.been.callCount(3);
+		expect(renderSpy).have.been.callCount(2);
 	});
 
 	it('обновляем данные', async () => {
@@ -100,6 +100,6 @@ describe('sync.object.ts', () => {
 
 		expect(root?.innerHTML).to.equal('<p>correct function</p>');
 
-		expect(renderSpy).have.been.callCount(5);
+		expect(renderSpy).have.been.callCount(4);
 	});
 });

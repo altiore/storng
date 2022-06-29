@@ -1,3 +1,5 @@
+import {LoadedItem} from '@storng/store';
+
 type DeepPartial<T> = T extends Record<string, any>
 	? {
 			[P in keyof T]?: DeepPartial<T[P]>;
@@ -44,4 +46,19 @@ export function getIsExpiredSoon(
 	const diff = compareDate.getTime() - expireDate.getTime();
 
 	return diff >= 0;
+}
+
+export function getInitData<T>(
+	initData: Partial<T[keyof T]>,
+	isPersist: boolean,
+): LoadedItem<T[keyof T]> {
+	return {
+		data: initData,
+		loadingStatus: {
+			error: undefined,
+			isLoaded: false,
+			isLoading: isPersist,
+			updatedAt: 0,
+		},
+	};
 }

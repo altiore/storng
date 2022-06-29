@@ -5,11 +5,10 @@ export const defRestorePreparation = <T = any>(
 ): LoadedItem<T> => {
 	if (typeof s?.loadingStatus?.isLoading === 'boolean') {
 		return {
-			data: {...s.data},
+			data: s.data,
 			loadingStatus: {
+				...s.loadingStatus,
 				error: undefined,
-				initial: false,
-				isLoaded: s.loadingStatus.isLoaded,
 				isLoading: false,
 			},
 		};

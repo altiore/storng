@@ -46,9 +46,9 @@ describe('StoreWeb src/store.web.ts + фактическое indexed.db хран
 					data: {},
 					loadingStatus: {
 						error: undefined,
-						initial: true,
 						isLoaded: false,
 						isLoading: true,
+						updatedAt: 0,
 					},
 				},
 				isPersist: true,
@@ -73,9 +73,9 @@ describe('StoreWeb src/store.web.ts + фактическое indexed.db хран
 					data: {image: 'my-image'},
 					loadingStatus: {
 						error: undefined,
-						initial: true,
 						isLoaded: false,
 						isLoading: true,
+						updatedAt: 0,
 					},
 				},
 				isPersist: true,
@@ -93,9 +93,9 @@ describe('StoreWeb src/store.web.ts + фактическое indexed.db хран
 					data: {},
 					loadingStatus: {
 						error: undefined,
-						initial: true,
 						isLoaded: false,
 						isLoading: true,
+						updatedAt: 0,
 					},
 				},
 				isPersist: true,
@@ -120,9 +120,9 @@ describe('StoreWeb src/store.web.ts + фактическое indexed.db хран
 				data: {accessToken: 'accessToken', refreshToken: 'refreshToken'},
 				loadingStatus: {
 					error: undefined,
-					initial: false,
 					isLoaded: true,
 					isLoading: false,
+					updatedAt: 0,
 				},
 			},
 			[],
@@ -140,9 +140,9 @@ describe('StoreWeb src/store.web.ts + фактическое indexed.db хран
 					data: {accessToken: 'accessToken', refreshToken: 'refreshToken'},
 					loadingStatus: {
 						error: undefined,
-						initial: false,
 						isLoaded: true,
 						isLoading: false,
+						updatedAt: 0,
 					},
 				},
 				subscribers: [],
@@ -208,9 +208,9 @@ describe('StoreWeb src/store.web.ts + фактическое indexed.db хран
 				},
 				loadingStatus: {
 					error: undefined,
-					initial: true,
 					isLoaded: true,
 					isLoading: true,
+					updatedAt: 0,
 				},
 			});
 			expect(subscriber2).to.have.been.calledWith(
@@ -220,9 +220,9 @@ describe('StoreWeb src/store.web.ts + фактическое indexed.db хран
 					},
 					loadingStatus: {
 						error: undefined,
-						initial: true,
 						isLoaded: true,
 						isLoading: true,
+						updatedAt: 0,
 					},
 				}),
 			);
@@ -258,6 +258,7 @@ describe('StoreWeb src/store.web.ts + фактическое indexed.db хран
 							error: undefined,
 							isLoaded: true,
 							isLoading: true,
+							updatedAt: 0,
 						},
 					}),
 				);

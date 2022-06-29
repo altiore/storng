@@ -1,6 +1,12 @@
 import {ErrorOrInfo, GetActionFunc, ResError, Route} from '@storng/common';
 
-export interface LoadingStatus<
+export interface LoadingStatus {
+	declinedRestore: boolean;
+	isLocalLoaded: boolean;
+	isLocalLoading: boolean;
+}
+
+export interface LoadingStatusRemote<
 	Error extends ErrorOrInfo = {
 		errors?: Array<ResError>;
 		message?: string;
@@ -8,9 +14,12 @@ export interface LoadingStatus<
 	},
 > {
 	error: Error | undefined;
-	initial?: boolean;
+	// устанавливается в true, когда данные были успешно загружены
 	isLoaded: boolean;
+	// устанавливается в true, когда данные загружаются
 	isLoading: boolean;
+	// последний момент синхронизации данных с удаленными данными в миллисекундах
+	updatedAt: number;
 }
 
 export interface LoadedItem<
@@ -23,7 +32,7 @@ export interface LoadedItem<
 > {
 	data: Partial<Item>;
 
-	loadingStatus: LoadingStatus<Error>;
+	loadingStatus: LoadingStatusRemote<Error>;
 }
 
 export interface LoadedList<Key, Item extends Record<string, any>> {

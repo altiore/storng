@@ -57,7 +57,7 @@ export function syncObject<
 					persistStorage as any,
 					initData,
 				);
-				return () => store.cache.unsubscribe(storeName, subscriber);
+				return () => store.unsubscribe(storeName, subscriber);
 			} catch (err) {
 				console.error(err);
 			}
@@ -106,6 +106,7 @@ syncObject.nothing = {
 				...s.loadingStatus,
 				error: undefined,
 				isLoading: false,
+				updatedAt: new Date().getTime(),
 			},
 		};
 	},
@@ -128,6 +129,7 @@ syncObject.update = {
 			error: undefined,
 			isLoaded: true,
 			isLoading: false,
+			updatedAt: new Date().getTime(),
 		},
 	}),
 	// eslint-disable-next-line sort-keys
@@ -146,6 +148,7 @@ syncObject.replace = {
 			error: undefined,
 			isLoaded: true,
 			isLoading: false,
+			updatedAt: new Date().getTime(),
 		},
 	}),
 	// eslint-disable-next-line sort-keys
@@ -160,6 +163,7 @@ syncObject.remove = {
 			error: undefined,
 			isLoaded: false,
 			isLoading: false,
+			updatedAt: new Date().getTime(),
 		},
 	}),
 	// eslint-disable-next-line sort-keys
@@ -178,6 +182,7 @@ syncObject.deepMerge = {
 			error: undefined,
 			isLoaded: true,
 			isLoading: false,
+			updatedAt: new Date().getTime(),
 		},
 	}),
 	// eslint-disable-next-line sort-keys
@@ -195,6 +200,7 @@ syncObject.custom = <T, D = any>(
 				error: undefined,
 				isLoaded: true,
 				isLoading: false,
+				updatedAt: new Date().getTime(),
 			},
 		};
 	},
