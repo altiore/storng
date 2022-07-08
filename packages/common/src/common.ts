@@ -329,3 +329,11 @@ export type RouteRes<T extends Route<any, any>> = T extends Route<
 >
 	? Promise<Res>
 	: unknown;
+
+export enum CrudUrl {
+	getMany = 'getMany',
+	getOne = 'getOne',
+	createOne = 'createOne',
+	updateOne = 'updateOne',
+	deleteOne = 'deleteOne',
+}
