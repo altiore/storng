@@ -1,11 +1,11 @@
-import {LoadedItem} from '../types';
+import {LoadedData} from '../types';
 
 export const defRestorePreparation = <T = any>(
-	s: LoadedItem<T>,
-): LoadedItem<T> => {
+	s: LoadedData<T>,
+): LoadedData<T> => {
 	if (typeof s?.loadingStatus?.isLoading === 'boolean') {
 		return {
-			data: s.data,
+			data: s.data as any,
 			loadingStatus: {
 				...s.loadingStatus,
 				error: undefined,

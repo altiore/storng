@@ -35,25 +35,35 @@ export interface LoadedItem<
 	loadingStatus: LoadingStatusRemote<Error>;
 }
 
-export interface LoadedList<Key, Item extends Record<string, any>> {
-	id: Key;
-
+export interface LoadedList<
+	Item extends Record<string, any>,
+	Error extends ErrorOrInfo = {
+		errors?: Array<ResError>;
+		message?: string;
+		ok: boolean;
+	},
+> {
 	data: Array<Item>;
 
-	loadingStatus: {
-		error?: any;
-		isLoading: boolean;
-		isLoaded: boolean;
-	};
+	loadingStatus: LoadingStatusRemote<Error>;
 }
 
-export type LoadedData<T> =
-	| LoadedItem<T[keyof T]>
-	| LoadedList<keyof T, T[keyof T]>;
+export type LoadedData<T> = LoadedItem<T> | LoadedList<T>;
 
 export type PersistStore<T extends Record<keyof T, T[keyof T]>> = {
 	getItem: (tableName: keyof T, key?: string) => Promise<any>;
 	setItem: (tableName: keyof T, value: any) => Promise<any>;
+	deleteStore: () => Promise<void>;
+};
+
+export type ListPersistStore<T extends Record<keyof T, T[keyof T]>> = {
+	getItem: (tableName: keyof T, key?: string) => Promise<any>;
+	setItem: (tableName: keyof T, value: any) => Promise<any>;
+	getList: (tableName: keyof T) => Promise<LoadedList<T[keyof T]>>;
+	setList: (
+		tableName: keyof T,
+		values: Array<T[keyof T]>,
+	) => Promise<Array<T[keyof T]>>;
 	deleteStore: () => Promise<void>;
 };
 
@@ -72,6 +82,9 @@ export type StoreStructure<StoreType> = {
 };
 
 export type SubscriberType<T> = (state: MaybeRemoteData<LoadedItem<T>>) => void;
+export type SubscriberListType<T> = (
+	state: MaybeRemoteData<LoadedList<T>>,
+) => void;
 
 export type SubsObj<Item> = (
 	subscriber: SubscriberType<Item>,
@@ -139,3 +152,5 @@ export type MaybeRemoteData<
 	failure: ((a: {data?: A; error: E}) => R) | R;
 	loading: ((a: {data?: A; error?: E}) => R) | R;
 }) => R;
+
+export const LIST_FILTER_TABLE_NAME = 'list_filters';

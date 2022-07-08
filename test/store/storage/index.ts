@@ -16,6 +16,7 @@ export const getStore = (
 			auth_public: 'id',
 			notify: 'id',
 			public_common: 'id',
+			users: 'id',
 		},
 		mockFetch,
 	);

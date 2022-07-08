@@ -1,13 +1,13 @@
 import {GetScope} from '@storng/common';
-import {LoadedData, Store} from '@storng/store';
+import {LoadedList, Store} from '@storng/store';
 
-export const getUpdater =
+export const getListUpdater =
 	<T extends Record<keyof T, T[keyof T]>>(
 		scope: GetScope<any, keyof T> | keyof T,
 		persistData: boolean,
 	) =>
 	(store: Store<T>) =>
-	(handler: (i: LoadedData<T[keyof T]>) => LoadedData<T[keyof T]>): void => {
+	(handler: (i: LoadedList<T[keyof T]>) => LoadedList<T[keyof T]>): void => {
 		const scopeName: keyof T =
 			typeof scope === 'object' ? (scope.NAME as keyof T) : scope;
 
@@ -17,11 +17,11 @@ export const getUpdater =
 				: typeof scope === 'object';
 
 		const persistStorage = shouldPersistStore
-			? store.local.itemStorage()
+			? store.local.listStorage()
 			: undefined;
 
 		store
-			.updateData(scopeName, handler, persistStorage as any)
+			.updateListData(scopeName, handler, persistStorage as any)
 			.then()
 			.catch(console.error);
 	};

@@ -1,7 +1,20 @@
 import {StoreKey, StoreNames, StoreValue, deleteDB, openDB} from 'idb';
-import {DBSchema, OpenDBCallbacks} from 'idb/build/entry';
+import {DBSchema, IDBPDatabase, OpenDBCallbacks} from 'idb/build/entry';
 
-import {KeyNames, PersistStore} from './types';
+import {
+	KeyNames,
+	LIST_FILTER_TABLE_NAME,
+	ListPersistStore,
+	LoadedList,
+	PersistStore,
+} from './types';
+
+type TT<T> = {
+	[LIST_FILTER_TABLE_NAME]: {
+		key: keyof T;
+		value: any;
+	};
+};
 
 export class StoreLocal<StoreState extends DBSchema> {
 	public name: string;
@@ -20,7 +33,7 @@ export class StoreLocal<StoreState extends DBSchema> {
 
 	private handlersObj = (
 		entityKeyNames: KeyNames<StoreState>,
-	): OpenDBCallbacks<StoreState> => ({
+	): OpenDBCallbacks<StoreState & TT<StoreState>> => ({
 		blocked() {
 			console.log(
 				'есть другое соединение к той же базе ' +
@@ -34,15 +47,22 @@ export class StoreLocal<StoreState extends DBSchema> {
 			console.log('terminated');
 		},
 		upgrade(db) {
-			Object.entries(entityKeyNames).forEach(([key, keyPath]) => {
-				if (!db.objectStoreNames.contains(key as any)) {
+			Object.entries(entityKeyNames).forEach(([storeName, keyPath]) => {
+				if (!db.objectStoreNames.contains(storeName as any)) {
 					// если хранилище key еще не существует
-					db.createObjectStore(key as any, {
+					db.createObjectStore(storeName as any, {
 						autoIncrement: false,
 						keyPath: keyPath as any,
 					}); // создаем хранилище
 				}
 			});
+
+			if (!db.objectStoreNames.contains(LIST_FILTER_TABLE_NAME as any)) {
+				db.createObjectStore(LIST_FILTER_TABLE_NAME as any, {
+					autoIncrement: false,
+					keyPath: 'id',
+				}); // создаем хранилище для фильтров таблиц
+			}
 		},
 	});
 
@@ -58,9 +78,11 @@ export class StoreLocal<StoreState extends DBSchema> {
 		};
 	}
 
-	private async dbPromise() {
+	private async dbPromise(): Promise<
+		IDBPDatabase<StoreState & TT<StoreState>>
+	> {
 		const conf = this.getConfig();
-		return await openDB(
+		return await openDB<StoreState & TT<StoreState>>(
 			conf.name,
 			conf.version,
 			this.handlersObj(conf.entityKeyNames),
@@ -133,17 +155,92 @@ export class StoreLocal<StoreState extends DBSchema> {
 		return await db.delete(storeName, key ?? (storeName as any));
 	}
 
+	public async setList(
+		storeName: StoreNames<StoreState>,
+		loadedList: LoadedList<StoreValue<StoreState, StoreNames<StoreState>>>,
+	): Promise<Array<StoreKey<StoreState, StoreNames<StoreState>>>> {
+		const db = await this.dbPromise();
+
+		// TODO: удалить, когда будем хранить локальный кэш
+		await db.clear(storeName);
+
+		const trn = db.transaction(
+			[storeName, LIST_FILTER_TABLE_NAME as any],
+			'readwrite',
+		);
+
+		const model = trn.objectStore(storeName);
+
+		const putResult = await Promise.all(
+			loadedList.data.map(async (v) => {
+				return await model.put(v);
+			}),
+		);
+
+		const filterModel = trn.objectStore(LIST_FILTER_TABLE_NAME);
+		await filterModel.put({
+			id: storeName,
+			loadingStatus: loadedList.loadingStatus,
+		});
+
+		return putResult;
+	}
+
+	async getList(
+		storeName: StoreNames<StoreState>,
+	): Promise<LoadedList<StoreValue<StoreState, StoreNames<StoreState>>>> {
+		const db = await this.dbPromise();
+		const trn = db.transaction([storeName, LIST_FILTER_TABLE_NAME as any]);
+
+		const model = trn.objectStore(storeName);
+		const list = await model.getAll();
+
+		const filterModel = trn.objectStore(LIST_FILTER_TABLE_NAME);
+		const filterModelData = await filterModel.get(storeName as any);
+
+		return {
+			data: list || [],
+			loadingStatus: {
+				error: undefined,
+				isLoaded: Boolean(list?.length),
+				isLoading: true,
+				updatedAt: 0,
+				...((filterModelData as any)?.loadingStatus || {}),
+			},
+		};
+	}
+
+	async delList(storeName: StoreNames<StoreState>): Promise<void> {
+		const db = await this.dbPromise();
+
+		return await db.clear(storeName);
+	}
+
 	async deleteStorage(): Promise<void> {
 		return await deleteDB(this.name);
 	}
 
-	simpleStorage<StoreType>(): PersistStore<StoreType> {
+	itemStorage<StoreType>(): PersistStore<StoreType> {
 		return {
 			deleteStore: this.deleteStorage,
 			getItem: async (storeName: keyof StoreType, key?: string) =>
 				await this.getItem(storeName as any, key as any),
 			setItem: async (storeName: keyof StoreType, value: any) =>
 				await this.putItem(storeName as any, value),
+		};
+	}
+
+	listStorage<StoreType>(): ListPersistStore<StoreType> {
+		return {
+			deleteStore: this.deleteStorage,
+			getItem: async (storeName: keyof StoreType, key?: string) =>
+				await this.getItem(storeName as any, key as any),
+			getList: async (storeName: keyof StoreType): Promise<any> =>
+				await this.getList(storeName as any),
+			setItem: async (storeName: keyof StoreType, value: any) =>
+				await this.putItem(storeName as any, value),
+			setList: async (storeName: keyof StoreType, values: any): Promise<any> =>
+				await this.setList(storeName as any, values),
 		};
 	}
 }

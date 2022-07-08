@@ -35,3 +35,25 @@ export const mockVersionFetch: any = sinon.spy(() => {
 		} as any);
 	});
 });
+
+const successFetchListJson: any = () =>
+	sinon.spy(
+		() =>
+			new Promise((resolve) => {
+				resolve({
+					data: [
+						{email: 'user-0@mail.com', id: 'user-id-0'},
+						{email: 'user-1@mail.com', id: 'user-id-1'},
+					],
+					ok: true,
+				});
+			}),
+	);
+
+export const mockSuccessListFetch: any = sinon.spy(() => {
+	return new Promise((resolve) => {
+		resolve({
+			json: successFetchListJson(),
+		} as any);
+	});
+});

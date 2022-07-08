@@ -7,4 +7,8 @@ export type StoreType = {
 			contracts: string;
 		};
 	};
+	users: {
+		id: string;
+		email: string;
+	};
 };

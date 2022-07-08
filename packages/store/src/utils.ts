@@ -1,4 +1,4 @@
-import {LoadedItem} from '@storng/store';
+import {LoadedItem, LoadedList} from '@storng/store';
 
 type DeepPartial<T> = T extends Record<string, any>
 	? {
@@ -54,6 +54,18 @@ export function getInitData<T>(
 ): LoadedItem<T[keyof T]> {
 	return {
 		data: initData,
+		loadingStatus: {
+			error: undefined,
+			isLoaded: false,
+			isLoading: isPersist,
+			updatedAt: 0,
+		},
+	};
+}
+
+export function getInitDataList<T>(isPersist: boolean): LoadedList<T> {
+	return {
+		data: [],
 		loadingStatus: {
 			error: undefined,
 			isLoaded: false,

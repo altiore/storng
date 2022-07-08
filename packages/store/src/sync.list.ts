@@ -2,19 +2,18 @@ import {DataRes, ErrorOrInfo, GetScope, Route} from '@storng/common';
 
 import {Store} from './store';
 import {defRestorePreparation} from './sync.object.helpers/def.restore.preparation';
-import {getUpdater} from './sync.object.helpers/get-updater';
+import {getListUpdater} from './sync.object.helpers/get-list-updater';
 import {prepareActions} from './sync.object.helpers/prepare-actions';
 import {
-	ActionHandlers,
-	LoadedItem,
+	LoadedList,
 	MaybeRemoteData,
 	ScopeHandlers,
-	SubscriberType,
+	SubscriberListType,
 	SyncObjectType,
 } from './types';
 import {deepAssign} from './utils';
 
-export function syncObject<
+export function syncList<
 	StoreState extends Record<string, StoreState[keyof StoreState]>,
 	Key extends keyof StoreState = keyof StoreState,
 	Routes extends Record<string, Route<any, any>> = Record<string, never>,
@@ -22,20 +21,19 @@ export function syncObject<
 >(
 	scope: GetScope<Routes, Key> | Key,
 	scopeHandlers: ScopeHandlers<StoreState, Key, Routes, OtherRoutes>,
-	initData?: Partial<StoreState[Key]>,
 	persistData?: boolean,
 	restorePreparation: (
-		v: LoadedItem<StoreState[Key]>,
-	) => LoadedItem<StoreState[Key]> = defRestorePreparation as any,
+		v: LoadedList<StoreState[Key]>,
+	) => LoadedList<StoreState[Key]> = defRestorePreparation as any,
 ): SyncObjectType<Routes, StoreState[Key], OtherRoutes> {
 	const result =
 		(
 			store: Store<StoreState>,
 			dataPreparer: (
-				value: LoadedItem<StoreState[Key]>,
-			) => MaybeRemoteData<LoadedItem<StoreState[Key]>>,
+				value: LoadedList<StoreState[Key]>,
+			) => MaybeRemoteData<LoadedList<StoreState[Key]>>,
 		) =>
-		(subscriber: SubscriberType<StoreState[Key]>) => {
+		(subscriber: SubscriberListType<StoreState[Key]>) => {
 			try {
 				const storeName: Key =
 					typeof scope === 'object' ? (scope.NAME as Key) : scope;
@@ -46,16 +44,15 @@ export function syncObject<
 						: typeof scope === 'object';
 
 				const persistStorage = shouldPersistStore
-					? store.local.itemStorage()
+					? store.local.listStorage<StoreState>()
 					: undefined;
 
-				store.subscribe<MaybeRemoteData<LoadedItem<StoreState[Key]>>>(
+				store.subscribeList<MaybeRemoteData<LoadedList<StoreState[Key]>>>(
 					storeName,
 					subscriber,
 					dataPreparer as any,
 					restorePreparation as any,
-					persistStorage as any,
-					initData,
+					persistStorage,
 				);
 				return () => store.unsubscribe(storeName, subscriber);
 			} catch (err) {
@@ -67,16 +64,15 @@ export function syncObject<
 		result,
 		scope,
 		scopeHandlers,
-		getUpdater<StoreState>(scope, persistData as any) as any,
-		initData,
+		getListUpdater<StoreState>(scope, persistData as any) as any,
 	);
 
 	return result as any;
 }
 
 const requestHandler = <T extends Record<string, any> = Record<string, any>>(
-	s: LoadedItem<T>,
-): LoadedItem<T> => ({
+	s: LoadedList<T>,
+): LoadedList<T> => ({
 	data: s.data,
 	loadingStatus: {
 		...s.loadingStatus,
@@ -85,10 +81,10 @@ const requestHandler = <T extends Record<string, any> = Record<string, any>>(
 });
 
 const failureHandler = <T extends Record<string, any> = Record<string, any>>(
-	s: LoadedItem<T>,
+	s: LoadedList<T>,
 	_,
 	remote: {res: ErrorOrInfo; route: Route},
-): LoadedItem<T> => ({
+): LoadedList<T> => ({
 	data: s.data,
 	loadingStatus: {
 		...s.loadingStatus,
@@ -97,9 +93,9 @@ const failureHandler = <T extends Record<string, any> = Record<string, any>>(
 	},
 });
 
-syncObject.nothing = {
+syncList.nothing = {
 	request: requestHandler,
-	success: (s): LoadedItem<any> => {
+	success: (s): LoadedList<any> => {
 		return {
 			data: s.data,
 			loadingStatus: {
@@ -112,15 +108,15 @@ syncObject.nothing = {
 	},
 	// eslint-disable-next-line sort-keys
 	failure: failureHandler,
-} as ActionHandlers;
+} as any;
 
-syncObject.update = {
+syncList.update = {
 	request: requestHandler,
 	success: (
 		s,
 		data,
 		remote: {res: DataRes; route: Route},
-	): LoadedItem<any> => ({
+	): LoadedList<any> => ({
 		data: {
 			...s.data,
 			...(remote?.res.data || data || {}),
@@ -134,68 +130,13 @@ syncObject.update = {
 	}),
 	// eslint-disable-next-line sort-keys
 	failure: failureHandler,
-} as ActionHandlers;
+} as any;
 
-syncObject.replace = {
+syncList.replace = {
 	request: requestHandler,
-	success: (
-		s,
-		data,
-		remote: {res: DataRes; route: Route},
-	): LoadedItem<any> => ({
-		data: remote?.res.data || data || {},
-		loadingStatus: {
-			error: undefined,
-			isLoaded: true,
-			isLoading: false,
-			updatedAt: new Date().getTime(),
-		},
-	}),
-	// eslint-disable-next-line sort-keys
-	failure: failureHandler,
-} as ActionHandlers;
-
-syncObject.remove = {
-	request: requestHandler,
-	success: (s, data): LoadedItem<any> => ({
-		data: data || {},
-		loadingStatus: {
-			error: undefined,
-			isLoaded: false,
-			isLoading: false,
-			updatedAt: new Date().getTime(),
-		},
-	}),
-	// eslint-disable-next-line sort-keys
-	failure: failureHandler,
-} as ActionHandlers;
-
-syncObject.deepMerge = {
-	request: requestHandler,
-	success: (
-		s,
-		data,
-		remote: {res: DataRes; route: Route},
-	): LoadedItem<any> => ({
-		data: deepAssign(s.data, remote?.res.data || data || {}),
-		loadingStatus: {
-			error: undefined,
-			isLoaded: true,
-			isLoading: false,
-			updatedAt: new Date().getTime(),
-		},
-	}),
-	// eslint-disable-next-line sort-keys
-	failure: failureHandler,
-} as ActionHandlers;
-
-syncObject.custom = <T, D = any>(
-	cb: (a: T, data: D) => T,
-): ActionHandlers<T, D> => ({
-	request: requestHandler,
-	success: (s: LoadedItem<T>, data: D): LoadedItem<T> => {
+	success: (s, data, remote: {res: DataRes; route: Route}): LoadedList<any> => {
 		return {
-			data: cb(s.data as any, data),
+			data: (remote?.res.data as any) || data || [],
 			loadingStatus: {
 				error: undefined,
 				isLoaded: true,
@@ -205,5 +146,39 @@ syncObject.custom = <T, D = any>(
 		};
 	},
 	// eslint-disable-next-line sort-keys
-	failure: failureHandler as any,
-});
+	failure: failureHandler,
+} as any;
+
+syncList.remove = {
+	request: requestHandler,
+	success: (s, data): LoadedList<any> => ({
+		data: data || [],
+		loadingStatus: {
+			error: undefined,
+			isLoaded: false,
+			isLoading: false,
+			updatedAt: new Date().getTime(),
+		},
+	}),
+	// eslint-disable-next-line sort-keys
+	failure: failureHandler,
+} as any;
+
+syncList.deepMerge = {
+	request: requestHandler,
+	success: (
+		s,
+		data,
+		remote: {res: DataRes; route: Route},
+	): LoadedList<any> => ({
+		data: deepAssign(s.data, remote?.res.data || data || []),
+		loadingStatus: {
+			error: undefined,
+			isLoaded: true,
+			isLoading: false,
+			updatedAt: new Date().getTime(),
+		},
+	}),
+	// eslint-disable-next-line sort-keys
+	failure: failureHandler,
+} as any;

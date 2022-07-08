@@ -119,6 +119,28 @@ describe('Постоянное хранилище src/store.persist.ts', () => {
 			expect(res).to.be.eq('2');
 		});
 
+		it('получаем массив пользователей', async () => {
+			const users = await store.getList('users');
+			expect(users).to.be.eql({
+				data: [
+					{
+						email: 'test@mail.com',
+						id: '1',
+					},
+					{
+						email: 'test2@mail.com',
+						id: '2',
+					},
+				],
+				loadingStatus: {
+					error: undefined,
+					isLoaded: true,
+					isLoading: true,
+					updatedAt: 0,
+				},
+			});
+		});
+
 		it('получаем обоих добавленных пользователей', async () => {
 			const user1 = await store.getItem('users', '1');
 			const user2 = await store.getItem('users', '2');

@@ -1,5 +1,5 @@
 import {GetScope, Route} from '@storng/common';
-import {LoadedItem, ScopeHandlers, Store} from '@storng/store';
+import {LoadedData, ScopeHandlers, Store} from '@storng/store';
 
 const requestHandler =
 	(handler, req, initData, route): any =>
@@ -76,13 +76,13 @@ export const prepareActions = <
 	scopeHandlers: ScopeHandlers<T, Key, Routes, OtherRoutes>,
 	getUpdater: (
 		store: Store<T>,
-	) => (item: (i: LoadedItem<T[keyof T]>) => LoadedItem<T[keyof T]>) => void,
+	) => (item: (i: LoadedData<T[keyof T]>) => LoadedData<T[keyof T]>) => void,
 	initData?: Partial<T[Key]>,
 ): void => {
 	Object.entries(scopeHandlers).forEach(([handlerName, handler]) => {
 		(result as any)[handlerName] = (store: Store<T>) => async (req) => {
 			const updater: (
-				item: (i: LoadedItem<T[keyof T]>) => LoadedItem<T[keyof T]>,
+				item: (i: LoadedData<T[keyof T]>) => LoadedData<T[keyof T]>,
 			) => void = getUpdater(store);
 
 			const isApiReq = Boolean(typeof scope === 'object' && scope[handlerName]);
