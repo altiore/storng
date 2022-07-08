@@ -35,25 +35,35 @@ export interface LoadedItem<
 	loadingStatus: LoadingStatusRemote<Error>;
 }
 
-export interface LoadedList<Key, Item extends Record<string, any>> {
-	id: Key;
-
+export interface LoadedList<
+	Item extends Record<string, any>,
+	Error extends ErrorOrInfo = {
+		errors?: Array<ResError>;
+		message?: string;
+		ok: boolean;
+	},
+> {
 	data: Array<Item>;
 
-	loadingStatus: {
-		error?: any;
-		isLoading: boolean;
-		isLoaded: boolean;
-	};
+	loadingStatus: LoadingStatusRemote<Error>;
 }
 
-export type LoadedData<T> =
-	| LoadedItem<T[keyof T]>
-	| LoadedList<keyof T, T[keyof T]>;
+export type LoadedData<T> = LoadedItem<T[keyof T]> | LoadedList<T[keyof T]>;
 
 export type PersistStore<T extends Record<keyof T, T[keyof T]>> = {
 	getItem: (tableName: keyof T, key?: string) => Promise<any>;
 	setItem: (tableName: keyof T, value: any) => Promise<any>;
+	deleteStore: () => Promise<void>;
+};
+
+export type ListPersistStore<T extends Record<keyof T, T[keyof T]>> = {
+	getItem: (tableName: keyof T, key?: string) => Promise<any>;
+	setItem: (tableName: keyof T, value: any) => Promise<any>;
+	getList: (tableName: keyof T) => Promise<T[keyof T]>;
+	setList: (
+		tableName: keyof T,
+		values: T[keyof T],
+	) => Promise<Array<T[keyof T]>>;
 	deleteStore: () => Promise<void>;
 };
 
@@ -71,7 +81,7 @@ export type StoreStructure<StoreType> = {
 	};
 };
 
-export type SubscriberType<T> = (state: MaybeRemoteData<LoadedItem<T>>) => void;
+export type SubscriberType<T> = (state: MaybeRemoteData<LoadedData<T>>) => void;
 
 export type SubsObj<Item> = (
 	subscriber: SubscriberType<Item>,
@@ -106,6 +116,25 @@ export type ActionHandlers<
 	request: ActionHandler<Item, Payload>;
 	success: ActionHandler<Item, Payload>;
 	failure: ActionHandler<Item, Payload>;
+};
+
+export type ActionListHandler<
+	Item extends Record<string, any> = Record<string, any>,
+	Payload extends any = any,
+	Remote extends any = any,
+> = (
+	s: LoadedList<Item>,
+	payload: Payload,
+	remote?: Remote,
+) => LoadedList<Item>;
+
+export type ActionListHandlers<
+	Item extends Record<string, any> = Record<string, any>,
+	Payload extends any = any,
+> = {
+	request: ActionListHandler<Item, Payload>;
+	success: ActionListHandler<Item, Payload>;
+	failure: ActionListHandler<Item, Payload>;
 };
 
 export type ScopeHandlers<

@@ -101,7 +101,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 					const isPersist = struct?.isPersist;
 					let persistStore: PersistStore<T> | undefined = undefined;
 					if (isPersist) {
-						persistStore = this.local.simpleStorage();
+						persistStore = this.local.itemStorage();
 					}
 					await this.updateData(
 						key,
@@ -114,20 +114,20 @@ export class Store<T extends Record<string, T[keyof T]>> {
 	}
 
 	subscribe = <ResultData = LoadedItem<T[keyof T]>>(
-		key: keyof T,
+		storeName: keyof T,
 		subscriber: (value: ResultData) => void,
 		dataPreparer: (value: LoadedItem<T[keyof T]>) => ResultData,
 		restorePreparation: (v: LoadedItem<T[keyof T]>) => LoadedItem<T[keyof T]>,
 		persistStore?: PersistStore<T>,
 		initDataData?: Partial<T[keyof T]>,
 	): void => {
-		const loadingStatus = this.loadingStatus.get(key);
+		const loadingStatus = this.loadingStatus.get(storeName);
 
 		if (loadingStatus?.isLocalLoading) {
 			// 1. Если восстановление данных в процессе, отложить подписку элемента на данные
 			setTimeout(() => {
 				this.subscribe.bind(this)(
-					key,
+					storeName,
 					subscriber,
 					dataPreparer,
 					restorePreparation,
@@ -140,7 +140,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 
 		// 2. добавляем подписчика
 		const item = this.cache.subscribe(
-			key,
+			storeName,
 			subscriber,
 			dataPreparer,
 			initDataData,
@@ -150,30 +150,30 @@ export class Store<T extends Record<string, T[keyof T]>> {
 		if (!persistStore || loadingStatus?.isLocalLoaded) {
 			// 3. Если данные уже восстановлены или мы вообще не храним их в локальном хранилище, --
 			//    отправить данные текущему подписчику
-			this.updateLoadingStatus(key, {
+			this.updateLoadingStatus(storeName, {
 				isLocalLoaded: true,
 			});
 			subscriber(dataPreparer(item));
 			return;
 		}
 
-		this.updateLoadingStatus(key, {
+		this.updateLoadingStatus(storeName, {
 			isLocalLoading: true,
 		});
 
-		this.restoreData(key, persistStore, item, restorePreparation)
+		this.restoreData(storeName, persistStore, item, restorePreparation)
 			.then((data) => {
-				this.updateLoadingStatus(key, {
+				this.updateLoadingStatus(storeName, {
 					isLocalLoading: false,
 				});
-				if (!this.loadingStatus.get(key)?.declinedRestore) {
-					this.cache.updateData(key, data, false);
+				if (!this.loadingStatus.get(storeName)?.declinedRestore) {
+					this.cache.updateData(storeName, data, false);
 					subscriber(dataPreparer(data));
 				}
 			})
 			.catch((err) => {
 				console.error(err);
-				this.updateLoadingStatus(key, {
+				this.updateLoadingStatus(storeName, {
 					isLocalLoaded: false,
 				});
 			});
@@ -278,7 +278,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 			await this.updateData(
 				this.authStorage,
 				getDataPreparationByData<any>(authData),
-				this.local.simpleStorage(),
+				this.local.itemStorage(),
 			);
 		}
 	};

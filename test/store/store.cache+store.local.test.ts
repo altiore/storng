@@ -117,7 +117,7 @@ describe('StoreWeb src/store.web.ts + фактическое indexed.db хран
 		storeWeb.setData(
 			'auth',
 			{
-				data: {accessToken: 'accessToken', refreshToken: 'refreshToken'},
+				data: {accessToken: 'accessToken', refreshToken: 'refreshToken'} as any,
 				loadingStatus: {
 					error: undefined,
 					isLoaded: true,

@@ -1,17 +1,23 @@
-import {AuthData, LoadedItem, StructureType} from './types';
-import {getInitData} from './utils';
+import {
+	AuthData,
+	LoadedData,
+	LoadedItem,
+	LoadedList,
+	StructureType,
+} from './types';
+import {getInitData, getInitDataList} from './utils';
 
 type ObjKey<T extends Record<string, T[keyof T]>> = {
 	type: StructureType;
-	initData: LoadedItem<T[keyof T]>;
+	initData: LoadedData<T[keyof T]>;
 	isPersist: boolean;
 	name: keyof T;
 };
 
 type DataAndSubs<T extends Record<keyof T, T[keyof T]>> = {
-	data: LoadedItem<T[keyof T]>;
+	data: LoadedData<T[keyof T]>;
 	subscribers: Array<{
-		dataPreparer: (data: LoadedItem<T[keyof T]>) => any;
+		dataPreparer: (data: LoadedData<T[keyof T]>) => any;
 		subscriber: (val: any) => void;
 	}>;
 };
@@ -65,9 +71,9 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 	 */
 	private setData = (
 		key: keyof T,
-		data: LoadedItem<T[keyof T]>,
+		data: LoadedData<T[keyof T]>,
 		subscribers: Array<{
-			dataPreparer: (data: LoadedItem<T[keyof T]>) => any;
+			dataPreparer: (data: LoadedData<T[keyof T]>) => any;
 			subscriber: (val: any) => void;
 		}>,
 	): void => {
@@ -105,21 +111,32 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 	};
 
 	public addItem = (
-		key: keyof T,
+		storeName: keyof T,
 		initData: Partial<T[keyof T]> = {},
 		isPersist = true,
 	): ObjKey<T> => {
 		const structureInfo: ObjKey<T> = {
-			initData: getInitData(initData, isPersist),
+			initData: getInitData<T[keyof T]>(initData, isPersist) as any,
 			isPersist,
-			name: key,
+			name: storeName,
 			type: StructureType.ITEM,
 		};
-		this.structure.set(key, structureInfo);
+		this.structure.set(storeName, structureInfo);
 		return structureInfo;
 	};
 
-	public getDataSync = (key: keyof T): LoadedItem<T[keyof T]> | false => {
+	public addList = (storeName: keyof T, isPersist = true): ObjKey<T> => {
+		const structureInfo: ObjKey<T> = {
+			initData: getInitDataList(isPersist),
+			isPersist,
+			name: storeName,
+			type: StructureType.LIST,
+		};
+		this.structure.set(storeName, structureInfo);
+		return structureInfo;
+	};
+
+	public getDataSync = (key: keyof T): LoadedData<T[keyof T]> | false => {
 		const curData = this.getData(key);
 		if (curData) {
 			return curData.data;
@@ -142,7 +159,7 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 	};
 
 	public subscribe = <ResultData = LoadedItem<T[keyof T]>>(
-		key: keyof T,
+		storeName: keyof T,
 		subscriber: (value: ResultData) => void,
 		dataPreparer: (
 			value: LoadedItem<T[keyof T]>,
@@ -150,21 +167,55 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 		initDataData?: Partial<T[keyof T]>,
 		isPersist = true,
 	): LoadedItem<T[keyof T]> => {
-		let keyData = this.getDataKey(key);
+		let keyData = this.getDataKey(storeName);
 
 		if (!keyData) {
-			keyData = this.addItem(key, initDataData, isPersist);
+			keyData = this.addItem(storeName, initDataData, isPersist);
 		}
 
 		let data: LoadedItem<T[keyof T]>;
 
-		const curData = this.getData(key);
+		const curData = this.getData(storeName);
 		if (curData) {
-			data = curData.data;
-			curData.subscribers.push({dataPreparer, subscriber});
+			// TODO: fix types
+			data = curData.data as any;
+			// TODO: fix types
+			curData.subscribers.push({dataPreparer, subscriber} as any);
 		} else {
-			data = (keyData as ObjKey<T>).initData;
-			this.setData(key, data, [{dataPreparer, subscriber}]);
+			// TODO: fix types
+			data = (keyData as ObjKey<T>).initData as any;
+			// TODO: fix types
+			this.setData(storeName, data as any, [{dataPreparer, subscriber} as any]);
+		}
+
+		return data;
+	};
+
+	public subscribeList = <ResultData = LoadedList<T[keyof T]>>(
+		storeName: keyof T,
+		subscriber: (value: ResultData) => void,
+		dataPreparer: (
+			value: LoadedList<T[keyof T]>,
+		) => ResultData = DEF_PREPARE_DATA,
+		isPersist = true,
+	): LoadedList<T[keyof T]> => {
+		let keyData = this.getDataKey(storeName);
+
+		if (!keyData) {
+			keyData = this.addList(storeName, isPersist);
+		}
+
+		let data: LoadedList<T[keyof T]>;
+
+		const curData = this.getData(storeName);
+		if (curData) {
+			// TODO: fix types
+			data = curData.data as any;
+			// TODO: fix types
+			curData.subscribers.push({dataPreparer, subscriber} as any);
+		} else {
+			data = (keyData as ObjKey<T>).initData as any;
+			this.setData(storeName, data as any, [{dataPreparer, subscriber} as any]);
 		}
 
 		return data;
@@ -201,8 +252,8 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 	public updateData = (
 		key: keyof T,
 		getData:
-			| ((data: LoadedItem<T[keyof T]>) => LoadedItem<T[keyof T]>)
-			| LoadedItem<T[keyof T]>,
+			| ((data: LoadedData<T[keyof T]>) => LoadedData<T[keyof T]>)
+			| LoadedData<T[keyof T]>,
 		runSubscribers = true,
 	): void => {
 		const curData = this.getData(key);

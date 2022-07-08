@@ -1,7 +1,7 @@
 import {StoreKey, StoreNames, StoreValue, deleteDB, openDB} from 'idb';
 import {DBSchema, OpenDBCallbacks} from 'idb/build/entry';
 
-import {KeyNames, PersistStore} from './types';
+import {KeyNames, ListPersistStore, PersistStore} from './types';
 
 export class StoreLocal<StoreState extends DBSchema> {
 	public name: string;
@@ -133,17 +133,67 @@ export class StoreLocal<StoreState extends DBSchema> {
 		return await db.delete(storeName, key ?? (storeName as any));
 	}
 
+	public async setList(
+		storeName: StoreNames<StoreState>,
+		values: Array<StoreValue<StoreState, StoreNames<StoreState>>>,
+	): Promise<Array<StoreKey<StoreState, StoreNames<StoreState>>>> {
+		const db = await this.dbPromise();
+
+		// TODO: удалить, когда будем хранить локальных кэш
+		await db.clear(storeName);
+
+		const model = db.transaction(storeName, 'readwrite').objectStore(storeName);
+
+		return Promise.all(
+			values.map(async (v) => {
+				return await model.put(v);
+			}),
+		);
+	}
+
+	async getList(
+		storeName: StoreNames<StoreState>,
+	): Promise<
+		Array<StoreValue<StoreState, StoreNames<StoreState>>> | undefined
+	> {
+		const db = await this.dbPromise();
+
+		const model = db.transaction(storeName).objectStore(storeName);
+
+		return await model.getAll();
+	}
+
+	async delList(storeName: StoreNames<StoreState>): Promise<void> {
+		const db = await this.dbPromise();
+
+		return await db.clear(storeName);
+	}
+
 	async deleteStorage(): Promise<void> {
 		return await deleteDB(this.name);
 	}
 
-	simpleStorage<StoreType>(): PersistStore<StoreType> {
+	itemStorage<StoreType>(): PersistStore<StoreType> {
 		return {
 			deleteStore: this.deleteStorage,
 			getItem: async (storeName: keyof StoreType, key?: string) =>
 				await this.getItem(storeName as any, key as any),
 			setItem: async (storeName: keyof StoreType, value: any) =>
 				await this.putItem(storeName as any, value),
+		};
+	}
+
+	listStorage<StoreType>(): ListPersistStore<StoreType> {
+		return {
+			deleteStore: this.deleteStorage,
+			getItem: async (storeName: keyof StoreType, key?: string) =>
+				await this.getItem(storeName as any, key as any),
+			getList: async (storeName: keyof StoreType): Promise<any> =>
+				await this.getList(storeName as any),
+			setItem: async (storeName: keyof StoreType, value: any) =>
+				await this.putItem(storeName as any, value),
+			setList: async (storeName: keyof StoreType, values: any): Promise<any> =>
+				await this.setList(storeName as any, values),
 		};
 	}
 }
