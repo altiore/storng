@@ -331,9 +331,16 @@ export type RouteRes<T extends Route<any, any>> = T extends Route<
 	: unknown;
 
 export enum CrudUrl {
+	createMany = 'createMany',
+	createOne = 'createOne',
+	deleteMany = 'deleteMany',
+	deleteOne = 'deleteOne',
 	getMany = 'getMany',
 	getOne = 'getOne',
-	createOne = 'createOne',
+	recoverMany = 'recoverMany',
+	recoverOne = 'recoverOne',
+	replaceMany = 'replaceMany',
+	replaceOne = 'replaceOne',
+	updateMany = 'updateMany',
 	updateOne = 'updateOne',
-	deleteOne = 'deleteOne',
 }
