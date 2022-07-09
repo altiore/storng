@@ -8,13 +8,13 @@ export class StoreRemote {
 	private readonly apiFetch: FetchType;
 	private readonly updateTokenRoute?: Route;
 	private readonly logout: () => Promise<void>;
-	private readonly getAuthToken: () => string | false;
+	private readonly getAuthToken: () => Promise<string | false>;
 	private readonly updateAuthData?: (authData: AuthData) => Promise<void>;
 
 	constructor(
 		apiFetch: FetchType,
 		prefix = '',
-		getAuthToken: () => string | false,
+		getAuthToken: () => Promise<string | false>,
 		logout: () => Promise<void>,
 		updateAuthData?: (authData: AuthData) => Promise<void>,
 		updateTokenRoute?: Route,
@@ -45,7 +45,7 @@ export class StoreRemote {
 	> {
 		try {
 			if (route.private) {
-				const accessToken = this.getAuthToken();
+				const accessToken = await this.getAuthToken();
 				if (!this.updateTokenRoute) {
 					throw new Error(
 						'Вы пытаетесь использовать маршрут, который требует авторизацию, но' +
@@ -58,7 +58,7 @@ export class StoreRemote {
 					// это означает, что выход уже произведен. Ведь критерием того, что пользователь находится
 					// внутри системы как раз и является наличие ключа accessToken
 					return {
-						message: 'Пользователь не авторизован',
+						message: 'Пользователь не авторизован (нет ключа доступа)',
 						ok: false,
 					};
 				}
@@ -101,7 +101,8 @@ export class StoreRemote {
 									const cur = this.requestsQueue.shift();
 									if (cur) {
 										cur.cb({
-											message: 'Пользователь не авторизован',
+											message:
+												'Пользователь не авторизован (не удалось обновить ключ доступа)',
 											ok: false,
 										});
 									}
@@ -149,7 +150,7 @@ export class StoreRemote {
 	) => {
 		try {
 			const requestInit: Partial<RequestInit> = {};
-			const accessToken = this.getAuthToken();
+			const accessToken = await this.getAuthToken();
 			if (route.private && accessToken) {
 				requestInit.headers = {Authorization: `bearer ${accessToken}`};
 			}

@@ -26,8 +26,8 @@ const getDataPreparationByData =
 	});
 
 const GET_CLEAR_OBJ_DATA =
-	(initial: LoadedItem<any>['data'] = {}) =>
-	(): LoadedItem<any> => ({
+	<T = any>(initial: LoadedItem<T>['data'] = {}) =>
+	(): LoadedItem<T> => ({
 		data: initial,
 		loadingStatus: {
 			error: undefined,
@@ -94,7 +94,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 		this.remote = new StoreRemote(
 			customFetch,
 			prefix,
-			this.cache.getAuthToken.bind(this.cache),
+			this.getAuthToken.bind(this),
 			this.logout.bind(this),
 			this.updateAuthData.bind(this),
 			updateTokenRoute,
@@ -102,6 +102,28 @@ export class Store<T extends Record<string, T[keyof T]>> {
 		this.authStorage = authStorage;
 		this.autoRemoveErrorIn = autoRemoveErrorIn ?? this.autoRemoveErrorIn;
 		this.publicStorages = publicStorages;
+	}
+
+	async getAuthToken(): Promise<string | false> {
+		const authToken = this.cache.getAuthToken();
+		if (authToken) {
+			return authToken;
+		}
+
+		if (this.authStorage) {
+			const initAuth = GET_CLEAR_OBJ_DATA<AuthData>();
+			const authObj = await this.restoreData<AuthData>(
+				this.authStorage,
+				this.local.itemStorage(),
+				initAuth as any,
+			);
+
+			if (authObj.data.accessToken) {
+				return authObj.data.accessToken;
+			}
+		}
+
+		return false;
 	}
 
 	async remove(): Promise<void> {
@@ -126,7 +148,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 						}
 						await this.updateData(
 							key,
-							GET_CLEAR_OBJ_DATA(struct?.initData.data),
+							GET_CLEAR_OBJ_DATA(struct?.initData.data as any),
 							persistStore,
 						);
 					} else if (struct.type === StructureType.LIST) {
@@ -316,6 +338,8 @@ export class Store<T extends Record<string, T[keyof T]>> {
 			if (existingData) {
 				const newData1 = getData(existingData.data);
 				if (
+					// Эта проверка уменьшает количество генераций, потому что пропускает генерацию страницы,
+					// если следующая установка не меняет флаг загрузки данных isLoading на false
 					existingData.data.loadingStatus.isLoading !== true ||
 					newData1.loadingStatus.isLoading !== true
 				) {
@@ -387,14 +411,14 @@ export class Store<T extends Record<string, T[keyof T]>> {
 		});
 	};
 
-	restoreData = async (
+	restoreData = async <P = T[keyof T]>(
 		storeName: keyof T,
 		persistStore: PersistStore<T>,
-		prevData: LoadedItem<T[keyof T]>,
+		prevData: LoadedItem<P>,
 		restorePreparation: (
-			v: LoadedItem<T[keyof T]>,
-		) => LoadedItem<T[keyof T]> = defRestorePreparation as any,
-	): Promise<LoadedItem<T[keyof T]>> => {
+			v: LoadedItem<P>,
+		) => LoadedItem<P> = defRestorePreparation as any,
+	): Promise<LoadedItem<P>> => {
 		const loadingStatus = this.loadingStatus.get(storeName);
 
 		if (loadingStatus?.isLocalLoaded) {

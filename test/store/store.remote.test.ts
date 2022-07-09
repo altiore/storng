@@ -4,16 +4,18 @@ import {StoreRemote} from '@storng/store/src/store.remote';
 import {mockSuccessItemFetch} from './storage/mock.fetch';
 
 let token = '';
-const getAuthToken = () => {
+const getAuthToken = (): Promise<string | false> => {
 	if (token) {
-		return token;
+		return Promise.resolve(token);
 	}
 
-	return (token = `1.${btoa(
-		JSON.stringify({
-			exp: new Date().getTime() / 1000 + 120,
-		}),
-	)}`);
+	return Promise.resolve(
+		(token = `1.${btoa(
+			JSON.stringify({
+				exp: new Date().getTime() / 1000 + 120,
+			}),
+		)}`),
+	);
 };
 
 const logout = () => {
