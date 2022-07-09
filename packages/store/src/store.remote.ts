@@ -150,9 +150,11 @@ export class StoreRemote {
 	) => {
 		try {
 			const requestInit: Partial<RequestInit> = {};
-			const accessToken = await this.getAuthToken();
-			if (route.private && accessToken) {
-				requestInit.headers = {Authorization: `bearer ${accessToken}`};
+			if (route.private) {
+				const accessToken = await this.getAuthToken();
+				if (accessToken) {
+					requestInit.headers = {Authorization: `bearer ${accessToken}`};
+				}
 			}
 
 			const [url, init] = route.fetchParams(data, this.prefix, requestInit);

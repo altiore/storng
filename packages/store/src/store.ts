@@ -118,7 +118,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 				initAuth as any,
 			);
 
-			if (authObj.data.accessToken) {
+			if (authObj?.data?.accessToken) {
 				return authObj.data.accessToken;
 			}
 		}

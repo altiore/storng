@@ -151,7 +151,7 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 				this.authStorage,
 			) as LoadedItem<AuthData>;
 			if (authData) {
-				return authData.data.accessToken ?? false;
+				return authData?.data?.accessToken ?? false;
 			}
 		}
 
