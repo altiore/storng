@@ -76,32 +76,38 @@ export const prepareActions = <
 	scopeHandlers: ScopeHandlers<T, Key, Routes, OtherRoutes>,
 	getUpdater: (
 		store: Store<T>,
-	) => (item: (i: LoadedData<T[keyof T]>) => LoadedData<T[keyof T]>) => void,
+	) => (
+		item: (i: LoadedData<T[keyof T]>) => LoadedData<T[keyof T]>,
+	) => Promise<void>,
 	initData?: Partial<T[Key]>,
 ): void => {
 	Object.entries(scopeHandlers).forEach(([handlerName, handler]) => {
 		(result as any)[handlerName] = (store: Store<T>) => async (req) => {
 			const updater: (
 				item: (i: LoadedData<T[keyof T]>) => LoadedData<T[keyof T]>,
-			) => void = getUpdater(store);
+			) => Promise<void> = getUpdater(store);
 
 			const isApiReq = Boolean(typeof scope === 'object' && scope[handlerName]);
 			if (isApiReq) {
 				let isError = false;
 				let actionResult: any;
 				const route = scope[handlerName];
-				updater(requestHandler(handler, req, initData, route));
+				await updater(requestHandler(handler, req, initData, route));
 				try {
 					const resData = await store.remote.fetch(route, req);
 					if (resData.ok) {
-						updater(remoteSuccessHandler(handler, initData, resData, route));
+						await updater(
+							remoteSuccessHandler(handler, initData, resData, route),
+						);
 					} else {
-						updater(remoteFailureHandler(handler, initData, resData, route));
+						await updater(
+							remoteFailureHandler(handler, initData, resData, route),
+						);
 						isError = true;
 					}
 					actionResult = resData;
 				} catch (err) {
-					updater(catchFailureHandler(handler, initData, err));
+					await updater(catchFailureHandler(handler, initData, err));
 					actionResult = err;
 					isError = true;
 				} finally {
@@ -114,7 +120,7 @@ export const prepareActions = <
 				}
 				return actionResult;
 			} else {
-				updater(successHandler(handler, req, initData));
+				await updater(successHandler(handler, req, initData));
 			}
 		};
 	});

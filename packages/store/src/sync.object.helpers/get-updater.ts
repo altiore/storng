@@ -7,7 +7,9 @@ export const getUpdater =
 		persistData: boolean,
 	) =>
 	(store: Store<T>) =>
-	(handler: (i: LoadedData<T[keyof T]>) => LoadedData<T[keyof T]>): void => {
+	(
+		handler: (i: LoadedData<T[keyof T]>) => LoadedData<T[keyof T]>,
+	): Promise<void> => {
 		const scopeName: keyof T =
 			typeof scope === 'object' ? (scope.NAME as keyof T) : scope;
 
@@ -20,8 +22,5 @@ export const getUpdater =
 			? store.local.itemStorage()
 			: undefined;
 
-		store
-			.updateData(scopeName, handler, persistStorage as any)
-			.then()
-			.catch(console.error);
+		return store.updateData(scopeName, handler, persistStorage as any);
 	};

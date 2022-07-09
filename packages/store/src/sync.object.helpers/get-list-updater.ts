@@ -7,7 +7,9 @@ export const getListUpdater =
 		persistData: boolean,
 	) =>
 	(store: Store<T>) =>
-	(handler: (i: LoadedList<T[keyof T]>) => LoadedList<T[keyof T]>): void => {
+	(
+		handler: (i: LoadedList<T[keyof T]>) => LoadedList<T[keyof T]>,
+	): Promise<void> => {
 		const scopeName: keyof T =
 			typeof scope === 'object' ? (scope.NAME as keyof T) : scope;
 
@@ -20,8 +22,5 @@ export const getListUpdater =
 			? store.local.listStorage()
 			: undefined;
 
-		store
-			.updateListData(scopeName, handler, persistStorage as any)
-			.then()
-			.catch(console.error);
+		return store.updateListData(scopeName, handler, persistStorage as any);
 	};

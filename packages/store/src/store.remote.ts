@@ -162,7 +162,16 @@ export class StoreRemote {
 				await this.logout();
 			}
 
-			return await res.json();
+			const resJson = await res.json();
+			if (typeof resJson.ok === 'boolean') {
+				return resJson;
+			} else {
+				if (res.status < 400) {
+					return {ok: true, ...resJson};
+				} else {
+					return {ok: false, ...resJson};
+				}
+			}
 		} catch (err: any) {
 			if (err?.ok !== false) {
 				return {
