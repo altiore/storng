@@ -322,11 +322,17 @@ export class Store<T extends Record<string, T[keyof T]>> {
 		const loadingStatus = this.loadingStatus.get(key);
 
 		if (loadingStatus?.isLocalLoading || !loadingStatus?.isLocalLoaded) {
+			// 0. Если данные, которые уперлись в уже существующие данные обновляют isLoading в true,
+			// то такие данные нет смысла откладывать. Они только ухудшат ситуацию, ведь мы через
+			// мгновение получим обновленные загруженные данные, которые сейчас ожидают обработки
+			if (getData(GET_CLEAR_OBJ_DATA() as any).loadingStatus.isLoading) {
+				return Promise.resolve();
+			}
 			// 1. Если восстановление данных в процессе, отложить обновление данных
 			setTimeout(() => {
 				this.updateData.bind(this)(key, getData, persistStore);
 			}, 200);
-			return;
+			return Promise.resolve();
 		}
 
 		if (persistStore) {
@@ -360,6 +366,8 @@ export class Store<T extends Record<string, T[keyof T]>> {
 			declinedRestore: false,
 			isLocalLoading: false,
 		});
+
+		return Promise.resolve();
 	};
 
 	updateListData = async (
@@ -373,11 +381,17 @@ export class Store<T extends Record<string, T[keyof T]>> {
 		const loadingStatus = this.loadingStatus.get(storeName);
 
 		if (loadingStatus?.isLocalLoading || !loadingStatus?.isLocalLoaded) {
+			// 0. Если данные, которые уперлись в уже существующие данные обновляют isLoading в true,
+			// то такие данные нет смысла откладывать. Они только ухудшат ситуацию, ведь мы через
+			// мгновение получим обновленные загруженные данные, которые сейчас ожидают обработки
+			if (getData(GET_CLEAR_LIST_DATA() as any).loadingStatus.isLoading) {
+				return Promise.resolve();
+			}
 			// 1. Если восстановление данных в процессе, отложить обновление данных
 			setTimeout(() => {
 				this.updateListData.bind(this)(storeName, getData, persistStore);
 			}, 200);
-			return;
+			return Promise.resolve();
 		}
 
 		if (persistStore) {
@@ -399,7 +413,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 				const prevData = await persistStore.getList(storeName);
 
 				const newData = getData(prevData as any) as any;
-				await persistStore.setItem(storeName, newData);
+				await persistStore.setList(storeName, newData);
 			}
 		} else {
 			this.cache.updateData(storeName, getData as any);
@@ -409,6 +423,8 @@ export class Store<T extends Record<string, T[keyof T]>> {
 			declinedRestore: false,
 			isLocalLoading: false,
 		});
+
+		return Promise.resolve();
 	};
 
 	restoreData = async <P = T[keyof T]>(
