@@ -111,11 +111,11 @@ export class Store<T extends Record<string, T[keyof T]>> {
 		}
 
 		if (this.authStorage) {
-			const initAuth = GET_CLEAR_OBJ_DATA<AuthData>();
+			const initAuth = GET_CLEAR_OBJ_DATA<AuthData>()();
 			const authObj = await this.restoreData<AuthData>(
 				this.authStorage,
 				this.local.itemStorage(),
-				initAuth as any,
+				initAuth,
 			);
 
 			if (authObj?.data?.accessToken) {
@@ -325,7 +325,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 			// 0. Если данные, которые уперлись в уже существующие данные обновляют isLoading в true,
 			// то такие данные нет смысла откладывать. Они только ухудшат ситуацию, ведь мы через
 			// мгновение получим обновленные загруженные данные, которые сейчас ожидают обработки
-			if (getData(GET_CLEAR_OBJ_DATA() as any).loadingStatus.isLoading) {
+			if (getData(GET_CLEAR_OBJ_DATA()()).loadingStatus.isLoading) {
 				return Promise.resolve();
 			}
 			// 1. Если восстановление данных в процессе, отложить обновление данных
@@ -384,7 +384,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 			// 0. Если данные, которые уперлись в уже существующие данные обновляют isLoading в true,
 			// то такие данные нет смысла откладывать. Они только ухудшат ситуацию, ведь мы через
 			// мгновение получим обновленные загруженные данные, которые сейчас ожидают обработки
-			if (getData(GET_CLEAR_LIST_DATA() as any).loadingStatus.isLoading) {
+			if (getData(GET_CLEAR_LIST_DATA()()).loadingStatus.isLoading) {
 				return Promise.resolve();
 			}
 			// 1. Если восстановление данных в процессе, отложить обновление данных
