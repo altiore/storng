@@ -1,10 +1,12 @@
 import React, {useEffect} from 'react';
 
-import {MaybeRemoteData} from '@storng/store';
+import {ActionFunc} from '@storng/common';
+import {MaybeRemoteListData} from '@storng/store';
 import {connect} from '@storng/store/src/react';
 import {StoreProvider} from '@storng/store/src/react/store.provider';
 
 import {getStore} from './storage';
+import {API_USERS} from './storage/_users';
 import {mockSuccessListFetch} from './storage/mock.fetch';
 import {StoreType} from './storage/store.type';
 import {users} from './storage/users';
@@ -16,8 +18,8 @@ const STORE_NAME = 'sync.list.test.tsx';
 const store = getStore(STORE_NAME, mockSuccessListFetch);
 
 interface MyComponentProps {
-	users: MaybeRemoteData<Array<StoreType['users']>>;
-	fetchUsers: any;
+	users: MaybeRemoteListData<StoreType['users']>;
+	fetchUsers: ActionFunc<typeof API_USERS.fetch>;
 }
 
 const MyComponent = ({fetchUsers, users}: MyComponentProps) => {

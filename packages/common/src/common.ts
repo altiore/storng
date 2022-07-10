@@ -306,7 +306,9 @@ export type ActionFunc<T extends any = any> = T extends Route<
 	infer Req,
 	infer Res
 >
-	? (data: Req) => Promise<Res>
+	? Req extends Record<string, never>
+		? () => Promise<Res>
+		: (data: Req) => Promise<Res>
 	: T extends undefined
 	? () => Promise<void>
 	: (data: T) => Promise<void>;

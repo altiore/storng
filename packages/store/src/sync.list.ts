@@ -49,7 +49,7 @@ export function syncList<
 					? store.local.listStorage<StoreState>()
 					: undefined;
 
-				store.subscribeList<MaybeRemoteListData<LoadedList<StoreState[Key]>>>(
+				store.subscribeList<MaybeRemoteListData<StoreState[Key]>>(
 					storeName,
 					subscriber,
 					dataPreparer as any,

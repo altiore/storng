@@ -18,7 +18,7 @@ interface MyComponentProps {
 
 const MyComponent = ({publicData, fetchVersions}: MyComponentProps) => {
 	useEffect(() => {
-		fetchVersions({}).then().catch(console.error);
+		fetchVersions().then().catch(console.error);
 	}, [fetchVersions]);
 
 	renderSpy();

@@ -1,7 +1,7 @@
 import React, {ComponentProps, FC} from 'react';
 
 import {ActionFunc, GetActionFunc} from '@storng/common';
-import {LoadedItem, MaybeRemoteData, SubsObj} from '@storng/store';
+import {MaybeRemoteData, MaybeRemoteListData, SubsObj} from '@storng/store';
 
 import {ConnectComponent} from './connect.component';
 import {StoreContext} from './store.context';
@@ -10,7 +10,7 @@ type SelectorLift<
 	S extends {[K in string]: (store: any) => SubsObj<any>} | undefined,
 > = {
 	[Prop in keyof S]: S[Prop] extends (store: any) => SubsObj<infer Item>
-		? MaybeRemoteData<LoadedItem<Item>>
+		? MaybeRemoteData<Item> | MaybeRemoteListData<Item>
 		: never;
 };
 

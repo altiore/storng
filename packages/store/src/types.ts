@@ -91,10 +91,8 @@ export type StoreStructure<StoreType> = {
 	};
 };
 
-export type SubscriberType<T> = (state: MaybeRemoteData<LoadedItem<T>>) => void;
-export type SubscriberListType<T> = (
-	state: MaybeRemoteListData<LoadedList<T>>,
-) => void;
+export type SubscriberType<T> = (state: MaybeRemoteData<T>) => void;
+export type SubscriberListType<T> = (state: MaybeRemoteListData<T>) => void;
 
 export type SubsObj<Item> = (
 	subscriber: SubscriberType<Item> | SubscriberListType<Item>,

@@ -50,7 +50,7 @@ export function syncObject<
 					? store.local.itemStorage()
 					: undefined;
 
-				store.subscribe<MaybeRemoteData<LoadedItem<StoreState[Key]>>>(
+				store.subscribe<MaybeRemoteData<StoreState[Key]>>(
 					storeName,
 					subscriber,
 					dataPreparer as any,
