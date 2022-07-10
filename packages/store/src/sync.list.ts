@@ -7,6 +7,7 @@ import {prepareActions} from './sync.object.helpers/prepare-actions';
 import {
 	LoadedList,
 	MaybeRemoteData,
+	MaybeRemoteListData,
 	ScopeHandlers,
 	StructureType,
 	SubscriberListType,
@@ -48,7 +49,7 @@ export function syncList<
 					? store.local.listStorage<StoreState>()
 					: undefined;
 
-				store.subscribeList<MaybeRemoteData<LoadedList<StoreState[Key]>>>(
+				store.subscribeList<MaybeRemoteListData<LoadedList<StoreState[Key]>>>(
 					storeName,
 					subscriber,
 					dataPreparer as any,
