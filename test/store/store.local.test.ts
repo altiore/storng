@@ -132,11 +132,18 @@ describe('Постоянное хранилище src/store.persist.ts', () => {
 						id: '2',
 					},
 				],
+				filter: {},
 				loadingStatus: {
 					error: undefined,
 					isLoaded: true,
 					isLoading: true,
 					updatedAt: 0,
+				},
+				paginate: {
+					count: 0,
+					page: 1,
+					pageCount: 0,
+					total: 0,
 				},
 			});
 		});

@@ -41,11 +41,18 @@ const GET_CLEAR_LIST_DATA =
 	(initial: LoadedList<any>['data'] = []) =>
 	(): LoadedList<any> => ({
 		data: initial,
+		filter: {},
 		loadingStatus: {
 			error: undefined,
 			isLoaded: false,
 			isLoading: false,
 			updatedAt: new Date().getTime(),
+		},
+		paginate: {
+			count: 0,
+			page: 1,
+			pageCount: 0,
+			total: 0,
 		},
 	});
 

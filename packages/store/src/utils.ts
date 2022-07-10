@@ -1,3 +1,4 @@
+import {Paginated} from '@storng/common';
 import {LoadedItem, LoadedList} from '@storng/store';
 
 type DeepPartial<T> = T extends Record<string, any>
@@ -66,11 +67,35 @@ export function getInitData<T>(
 export function getInitDataList<T>(isPersist: boolean): LoadedList<T> {
 	return {
 		data: [],
+		filter: {},
 		loadingStatus: {
 			error: undefined,
 			isLoaded: false,
 			isLoading: isPersist,
 			updatedAt: 0,
 		},
+		paginate: {
+			count: 0,
+			page: 1,
+			pageCount: 0,
+			total: 0,
+		},
 	};
 }
+
+export const getResPaginate = (
+	res: Omit<Paginated<any>, 'data'>,
+	prevPaginate: Omit<Paginated<any>, 'data'> = {
+		count: 0,
+		page: 1,
+		pageCount: 0,
+		total: 0,
+	},
+): Omit<Paginated<any>, 'data'> => {
+	return {
+		count: res?.count ?? prevPaginate.count,
+		page: res?.page ?? prevPaginate.page,
+		pageCount: res?.pageCount ?? prevPaginate.pageCount,
+		total: res?.total ?? prevPaginate.total,
+	};
+};

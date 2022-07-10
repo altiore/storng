@@ -1,9 +1,10 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 
-import {Store, SubsObj} from '@storng/store';
+import {Store, StructureType, SubsObj} from '@storng/store';
 
+import {getLoadingList} from './func-data/maybe-remote-list.data';
 import {getLoading} from './func-data/maybe-remote.data';
-import {getObjFunc} from './get.func-data';
+import {getListFunc} from './get.func-data';
 
 interface IProps<T extends Record<string, T[keyof T]>> {
 	store: Store<T>;
@@ -24,7 +25,10 @@ export const ConnectComponent = <T extends Record<string, T[keyof T]>>({
 }: IProps<T>): JSX.Element => {
 	const [state, setState] = useState(
 		Object.keys(selectors || {}).reduce<any>((res, cur) => {
-			res[cur] = getLoading();
+			res[cur] =
+				selectors[cur].type === StructureType.LIST
+					? getLoadingList()
+					: getLoading();
 			return res;
 		}, {}),
 	);
@@ -32,7 +36,7 @@ export const ConnectComponent = <T extends Record<string, T[keyof T]>>({
 	const prepActions = useMemo(() => {
 		if (store && actions) {
 			return Object.keys(actions).reduce<any>((res, cur) => {
-				res[cur] = actions[cur](store, getObjFunc);
+				res[cur] = actions[cur](store, getListFunc);
 				return res;
 			}, {});
 		}
@@ -61,7 +65,7 @@ export const ConnectComponent = <T extends Record<string, T[keyof T]>>({
 					[K in string]: (store: any, prepareData: any) => SubsObj<any>;
 				},
 			).map(([propName, syncObj]) => {
-				const unsubscribe = syncObj(store, getObjFunc)(updateState(propName));
+				const unsubscribe = syncObj(store, getListFunc)(updateState(propName));
 				subscribers.push(unsubscribe);
 			});
 		}

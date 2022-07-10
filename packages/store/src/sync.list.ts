@@ -8,10 +8,11 @@ import {
 	LoadedList,
 	MaybeRemoteData,
 	ScopeHandlers,
+	StructureType,
 	SubscriberListType,
 	SyncObjectType,
 } from './types';
-import {deepAssign} from './utils';
+import {deepAssign, getResPaginate} from './utils';
 
 export function syncList<
 	StoreState extends Record<string, StoreState[keyof StoreState]>,
@@ -60,6 +61,8 @@ export function syncList<
 			}
 		};
 
+	result.type = StructureType.LIST;
+
 	prepareActions<StoreState, Key, Routes, OtherRoutes>(
 		result,
 		scope,
@@ -74,10 +77,12 @@ const requestHandler = <T extends Record<string, any> = Record<string, any>>(
 	s: LoadedList<T>,
 ): LoadedList<T> => ({
 	data: s.data,
+	filter: {},
 	loadingStatus: {
 		...s.loadingStatus,
 		isLoading: true,
 	},
+	paginate: s.paginate,
 });
 
 const failureHandler = <T extends Record<string, any> = Record<string, any>>(
@@ -86,63 +91,51 @@ const failureHandler = <T extends Record<string, any> = Record<string, any>>(
 	remote: {res: ErrorOrInfo; route: Route},
 ): LoadedList<T> => ({
 	data: s.data,
+	filter: {},
 	loadingStatus: {
 		...s.loadingStatus,
 		error: remote.res,
 		isLoading: false,
 	},
+	paginate: s.paginate,
 });
 
 syncList.nothing = {
 	request: requestHandler,
-	success: (s): LoadedList<any> => {
+	success: (s: LoadedList<any>): LoadedList<any> => {
 		return {
 			data: s.data,
+			filter: {},
 			loadingStatus: {
 				...s.loadingStatus,
 				error: undefined,
 				isLoading: false,
 				updatedAt: new Date().getTime(),
 			},
+			paginate: s.paginate,
 		};
 	},
 	// eslint-disable-next-line sort-keys
 	failure: failureHandler,
 } as any;
 
-syncList.update = {
-	request: requestHandler,
-	success: (
-		s,
-		data,
-		remote: {res: DataRes; route: Route},
-	): LoadedList<any> => ({
-		data: {
-			...s.data,
-			...(remote?.res.data || data || {}),
-		},
-		loadingStatus: {
-			error: undefined,
-			isLoaded: true,
-			isLoading: false,
-			updatedAt: new Date().getTime(),
-		},
-	}),
-	// eslint-disable-next-line sort-keys
-	failure: failureHandler,
-} as any;
-
 syncList.replace = {
 	request: requestHandler,
-	success: (s, data, remote: {res: DataRes; route: Route}): LoadedList<any> => {
+	success: (
+		s: LoadedList<any>,
+		data,
+		remote: {res: DataRes; route: Route},
+	): LoadedList<any> => {
 		return {
 			data: (remote?.res.data as any) || data || [],
+			filter: {},
 			loadingStatus: {
 				error: undefined,
 				isLoaded: true,
 				isLoading: false,
 				updatedAt: new Date().getTime(),
 			},
+			paginate: getResPaginate(remote?.res as any, s.paginate),
 		};
 	},
 	// eslint-disable-next-line sort-keys
@@ -151,14 +144,16 @@ syncList.replace = {
 
 syncList.remove = {
 	request: requestHandler,
-	success: (s, data): LoadedList<any> => ({
-		data: data || [],
+	success: (s): LoadedList<any> => ({
+		data: [],
+		filter: {},
 		loadingStatus: {
 			error: undefined,
 			isLoaded: false,
 			isLoading: false,
 			updatedAt: new Date().getTime(),
 		},
+		paginate: s.paginate,
 	}),
 	// eslint-disable-next-line sort-keys
 	failure: failureHandler,
@@ -172,12 +167,14 @@ syncList.deepMerge = {
 		remote: {res: DataRes; route: Route},
 	): LoadedList<any> => ({
 		data: deepAssign(s.data, remote?.res.data || data || []),
+		filter: {},
 		loadingStatus: {
 			error: undefined,
 			isLoaded: true,
 			isLoading: false,
 			updatedAt: new Date().getTime(),
 		},
+		paginate: getResPaginate(remote?.res as any, s.paginate),
 	}),
 	// eslint-disable-next-line sort-keys
 	failure: failureHandler,

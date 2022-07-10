@@ -9,6 +9,7 @@ import {
 	LoadedItem,
 	MaybeRemoteData,
 	ScopeHandlers,
+	StructureType,
 	SubscriberType,
 	SyncObjectType,
 } from './types';
@@ -62,6 +63,8 @@ export function syncObject<
 				console.error(err);
 			}
 		};
+
+	result.type = StructureType.ITEM;
 
 	prepareActions<StoreState, Key, Routes, OtherRoutes>(
 		result,

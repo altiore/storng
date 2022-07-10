@@ -181,6 +181,7 @@ export class StoreLocal<StoreState extends DBSchema> {
 		await filterModel.put({
 			id: storeName,
 			loadingStatus: loadedList.loadingStatus,
+			paginate: loadedList.paginate,
 		});
 
 		return putResult;
@@ -200,12 +201,20 @@ export class StoreLocal<StoreState extends DBSchema> {
 
 		return {
 			data: list || [],
+			filter: {},
 			loadingStatus: {
 				error: undefined,
 				isLoaded: Boolean(list?.length),
 				isLoading: true,
 				updatedAt: 0,
 				...((filterModelData as any)?.loadingStatus || {}),
+			},
+			paginate: {
+				count: 0,
+				page: 1,
+				pageCount: 0,
+				total: 0,
+				...((filterModelData as any)?.paginate || {}),
 			},
 		};
 	}

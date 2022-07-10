@@ -1,4 +1,10 @@
-import {ErrorOrInfo, GetActionFunc, ResError, Route} from '@storng/common';
+import {
+	ErrorOrInfo,
+	GetActionFunc,
+	Paginated,
+	ResError,
+	Route,
+} from '@storng/common';
 
 export interface LoadingStatus {
 	declinedRestore: boolean;
@@ -45,7 +51,11 @@ export interface LoadedList<
 > {
 	data: Array<Item>;
 
+	filter: Record<string, any>;
+
 	loadingStatus: LoadingStatusRemote<Error>;
+
+	paginate: Omit<Paginated<any>, 'data'>;
 }
 
 export type LoadedData<T> = LoadedItem<T> | LoadedList<T>;
@@ -87,7 +97,7 @@ export type SubscriberListType<T> = (
 ) => void;
 
 export type SubsObj<Item> = (
-	subscriber: SubscriberType<Item>,
+	subscriber: SubscriberType<Item> | SubscriberListType<Item>,
 ) => Promise<() => void>;
 
 export type SyncObjectType<
@@ -151,6 +161,48 @@ export type MaybeRemoteData<
 	nothing: ((a: {data?: A; error?: E}) => R) | R;
 	failure: ((a: {data?: A; error: E}) => R) | R;
 	loading: ((a: {data?: A; error?: E}) => R) | R;
+}) => R;
+
+export type MaybeRemoteListData<
+	A extends Record<string, any>,
+	E extends ErrorOrInfo = {
+		errors?: Array<ResError>;
+		message?: string;
+		ok: boolean;
+	},
+> = <R = null>(mapping: {
+	correct:
+		| ((a: {
+				data: A[];
+				paginate: Omit<Paginated<any>, 'data'>;
+				filter?: Record<string, any>;
+				error?: E;
+		  }) => R)
+		| R;
+	nothing:
+		| ((a: {
+				data?: A[];
+				paginate: Omit<Paginated<any>, 'data'>;
+				filter?: Record<string, any>;
+				error?: E;
+		  }) => R)
+		| R;
+	failure:
+		| ((a: {
+				data?: A[];
+				paginate?: Omit<Paginated<any>, 'data'>;
+				filter?: Record<string, any>;
+				error: E;
+		  }) => R)
+		| R;
+	loading:
+		| ((a: {
+				data?: A[];
+				paginate?: Omit<Paginated<any>, 'data'>;
+				filter?: Record<string, any>;
+				error?: E;
+		  }) => R)
+		| R;
 }) => R;
 
 export const LIST_FILTER_TABLE_NAME = 'list_filters';
