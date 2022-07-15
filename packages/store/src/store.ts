@@ -362,7 +362,16 @@ export class Store<T extends Record<string, T[keyof T]>> {
 			} else {
 				const prevData = await persistStore.getItem(key);
 
+				console.log('prevData', {
+					key,
+					prevData,
+				});
 				const newData = getData(prevData);
+
+				console.log('newData', {
+					key,
+					newData,
+				});
 				await persistStore.setItem(key, newData);
 			}
 		} else {
