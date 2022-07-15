@@ -332,9 +332,9 @@ export class Store<T extends Record<string, T[keyof T]>> {
 			// 0. Если данные, которые уперлись в уже существующие данные обновляют isLoading в true,
 			// то такие данные нет смысла откладывать. Они только ухудшат ситуацию, ведь мы через
 			// мгновение получим обновленные загруженные данные, которые сейчас ожидают обработки
-			// if (getData(GET_CLEAR_OBJ_DATA()()).loadingStatus.isLoading) {
-			// 	return Promise.resolve();
-			// }
+			if (getData(GET_CLEAR_OBJ_DATA()()).loadingStatus.isLoading) {
+				return Promise.resolve();
+			}
 			// 1. Если восстановление данных в процессе, отложить обновление данных
 			setTimeout(() => {
 				this.updateData.bind(this)(key, getData, persistStore);
@@ -342,10 +342,6 @@ export class Store<T extends Record<string, T[keyof T]>> {
 			return Promise.resolve();
 		}
 
-		console.log('updateData', {
-			persisted: Boolean(persistStore),
-			storeName: key,
-		});
 		if (persistStore) {
 			this.updateLoadingStatus(key, {
 				isLocalLoading: true,
@@ -365,17 +361,8 @@ export class Store<T extends Record<string, T[keyof T]>> {
 				}
 			} else {
 				const prevData = await persistStore.getItem(key);
-
-				console.log('prevData', {
-					key,
-					prevData,
-				});
 				const newData = getData(prevData);
 
-				console.log('newData', {
-					key,
-					newData,
-				});
 				await persistStore.setItem(key, newData);
 			}
 		} else {
