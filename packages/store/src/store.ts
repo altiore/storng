@@ -148,7 +148,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 					if (!struct) {
 						// если нет структуры, то мы не знаем как правильно удалять сущность,
 						// поэтому просто удаляем таблицу
-						return this.local.delList(key as any);
+						return await this.local.delList(key as any);
 					}
 					const isPersist = struct.isPersist;
 					if (struct.type === StructureType.ITEM) {
@@ -178,6 +178,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 			}),
 		);
 
+		// Так же нужно очистить данные о фильтрах таблиц
 		await this.local.delList(LIST_FILTER_TABLE_NAME as any);
 	}
 
