@@ -62,7 +62,7 @@ describe(
 			}
 		});
 
-		it('подписка на изменения syncObject', async () => {
+		it('подписка на изменения syncObject nested with fetch', async () => {
 			await act(async (render) => {
 				await render(
 					<StoreProvider store={store}>

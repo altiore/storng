@@ -55,7 +55,7 @@ describe('sync.obj.ts Подписка на данные из syncObj - влож
 		}
 	});
 
-	it('подписка на изменения syncObject', async () => {
+	it('подписка на изменения syncObject nested', async () => {
 		await act(async (render) => {
 			await render(
 				<StoreProvider store={store}>

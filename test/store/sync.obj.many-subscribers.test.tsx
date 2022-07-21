@@ -45,7 +45,7 @@ const a = {
 
 const Wrapped = connect(MyComponent, s, a);
 
-describe('sync.object.ts', () => {
+describe('sync.object.ts много подписчиков', () => {
 	let root: any;
 
 	before(async () => {

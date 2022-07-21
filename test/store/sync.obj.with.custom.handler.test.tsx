@@ -60,7 +60,7 @@ describe('sync.obj.ts сущность без API', () => {
 		}
 	});
 
-	it('подписка на изменения syncObject', async () => {
+	it('подписка на изменения syncObject custom handler', async () => {
 		await act(async (render) => {
 			await render(
 				<StoreProvider store={store}>

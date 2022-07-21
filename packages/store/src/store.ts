@@ -8,6 +8,7 @@ import {
 	AuthData,
 	FetchType,
 	KeyNames,
+	LIST_FILTER_TABLE_NAME,
 	ListPersistStore,
 	LoadedData,
 	LoadedItem,
@@ -139,15 +140,15 @@ export class Store<T extends Record<string, T[keyof T]>> {
 	}
 
 	async logout(): Promise<void> {
-		const structureKeys = Array.from(this.cache.structure.keys());
-		console.log('all keys for remove is', structureKeys);
+		const entityKeys = Array.from(this.loadingStatus.keys());
 		await Promise.all(
-			structureKeys.map(async (key) => {
+			entityKeys.map(async (key) => {
 				if (!this.publicStorages.includes(key)) {
 					const struct = this.cache.structure.get(key);
 					if (!struct) {
-						console.error(`structure с ключом "${key}" не была найдена`);
-						return Promise.resolve();
+						// если нет структуры, то мы не знаем как правильно удалять сущность,
+						// поэтому просто удаляем таблицу
+						return this.local.delList(key as any);
 					}
 					const isPersist = struct.isPersist;
 					if (struct.type === StructureType.ITEM) {
@@ -155,9 +156,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 						if (isPersist) {
 							persistStore = this.local.itemStorage();
 						}
-						console.log(`remove item "${key}" data`, {
-							isPersist,
-						});
+
 						return await this.updateData(
 							key,
 							GET_CLEAR_OBJ_DATA(struct?.initData.data as any),
@@ -168,9 +167,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 						if (isPersist) {
 							persistListStore = this.local.listStorage();
 						}
-						console.log(`remove list "${key}" data`, {
-							isPersist,
-						});
+
 						return await this.updateListData(
 							key,
 							GET_CLEAR_LIST_DATA(),
@@ -180,6 +177,8 @@ export class Store<T extends Record<string, T[keyof T]>> {
 				}
 			}),
 		);
+
+		await this.local.delList(LIST_FILTER_TABLE_NAME as any);
 	}
 
 	subscribe = <ResultData = LoadedItem<T[keyof T]>>(
@@ -336,7 +335,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 		});
 		const loadingStatus = this.loadingStatus.get(key);
 
-		if (loadingStatus?.isLocalLoading || !loadingStatus?.isLocalLoaded) {
+		if (loadingStatus?.isLocalLoading) {
 			// 0. Если данные, которые уперлись в уже существующие данные обновляют isLoading в true,
 			// то такие данные нет смысла откладывать. Они только ухудшат ситуацию, ведь мы через
 			// мгновение получим обновленные загруженные данные, которые сейчас ожидают обработки
@@ -368,7 +367,8 @@ export class Store<T extends Record<string, T[keyof T]>> {
 					this.cache.updateData(key, newData1);
 				}
 			} else {
-				const prevData = await persistStore.getItem(key);
+				const prevData =
+					(await persistStore.getItem(key)) ?? GET_CLEAR_OBJ_DATA()();
 				const newData = getData(prevData);
 
 				await persistStore.setItem(key, newData);
@@ -395,7 +395,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 		});
 		const loadingStatus = this.loadingStatus.get(storeName);
 
-		if (loadingStatus?.isLocalLoading || !loadingStatus?.isLocalLoaded) {
+		if (loadingStatus?.isLocalLoading) {
 			// 0. Если данные, которые уперлись в уже существующие данные обновляют isLoading в true,
 			// то такие данные нет смысла откладывать. Они только ухудшат ситуацию, ведь мы через
 			// мгновение получим обновленные загруженные данные, которые сейчас ожидают обработки

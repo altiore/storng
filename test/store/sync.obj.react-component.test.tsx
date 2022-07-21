@@ -62,7 +62,7 @@ describe('sync.obj.ts Подписка на данные из syncObj - Как �
 		}
 	});
 
-	it('подписка на изменения syncObject', async () => {
+	it('подписка на изменения syncObject react-component', async () => {
 		await act(async (render) => {
 			await render(
 				<StoreProvider store={store}>
