@@ -126,7 +126,7 @@ syncObject.update = {
 	): LoadedItem<any> => ({
 		data: {
 			...s.data,
-			...(remote?.res.data || data || {}),
+			...(remote?.res?.data || data || {}),
 		},
 		loadingStatus: {
 			error: undefined,
@@ -146,7 +146,7 @@ syncObject.replace = {
 		data,
 		remote: {res: DataRes; route: Route},
 	): LoadedItem<any> => ({
-		data: remote?.res.data || data || {},
+		data: remote?.res?.data || data || {},
 		loadingStatus: {
 			error: undefined,
 			isLoaded: true,
@@ -180,7 +180,7 @@ syncObject.deepMerge = {
 		data,
 		remote: {res: DataRes; route: Route},
 	): LoadedItem<any> => ({
-		data: deepAssign(s.data, remote?.res.data || data || {}),
+		data: deepAssign(s.data, remote?.res?.data || data || {}),
 		loadingStatus: {
 			error: undefined,
 			isLoaded: true,
