@@ -210,3 +210,24 @@ syncObject.custom = <T, D = any>(
 	// eslint-disable-next-line sort-keys
 	failure: failureHandler as any,
 });
+
+syncObject.logout = {
+	request: requestHandler,
+	success: (s, data, add: {store: Store<any>}): LoadedItem<any> => {
+		if (add?.store?.logout) {
+			add.store.logout();
+		} else {
+			console.error('Вы пытаетесь выйти, но метод выхода не определен');
+		}
+		return s;
+	},
+	// eslint-disable-next-line sort-keys
+	failure: (s, data, add: {store: Store<any>}): LoadedItem<any> => {
+		if (add?.store?.logout) {
+			add.store.logout();
+		} else {
+			console.error('Вы пытаетесь выйти, но метод выхода не определен');
+		}
+		return s;
+	},
+} as ActionHandlers;

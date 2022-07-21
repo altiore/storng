@@ -2,48 +2,55 @@ import {GetScope, Route} from '@storng/common';
 import {LoadedData, ScopeHandlers, Store} from '@storng/store';
 
 const requestHandler =
-	(handler, req, initData, route): any =>
+	(handler, req, initData, route, store: Store<any>): any =>
 	(state): any => {
 		return handler.request(state, initData, {
 			req,
 			route,
+			store,
 		});
 	};
 
 const successHandler =
-	(handler, req, initData): any =>
+	(handler, req, initData, store: Store<any>): any =>
 	(state): any => {
 		try {
-			return handler.success(state, req || initData);
+			return handler.success(state, req || initData, {
+				store,
+			});
 		} catch (err) {
 			return handler.failure(state, initData, {
 				res: {message: String(err), ok: false},
+				store,
 			});
 		}
 	};
 
 const remoteSuccessHandler =
-	(handler, initData, resData, route): any =>
+	(handler, initData, resData, route, store: Store<any>): any =>
 	(state): any => {
 		try {
 			return handler.success(state, initData, {
 				res: resData,
 				route,
+				store,
 			});
 		} catch (err) {
 			return handler.failure(state, initData, {
 				res: {message: String(err), ok: false},
 				route,
+				store,
 			});
 		}
 	};
 
 const remoteFailureHandler =
-	(handler, initData, resData, route): any =>
+	(handler, initData, resData, route, store: Store<any>): any =>
 	(state): any =>
 		handler.failure(state, initData, {
 			res: resData,
 			route,
+			store,
 		});
 
 const removeErrorHandler = (state) => ({
@@ -92,16 +99,16 @@ export const prepareActions = <
 				let isError = false;
 				let actionResult: any;
 				const route = scope[handlerName];
-				await updater(requestHandler(handler, req, initData, route));
+				await updater(requestHandler(handler, req, initData, route, store));
 				try {
 					const resData = await store.remote.fetch(route, req);
 					if (resData.ok) {
 						await updater(
-							remoteSuccessHandler(handler, initData, resData, route),
+							remoteSuccessHandler(handler, initData, resData, route, store),
 						);
 					} else {
 						await updater(
-							remoteFailureHandler(handler, initData, resData, route),
+							remoteFailureHandler(handler, initData, resData, route, store),
 						);
 						isError = true;
 					}
@@ -120,7 +127,7 @@ export const prepareActions = <
 				}
 				return actionResult;
 			} else {
-				await updater(successHandler(handler, req, initData));
+				await updater(successHandler(handler, req, initData, store));
 			}
 		};
 	});
