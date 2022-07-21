@@ -139,21 +139,26 @@ export class Store<T extends Record<string, T[keyof T]>> {
 	}
 
 	async logout(): Promise<void> {
+		const structureKeys = Array.from(this.cache.structure.keys());
+		console.log('all keys for remove is', structureKeys);
 		await Promise.all(
-			Array.from(this.cache.structure.keys()).map(async (key) => {
+			structureKeys.map(async (key) => {
 				if (!this.publicStorages.includes(key)) {
 					const struct = this.cache.structure.get(key);
 					if (!struct) {
 						console.error(`structure с ключом "${key}" не была найдена`);
 						return Promise.resolve();
 					}
-					const isPersist = struct?.isPersist;
+					const isPersist = struct.isPersist;
 					if (struct.type === StructureType.ITEM) {
 						let persistStore: PersistStore<T> | undefined = undefined;
 						if (isPersist) {
 							persistStore = this.local.itemStorage();
 						}
-						await this.updateData(
+						console.log(`remove item "${key}" data`, {
+							isPersist,
+						});
+						return await this.updateData(
 							key,
 							GET_CLEAR_OBJ_DATA(struct?.initData.data as any),
 							persistStore,
@@ -163,7 +168,10 @@ export class Store<T extends Record<string, T[keyof T]>> {
 						if (isPersist) {
 							persistListStore = this.local.listStorage();
 						}
-						await this.updateListData(
+						console.log(`remove list "${key}" data`, {
+							isPersist,
+						});
+						return await this.updateListData(
 							key,
 							GET_CLEAR_LIST_DATA(),
 							persistListStore,
