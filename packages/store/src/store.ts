@@ -434,7 +434,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 			await persistStore.setList(storeName, newData);
 
 			const existingCache = this.cache.getData(storeName);
-			if (existingCache) {
+			if (existingCache?.data) {
 				if (
 					// нет смысла обновлять данные еще раз, если они уже в статусе загрузки
 					// экономим количество генераций (React)
