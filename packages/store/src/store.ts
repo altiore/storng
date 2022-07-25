@@ -428,50 +428,38 @@ export class Store<T extends Record<string, T[keyof T]>> {
 				isLocalLoading: true,
 			});
 
-			const existingData = this.cache.getData(storeName);
-			if (existingData) {
-				newData = getData(existingData.data as any);
+			// сначала меняем локальное хранилище - оно всегда синхронизировано с реальными данными
+			const prevData = await persistStore.getList(storeName);
+			newData = getData(prevData as any) as any;
+			await persistStore.setList(storeName, newData);
+
+			const existingCache = this.cache.getData(storeName);
+			if (existingCache) {
+				await persistStore.setList(storeName, newData as any);
 				if (
-					existingData.data.loadingStatus.isLoading !== true ||
+					// нет смысла обновлять данные еще раз, если они уже в статусе загрузки
+					// экономим количество генераций (React)
+					existingCache.data.loadingStatus.isLoading !== true ||
 					newData.loadingStatus.isLoading !== true
 				) {
-					await persistStore.setList(storeName, newData as any);
 					this.cache.updateData(storeName, newData);
-					if (onFetch) {
-						await onFetch({
-							limit: newData.paginate.limit,
-							page: newData.paginate.page,
-						});
-					}
-				}
-			} else {
-				const prevData = await persistStore.getList(storeName);
-
-				newData = getData(prevData as any) as any;
-
-				await persistStore.setList(storeName, newData);
-				if (onFetch) {
-					await onFetch({
-						limit: newData.paginate.limit,
-						page: newData.paginate.page,
-					});
 				}
 			}
 		} else {
 			newData = this.cache.updateData(storeName, getData as any);
-
-			if (onFetch && newData) {
-				await onFetch({
-					limit: newData.paginate.limit,
-					page: newData.paginate.page,
-				});
-			}
 		}
 
 		this.updateLoadingStatus(storeName, {
 			declinedRestore: false,
 			isLocalLoading: false,
 		});
+
+		if (onFetch && newData) {
+			await onFetch({
+				limit: newData.paginate.limit,
+				page: newData.paginate.page,
+			});
+		}
 
 		return Promise.resolve();
 	};
