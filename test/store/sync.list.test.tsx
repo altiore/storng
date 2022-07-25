@@ -1,12 +1,11 @@
-import React, {useEffect} from 'react';
+import React, {useCallback} from 'react';
 
-import {ActionFunc} from '@storng/common';
+import {ActionFunc, Paginated} from '@storng/common';
 import {MaybeRemoteListData} from '@storng/store';
 import {connect} from '@storng/store/src/react';
 import {StoreProvider} from '@storng/store/src/react/store.provider';
 
 import {getStore} from './storage';
-import {API_USERS} from './storage/_users';
 import {mockSuccessListFetch} from './storage/mock.fetch';
 import {StoreType} from './storage/store.type';
 import {users} from './storage/users';
@@ -18,29 +17,32 @@ const STORE_NAME = 'sync.list.test.tsx';
 const store = getStore(STORE_NAME, mockSuccessListFetch);
 
 interface MyComponentProps {
+	changeFilter: ActionFunc<Partial<Omit<Paginated<any>, 'data'>>>;
 	users: MaybeRemoteListData<StoreType['users']>;
-	fetchUsers: ActionFunc<typeof API_USERS.fetch>;
 }
 
-const MyComponent = ({fetchUsers, users}: MyComponentProps) => {
-	useEffect(() => {
-		if (fetchUsers) {
-			fetchUsers().then().catch(console.error);
-		}
-	}, [fetchUsers]);
+const MyComponent = ({changeFilter, users}: MyComponentProps) => {
+	const handleChangeFilter = useCallback(() => {
+		changeFilter({
+			limit: 2,
+			page: 2,
+		})
+			.then()
+			.catch(console.error);
+	}, [changeFilter]);
 
 	renderSpy();
 
 	return users<JSX.Element>({
 		correct: ({data}) => {
-			return <p>correct {data?.length}</p>;
+			return <p onClick={handleChangeFilter}>correct {data?.length}</p>;
 		},
 		failure: ({error}) => {
 			console.error('error', JSON.stringify(error));
 			return <p>failure {error.message}</p>;
 		},
-		loading: <p>loading {typeof fetchUsers}</p>,
-		nothing: <p>nothing {typeof fetchUsers}</p>,
+		loading: <p>loading</p>,
+		nothing: <p>nothing</p>,
 	});
 };
 
@@ -49,7 +51,7 @@ const s = {
 };
 
 const a = {
-	fetchUsers: users.fetch,
+	changeFilter: users.onChangeFilter,
 };
 
 const Wrapped = connect(MyComponent, s, a);
@@ -69,11 +71,11 @@ describe('sync.list.ts', () => {
 		}
 	});
 
-	it('auth is func', () => {
-		expect(typeof users).to.be.eq('function');
+	it('users.getSubscriber is func', () => {
+		expect(typeof users.getSubscriber).to.be.eq('function');
 	});
 
-	it('первая генерация компонента', async () => {
+	it('первая генерация компонента - sync.list.test', async () => {
 		await act(async (render) => {
 			await render(
 				<StoreProvider store={store}>
@@ -83,7 +85,7 @@ describe('sync.list.ts', () => {
 			);
 		});
 
-		expect(root?.innerHTML).to.equal('<p>loading function</p>');
+		expect(root?.innerHTML).to.equal('<p>loading</p>');
 
 		expect(renderSpy).have.been.callCount(1);
 	});
@@ -94,5 +96,17 @@ describe('sync.list.ts', () => {
 		expect(root?.innerHTML).to.equal('<p>correct 2</p>');
 
 		expect(renderSpy).have.been.callCount(2);
+	});
+
+	it('Изменить фильтр (следующая страница пагинации)', async () => {
+		await act(() => {
+			const p = document.getElementsByTagName('p');
+			p[0].click();
+		});
+		await wait(0.3);
+
+		expect(root?.innerHTML).to.equal('<p>correct 1</p>');
+
+		expect(renderSpy).have.been.callCount(4);
 	});
 });

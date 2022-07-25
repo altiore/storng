@@ -1,7 +1,7 @@
 // import memoize from 'memoize-one';
 
 import {ErrorOrInfo, Paginated, ResError} from '@storng/common';
-import {MaybeRemoteListData} from '@storng/store';
+import {MaybeRemoteListData, getInitDataList} from '@storng/store';
 
 import {runFunc} from './func-data.helpers';
 
@@ -33,7 +33,7 @@ const getLoadingBase =
 		} = {
 			data: [],
 			filter: {},
-			paginate: {count: 0, page: 1, pageCount: 0, total: 0},
+			paginate: getInitDataList(false).paginate,
 		},
 	): MaybeRemoteListData<A> =>
 	({loading, failure}) => {

@@ -36,7 +36,7 @@ export const mockVersionFetch: any = sinon.spy(() => {
 	});
 });
 
-const successFetchListJson: any = () =>
+const successFetchList2Json: any = () =>
 	sinon.spy(
 		() =>
 			new Promise((resolve) => {
@@ -49,11 +49,28 @@ const successFetchListJson: any = () =>
 				});
 			}),
 	);
+const successFetchList1Json: any = () =>
+	sinon.spy(
+		() =>
+			new Promise((resolve) => {
+				resolve({
+					data: [{email: 'user-3@mail.com', id: 'user-id-3'}],
+					ok: true,
+				});
+			}),
+	);
 
-export const mockSuccessListFetch: any = sinon.spy(() => {
+export const mockSuccessListFetch: any = sinon.spy((url: string) => {
+	if (url === '/base/users?limit=2&page=2') {
+		return new Promise((resolve) => {
+			resolve({
+				json: successFetchList1Json(),
+			} as any);
+		});
+	}
 	return new Promise((resolve) => {
 		resolve({
-			json: successFetchListJson(),
+			json: successFetchList2Json(),
 		} as any);
 	});
 });

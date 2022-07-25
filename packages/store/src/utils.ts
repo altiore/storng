@@ -64,18 +64,22 @@ export function getInitData<T>(
 	};
 }
 
-export function getInitDataList<T>(isPersist: boolean): LoadedList<T> {
+export function getInitDataList<T>(
+	isLoading: boolean,
+	updatedAt = 0,
+): LoadedList<T> {
 	return {
 		data: [],
 		filter: {},
 		loadingStatus: {
 			error: undefined,
 			isLoaded: false,
-			isLoading: isPersist,
-			updatedAt: 0,
+			isLoading,
+			updatedAt,
 		},
 		paginate: {
 			count: 0,
+			limit: 10,
 			page: 1,
 			pageCount: 0,
 			total: 0,
@@ -85,15 +89,11 @@ export function getInitDataList<T>(isPersist: boolean): LoadedList<T> {
 
 export const getResPaginate = (
 	res: Omit<Paginated<any>, 'data'>,
-	prevPaginate: Omit<Paginated<any>, 'data'> = {
-		count: 0,
-		page: 1,
-		pageCount: 0,
-		total: 0,
-	},
+	prevPaginate: Omit<Paginated<any>, 'data'> = getInitDataList(false).paginate,
 ): Omit<Paginated<any>, 'data'> => {
 	return {
 		count: res?.count ?? prevPaginate.count,
+		limit: prevPaginate.limit,
 		page: res?.page ?? prevPaginate.page,
 		pageCount: res?.pageCount ?? prevPaginate.pageCount,
 		total: res?.total ?? prevPaginate.total,

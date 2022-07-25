@@ -107,8 +107,9 @@ export type SyncObjectType<
 } &
 	{
 		[P in keyof OtherRoutes]: GetActionFunc<OtherRoutes[P]>;
-	} &
-	(<StoreState = any>(store: StoreState) => SubsObj<Item>);
+	} & {
+		getSubscriber: <StoreState = any>(store: StoreState) => SubsObj<Item>;
+	};
 
 export type ActionHandler<
 	Item extends Record<string, any> = Record<string, any>,

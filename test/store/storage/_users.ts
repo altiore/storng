@@ -1,11 +1,11 @@
-import {Method, ResBase, Route, RouteScope} from '@storng/common';
+import {CrudUrl, Method, ResBase, Route, RouteScope} from '@storng/common';
 
 export interface IUser {
 	id: string;
 }
 
 export type UsersUrls = {
-	fetch: Route<
+	[CrudUrl.getMany]: Route<
 		Record<string, never>,
 		ResBase<Record<string, never>, {data: Array<IUser>}>
 	>;
@@ -15,6 +15,6 @@ export const API_USERS = RouteScope<UsersUrls, 'users'>({
 	BASE: '/base',
 	NAME: 'users',
 	URL: {
-		fetch: {method: Method.GET, path: '/users'},
+		[CrudUrl.getMany]: {method: Method.GET, path: '/users'},
 	},
 });

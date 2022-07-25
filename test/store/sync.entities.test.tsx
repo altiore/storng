@@ -16,7 +16,7 @@ const STORE_NAME = 'sync.entities.test.tsx';
 const store = getStore(STORE_NAME, mockSuccessListFetch);
 
 interface MyComponentProps {
-	fetchUsers: ActionFunc<typeof API_USERS.fetch>;
+	fetchUsers: ActionFunc<typeof API_USERS.getMany>;
 }
 
 const MyComponent = ({fetchUsers}: MyComponentProps) => {
@@ -32,7 +32,7 @@ const MyComponent = ({fetchUsers}: MyComponentProps) => {
 };
 
 const a = {
-	fetchUsers: users.fetch,
+	fetchUsers: users.getMany,
 };
 
 const Wrapped = connect(MyComponent, undefined, a);
@@ -52,8 +52,8 @@ describe('sync.entities.tsx', () => {
 		}
 	});
 
-	it('auth is func', () => {
-		expect(typeof users).to.be.eq('function');
+	it('users.getSubscriber is func', () => {
+		expect(typeof users.getSubscriber).to.be.eq('function');
 	});
 
 	it('первая генерация компонента', async () => {

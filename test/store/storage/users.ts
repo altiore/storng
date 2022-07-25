@@ -1,3 +1,4 @@
+import {CrudUrl} from '@storng/common';
 import {syncList} from '@storng/store';
 
 import {API_USERS, UsersUrls} from './_users';
@@ -10,7 +11,7 @@ type Actions = {
 export const users = syncList<StoreType, 'users', UsersUrls, Actions>(
 	API_USERS,
 	{
-		fetch: syncList.replace,
+		[CrudUrl.getMany]: syncList.replace,
 		otherHandler: syncList.nothing,
 	},
 );

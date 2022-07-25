@@ -18,6 +18,7 @@ import {
 	StoreStructure,
 	StructureType,
 } from './types';
+import {getInitDataList} from './utils';
 
 const getDataPreparationByData =
 	<T>(data: T) =>
@@ -41,20 +42,8 @@ const GET_CLEAR_OBJ_DATA =
 const GET_CLEAR_LIST_DATA =
 	(initial: LoadedList<any>['data'] = []) =>
 	(): LoadedList<any> => ({
+		...getInitDataList(false, new Date().getTime()),
 		data: initial,
-		filter: {},
-		loadingStatus: {
-			error: undefined,
-			isLoaded: false,
-			isLoading: false,
-			updatedAt: new Date().getTime(),
-		},
-		paginate: {
-			count: 0,
-			page: 1,
-			pageCount: 0,
-			total: 0,
-		},
 	});
 
 export class Store<T extends Record<string, T[keyof T]>> {
@@ -254,6 +243,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 		dataPreparer: (value: LoadedList<T[keyof T]>) => ResultData,
 		restorePreparation: (v: LoadedList<T[keyof T]>) => LoadedList<T[keyof T]>,
 		persistStore?: ListPersistStore<T>,
+		onFetch?: (store: any) => (a: any) => Promise<any>,
 	): void => {
 		const loadingStatus = this.loadingStatus.get(storeName);
 
@@ -266,6 +256,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 					dataPreparer,
 					restorePreparation,
 					persistStore,
+					onFetch,
 				);
 			}, 100);
 			return;
@@ -279,8 +270,22 @@ export class Store<T extends Record<string, T[keyof T]>> {
 			Boolean(persistStore),
 		);
 
+		// 3. Если данные были загружены более х-ти секунд назад, то загрузить данные
+		const xSecAgo = 20;
+		if (
+			onFetch &&
+			new Date().getTime() - item.loadingStatus.updatedAt > xSecAgo * 1000
+		) {
+			onFetch(this)({
+				limit: item.paginate.limit,
+				page: item.paginate.page,
+			})
+				.then()
+				.catch(console.error);
+		}
+
 		if (!persistStore || loadingStatus?.isLocalLoaded) {
-			// 3. Если данные уже восстановлены или мы вообще не храним их в локальном хранилище, --
+			// 4. Если данные уже восстановлены или мы вообще не храним их в локальном хранилище, --
 			//    отправить данные текущему подписчику
 			this.updateLoadingStatus(storeName, {
 				isLocalLoaded: true,

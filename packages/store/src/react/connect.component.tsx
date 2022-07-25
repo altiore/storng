@@ -62,10 +62,15 @@ export const ConnectComponent = <T extends Record<string, T[keyof T]>>({
 		if (store && selectors) {
 			Object.entries(
 				selectors as {
-					[K in string]: (store: any, prepareData: any) => SubsObj<any>;
+					[K in string]: {
+						getSubscriber: (store: any, prepareData: any) => SubsObj<any>;
+					};
 				},
-			).map(([propName, syncObj]) => {
-				const unsubscribe = syncObj(store, getListFunc)(updateState(propName));
+			).map(([propName, syncElement]) => {
+				const unsubscribe = syncElement.getSubscriber(
+					store,
+					getListFunc,
+				)(updateState(propName));
 				subscribers.push(unsubscribe);
 			});
 		}

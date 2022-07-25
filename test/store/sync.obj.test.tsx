@@ -7,6 +7,7 @@ import {StoreProvider} from '@storng/store/src/react/store.provider';
 import {getStore} from './storage';
 import {auth} from './storage/auth';
 import {StoreType} from './storage/store.type';
+import {users} from './storage/users';
 
 const renderSpy = sinon.spy();
 
@@ -61,8 +62,8 @@ describe('sync.object.ts', () => {
 		}
 	});
 
-	it('auth is func', () => {
-		expect(typeof auth).to.be.eq('function');
+	it('users.getSubscriber is func', () => {
+		expect(typeof users.getSubscriber).to.be.eq('function');
 	});
 
 	it('первая генерация компонента', async () => {

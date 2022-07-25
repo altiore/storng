@@ -29,7 +29,18 @@ export function syncObject<
 		v: LoadedItem<StoreState[Key]>,
 	) => LoadedItem<StoreState[Key]> = defRestorePreparation as any,
 ): SyncObjectType<Routes, StoreState[Key], OtherRoutes> {
-	const result =
+	const result: any = {};
+	result.type = StructureType.ITEM;
+
+	prepareActions<StoreState, Key, Routes, OtherRoutes>(
+		result,
+		scope,
+		scopeHandlers,
+		getUpdater<StoreState>(scope, persistData as any) as any,
+		initData,
+	);
+
+	result.getSubscriber =
 		(
 			store: Store<StoreState>,
 			dataPreparer: (
@@ -64,17 +75,7 @@ export function syncObject<
 			}
 		};
 
-	result.type = StructureType.ITEM;
-
-	prepareActions<StoreState, Key, Routes, OtherRoutes>(
-		result,
-		scope,
-		scopeHandlers,
-		getUpdater<StoreState>(scope, persistData as any) as any,
-		initData,
-	);
-
-	return result as any;
+	return result;
 }
 
 const requestHandler = <T extends Record<string, any> = Record<string, any>>(

@@ -1,4 +1,11 @@
-import {DataRes, ErrorOrInfo, GetScope, Route} from '@storng/common';
+import {
+	CrudUrl,
+	DataRes,
+	ErrorOrInfo,
+	GetScope,
+	Paginated,
+	Route,
+} from '@storng/common';
 
 import {Store} from './store';
 import {defRestorePreparation} from './sync.object.helpers/def.restore.preparation';
@@ -6,7 +13,6 @@ import {getListUpdater} from './sync.object.helpers/get-list-updater';
 import {prepareActions} from './sync.object.helpers/prepare-actions';
 import {
 	LoadedList,
-	MaybeRemoteData,
 	MaybeRemoteListData,
 	ScopeHandlers,
 	StructureType,
@@ -14,6 +20,54 @@ import {
 	SyncObjectType,
 } from './types';
 import {deepAssign, getResPaginate} from './utils';
+
+const onChangeFilter =
+	<
+		T extends Record<string, T[keyof T]>,
+		Key extends keyof T = keyof T,
+		Routes extends Record<string, Route<any, any>> = Record<string, never>,
+	>(
+		scope: GetScope<Routes, Key> | Key,
+		persistData: boolean,
+		onFetch: any,
+		store: Store<T>,
+	) =>
+	async (paginate: Partial<Omit<Paginated<any>, 'data'>>): Promise<void> => {
+		const getData = (s: LoadedList<T[keyof T]>) => {
+			const res = {
+				...s,
+				paginate: {
+					...s.paginate,
+					...paginate,
+				},
+			};
+			if (onFetch) {
+				if (!res.loadingStatus.isLoading) {
+					onFetch(store)({
+						limit: res.paginate.limit,
+						page: res.paginate.page,
+					})
+						.then()
+						.catch(console.error);
+				}
+			}
+			return res;
+		};
+
+		const storeName: Key =
+			typeof scope === 'object' ? (scope.NAME as Key) : scope;
+
+		const shouldPersistStore =
+			typeof persistData === 'boolean'
+				? persistData
+				: typeof scope === 'object';
+
+		const persistStorage = shouldPersistStore
+			? store.local.listStorage<T>()
+			: undefined;
+
+		await store.updateListData(storeName, getData, persistStorage);
+	};
 
 export function syncList<
 	StoreState extends Record<string, StoreState[keyof StoreState]>,
@@ -27,13 +81,37 @@ export function syncList<
 	restorePreparation: (
 		v: LoadedList<StoreState[Key]>,
 	) => LoadedList<StoreState[Key]> = defRestorePreparation as any,
-): SyncObjectType<Routes, StoreState[Key], OtherRoutes> {
-	const result =
+): SyncObjectType<
+	Routes,
+	StoreState[Key],
+	OtherRoutes & {onChangeFilter: Partial<Omit<Paginated<any>, 'data'>>}
+> {
+	const result: any = {};
+	result.type = StructureType.LIST;
+
+	const shouldPersistStore =
+		typeof persistData === 'boolean' ? persistData : typeof scope === 'object';
+
+	prepareActions<StoreState, Key, Routes, OtherRoutes>(
+		result,
+		scope,
+		scopeHandlers,
+		getListUpdater<StoreState>(scope, shouldPersistStore) as any,
+	);
+
+	result.onChangeFilter = onChangeFilter.bind(
+		undefined,
+		scope,
+		shouldPersistStore,
+		result[CrudUrl.getMany],
+	);
+
+	result.getSubscriber =
 		(
 			store: Store<StoreState>,
 			dataPreparer: (
 				value: LoadedList<StoreState[Key]>,
-			) => MaybeRemoteData<LoadedList<StoreState[Key]>>,
+			) => MaybeRemoteListData<StoreState[Key]>,
 		) =>
 		(subscriber: SubscriberListType<StoreState[Key]>) => {
 			try {
@@ -55,6 +133,7 @@ export function syncList<
 					dataPreparer as any,
 					restorePreparation as any,
 					persistStorage,
+					result[CrudUrl.getMany],
 				);
 				return () => store.unsubscribe(storeName, subscriber);
 			} catch (err) {
@@ -62,16 +141,7 @@ export function syncList<
 			}
 		};
 
-	result.type = StructureType.LIST;
-
-	prepareActions<StoreState, Key, Routes, OtherRoutes>(
-		result,
-		scope,
-		scopeHandlers,
-		getListUpdater<StoreState>(scope, persistData as any) as any,
-	);
-
-	return result as any;
+	return result;
 }
 
 const requestHandler = <T extends Record<string, any> = Record<string, any>>(

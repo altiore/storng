@@ -297,6 +297,7 @@ export function RouteScope<
 export interface Paginated<T> {
 	data: T[];
 	count: number;
+	limit: number;
 	total: number;
 	page: number;
 	pageCount: number;
