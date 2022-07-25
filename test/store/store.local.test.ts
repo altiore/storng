@@ -141,6 +141,7 @@ describe('Постоянное хранилище src/store.persist.ts', () => {
 				},
 				paginate: {
 					count: 0,
+					limit: 10,
 					page: 1,
 					pageCount: 0,
 					total: 0,

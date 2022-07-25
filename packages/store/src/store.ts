@@ -435,12 +435,11 @@ export class Store<T extends Record<string, T[keyof T]>> {
 
 			const existingCache = this.cache.getData(storeName);
 			if (existingCache) {
-				await persistStore.setList(storeName, newData as any);
 				if (
 					// нет смысла обновлять данные еще раз, если они уже в статусе загрузки
 					// экономим количество генераций (React)
-					existingCache.data.loadingStatus.isLoading !== true ||
-					newData.loadingStatus.isLoading !== true
+					existingCache.data.loadingStatus.isLoading === false ||
+					newData.loadingStatus.isLoading === false
 				) {
 					this.cache.updateData(storeName, newData);
 				}
@@ -449,17 +448,19 @@ export class Store<T extends Record<string, T[keyof T]>> {
 			newData = this.cache.updateData(storeName, getData as any);
 		}
 
+		if (onFetch && newData) {
+			onFetch({
+				limit: newData.paginate.limit,
+				page: newData.paginate.page,
+			})
+				.then()
+				.catch(console.error);
+		}
+
 		this.updateLoadingStatus(storeName, {
 			declinedRestore: false,
 			isLocalLoading: false,
 		});
-
-		if (onFetch && newData) {
-			await onFetch({
-				limit: newData.paginate.limit,
-				page: newData.paginate.page,
-			});
-		}
 
 		return Promise.resolve();
 	};

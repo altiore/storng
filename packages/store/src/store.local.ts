@@ -1,6 +1,8 @@
 import {StoreKey, StoreNames, StoreValue, deleteDB, openDB} from 'idb';
 import {DBSchema, IDBPDatabase, OpenDBCallbacks} from 'idb/build/entry';
 
+import {getInitDataList} from '@storng/store';
+
 import {
 	KeyNames,
 	LIST_FILTER_TABLE_NAME,
@@ -199,21 +201,17 @@ export class StoreLocal<StoreState extends DBSchema> {
 		const filterModel = trn.objectStore(LIST_FILTER_TABLE_NAME);
 		const filterModelData = await filterModel.get(storeName as any);
 
+		const init = getInitDataList(true);
 		return {
+			...init,
 			data: list || [],
-			filter: {},
 			loadingStatus: {
-				error: undefined,
+				...init.loadingStatus,
 				isLoaded: Boolean(list?.length),
-				isLoading: true,
-				updatedAt: 0,
 				...((filterModelData as any)?.loadingStatus || {}),
 			},
 			paginate: {
-				count: 0,
-				page: 1,
-				pageCount: 0,
-				total: 0,
+				...init.paginate,
 				...((filterModelData as any)?.paginate || {}),
 			},
 		};

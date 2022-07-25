@@ -21,6 +21,23 @@ import {
 } from './types';
 import {deepAssign, getResPaginate} from './utils';
 
+const getPaginateData = <T>(
+	paginate: Partial<Omit<Paginated<any>, 'data'>>,
+	s: LoadedList<T[keyof T]>,
+) => {
+	return {
+		...s,
+		loadingStatus: {
+			...s.loadingStatus,
+			isLoading: true,
+		},
+		paginate: {
+			...s.paginate,
+			...paginate,
+		},
+	};
+};
+
 const onChangeFilter =
 	<
 		T extends Record<string, T[keyof T]>,
@@ -33,20 +50,6 @@ const onChangeFilter =
 		store: Store<T>,
 	) =>
 	async (paginate: Partial<Omit<Paginated<any>, 'data'>>): Promise<void> => {
-		const getData = (s: LoadedList<T[keyof T]>) => {
-			return {
-				...s,
-				loadingStatus: {
-					...s.loadingStatus,
-					isLoading: true,
-				},
-				paginate: {
-					...s.paginate,
-					...paginate,
-				},
-			};
-		};
-
 		const storeName: Key =
 			typeof scope === 'object' ? (scope.NAME as Key) : scope;
 
@@ -61,7 +64,7 @@ const onChangeFilter =
 
 		await store.updateListData(
 			storeName,
-			getData,
+			getPaginateData.bind(undefined, paginate) as any,
 			persistStorage,
 			onFetch.bind(undefined, store)(),
 		);

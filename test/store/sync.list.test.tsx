@@ -34,8 +34,12 @@ const MyComponent = ({changeFilter, users}: MyComponentProps) => {
 	renderSpy();
 
 	return users<JSX.Element>({
-		correct: ({data}) => {
-			return <p onClick={handleChangeFilter}>correct {data?.length}</p>;
+		correct: ({data, paginate}) => {
+			return (
+				<p onClick={handleChangeFilter}>
+					correct {data?.length} - {paginate.limit}
+				</p>
+			);
 		},
 		failure: ({error}) => {
 			console.error('error', JSON.stringify(error));
@@ -93,7 +97,7 @@ describe('sync.list.ts', () => {
 	it('вторая генерация', async () => {
 		await wait(0.3);
 
-		expect(root?.innerHTML).to.equal('<p>correct 2</p>');
+		expect(root?.innerHTML).to.equal('<p>correct 2 - 10</p>');
 
 		expect(renderSpy).have.been.callCount(2);
 	});
@@ -112,7 +116,7 @@ describe('sync.list.ts', () => {
 	it('новые данные после изменения пагинации (следующая страница пагинации)', async () => {
 		await wait(0.3);
 
-		expect(root?.innerHTML).to.equal('<p>correct 1</p>');
+		expect(root?.innerHTML).to.equal('<p>correct 1 - 2</p>');
 
 		expect(renderSpy).have.been.callCount(4);
 	});
