@@ -270,19 +270,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 			Boolean(persistStore),
 		);
 
-		// 3. Если данные были загружены более х-ти секунд назад, то загрузить данные
 		const xSecAgo = 20;
-		if (
-			onFetch &&
-			new Date().getTime() - item.loadingStatus.updatedAt > xSecAgo * 1000
-		) {
-			onFetch(this)({
-				limit: item.paginate.limit,
-				page: item.paginate.page,
-			})
-				.then()
-				.catch(console.error);
-		}
 
 		if (!persistStore || loadingStatus?.isLocalLoaded) {
 			// 4. Если данные уже восстановлены или мы вообще не храним их в локальном хранилище, --
@@ -290,7 +278,22 @@ export class Store<T extends Record<string, T[keyof T]>> {
 			this.updateLoadingStatus(storeName, {
 				isLocalLoaded: true,
 			});
-			subscriber(dataPreparer(item));
+
+			// 3. Если данные были загружены более х-ти секунд назад, то загрузить данные
+			if (
+				onFetch &&
+				new Date().getTime() - item.loadingStatus.updatedAt > xSecAgo * 1000
+			) {
+				onFetch(this)({
+					limit: item.paginate.limit,
+					page: item.paginate.page,
+				})
+					.then()
+					.catch(console.error);
+			} else {
+				subscriber(dataPreparer(item));
+			}
+
 			return;
 		}
 
@@ -309,8 +312,21 @@ export class Store<T extends Record<string, T[keyof T]>> {
 					isLocalLoading: false,
 				});
 				if (!this.loadingStatus.get(storeName)?.declinedRestore) {
-					this.cache.updateData(storeName, data, false);
-					subscriber(dataPreparer(data as LoadedList<T[keyof T]>));
+					// 3. Если данные были загружены более х-ти секунд назад, то загрузить данные
+					if (
+						onFetch &&
+						new Date().getTime() - data.loadingStatus.updatedAt > xSecAgo * 1000
+					) {
+						onFetch(this)({
+							limit: (data as LoadedList<T[keyof T]>).paginate.limit,
+							page: (data as LoadedList<T[keyof T]>).paginate.page,
+						})
+							.then()
+							.catch(console.error);
+					} else {
+						this.cache.updateData(storeName, data, false);
+						subscriber(dataPreparer(data as LoadedList<T[keyof T]>));
+					}
 				}
 			})
 			.catch((err) => {
