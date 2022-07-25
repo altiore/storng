@@ -395,6 +395,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 		storeName: keyof T,
 		getData: (data: LoadedList<T[keyof T]>) => LoadedList<T[keyof T]>,
 		persistStore?: ListPersistStore<T>,
+		onFetch?: (filters: any) => Promise<any>,
 	): Promise<void> => {
 		this.updateLoadingStatus(storeName, {
 			declinedRestore: true,
@@ -409,12 +410,19 @@ export class Store<T extends Record<string, T[keyof T]>> {
 				return Promise.resolve();
 			}
 			// 1. Если восстановление данных в процессе, отложить обновление данных
+
 			setTimeout(() => {
-				this.updateListData.bind(this)(storeName, getData, persistStore);
+				this.updateListData.bind(this)(
+					storeName,
+					getData,
+					persistStore,
+					onFetch,
+				);
 			}, 200);
 			return Promise.resolve();
 		}
 
+		let newData;
 		if (persistStore) {
 			this.updateLoadingStatus(storeName, {
 				isLocalLoading: true,
@@ -422,22 +430,42 @@ export class Store<T extends Record<string, T[keyof T]>> {
 
 			const existingData = this.cache.getData(storeName);
 			if (existingData) {
-				const newData1 = getData(existingData.data as any);
+				newData = getData(existingData.data as any);
 				if (
 					existingData.data.loadingStatus.isLoading !== true ||
-					newData1.loadingStatus.isLoading !== true
+					newData.loadingStatus.isLoading !== true
 				) {
-					await persistStore.setList(storeName, newData1 as any);
-					this.cache.updateData(storeName, newData1);
+					await persistStore.setList(storeName, newData as any);
+					this.cache.updateData(storeName, newData);
+					if (onFetch) {
+						await onFetch({
+							limit: newData.paginate.limit,
+							page: newData.paginate.page,
+						});
+					}
 				}
 			} else {
 				const prevData = await persistStore.getList(storeName);
 
-				const newData = getData(prevData as any) as any;
+				newData = getData(prevData as any) as any;
+
 				await persistStore.setList(storeName, newData);
+				if (onFetch) {
+					await onFetch({
+						limit: newData.paginate.limit,
+						page: newData.paginate.page,
+					});
+				}
 			}
 		} else {
-			this.cache.updateData(storeName, getData as any);
+			newData = this.cache.updateData(storeName, getData as any);
+
+			if (onFetch && newData) {
+				await onFetch({
+					limit: newData.paginate.limit,
+					page: newData.paginate.page,
+				});
+			}
 		}
 
 		this.updateLoadingStatus(storeName, {

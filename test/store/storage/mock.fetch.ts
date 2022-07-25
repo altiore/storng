@@ -63,9 +63,11 @@ const successFetchList1Json: any = () =>
 export const mockSuccessListFetch: any = sinon.spy((url: string) => {
 	if (url === '/base/users?limit=2&page=2') {
 		return new Promise((resolve) => {
-			resolve({
-				json: successFetchList1Json(),
-			} as any);
+			setTimeout(() => {
+				resolve({
+					json: successFetchList1Json(),
+				} as any);
+			}, 100);
 		});
 	}
 	return new Promise((resolve) => {

@@ -103,6 +103,13 @@ describe('sync.list.ts', () => {
 			const p = document.getElementsByTagName('p');
 			p[0].click();
 		});
+
+		await wait(0.1);
+
+		expect(root?.innerHTML).to.equal('<p>loading</p>');
+	});
+
+	it('новые данные после изменения пагинации (следующая страница пагинации)', async () => {
 		await wait(0.3);
 
 		expect(root?.innerHTML).to.equal('<p>correct 1</p>');

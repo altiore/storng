@@ -34,24 +34,17 @@ const onChangeFilter =
 	) =>
 	async (paginate: Partial<Omit<Paginated<any>, 'data'>>): Promise<void> => {
 		const getData = (s: LoadedList<T[keyof T]>) => {
-			const res = {
+			return {
 				...s,
+				loadingStatus: {
+					...s.loadingStatus,
+					isLoading: true,
+				},
 				paginate: {
 					...s.paginate,
 					...paginate,
 				},
 			};
-			if (onFetch) {
-				if (!res.loadingStatus.isLoading) {
-					onFetch(store)({
-						limit: res.paginate.limit,
-						page: res.paginate.page,
-					})
-						.then()
-						.catch(console.error);
-				}
-			}
-			return res;
 		};
 
 		const storeName: Key =
@@ -66,7 +59,12 @@ const onChangeFilter =
 			? store.local.listStorage<T>()
 			: undefined;
 
-		await store.updateListData(storeName, getData, persistStorage);
+		await store.updateListData(
+			storeName,
+			getData,
+			persistStorage,
+			onFetch.bind(undefined, store)(),
+		);
 	};
 
 export function syncList<

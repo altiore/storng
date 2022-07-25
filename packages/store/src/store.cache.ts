@@ -249,7 +249,7 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 			| ((data: LoadedData<T[keyof T]>) => LoadedData<T[keyof T]>)
 			| LoadedData<T[keyof T]>,
 		runSubscribers = true,
-	): void => {
+	): LoadedData<T[keyof T]> | void => {
 		const curData = this.getData(key);
 		if (curData) {
 			const newData =
@@ -262,6 +262,8 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 					subscriber(dataPreparer(newData));
 				});
 			}
+
+			return newData;
 		}
 	};
 }
