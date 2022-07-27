@@ -176,15 +176,12 @@ syncList.nothing = {
 	request: requestHandler,
 	success: (s: LoadedList<any>): LoadedList<any> => {
 		return {
-			data: s.data,
-			filter: s.filter,
+			...s,
 			loadingStatus: {
 				...s.loadingStatus,
 				error: undefined,
 				isLoading: false,
-				updatedAt: new Date().getTime(),
 			},
-			paginate: s.paginate,
 		};
 	},
 	// eslint-disable-next-line sort-keys
@@ -199,7 +196,7 @@ syncList.replace = {
 		remote: {res: DataRes; route: Route},
 	): LoadedList<any> => {
 		return {
-			data: (remote?.res.data as any) || data || [],
+			data: remote?.res?.data || data || [],
 			filter: s.filter,
 			loadingStatus: {
 				error: undefined,
@@ -221,16 +218,29 @@ syncList.createOne = {
 		data,
 		remote: {res: DataRes; route: Route},
 	): LoadedList<any> => {
+		const preparedData = remote?.res?.data || data;
+		if (!data.id) {
+			return {
+				...s,
+				loadingStatus: {
+					...s.loadingStatus,
+					error: {
+						message: 'Полученные данные не содержат id',
+						ok: false,
+					},
+					isLoading: false,
+				},
+			};
+		}
 		return {
-			data: (remote?.res.data as any) || data || [],
-			filter: s.filter,
+			...s,
+			data: [...(s.data || []), preparedData],
 			loadingStatus: {
+				...s.loadingStatus,
 				error: undefined,
-				isLoaded: true,
 				isLoading: false,
 				updatedAt: new Date().getTime(),
 			},
-			paginate: s.paginate,
 		};
 	},
 	// eslint-disable-next-line sort-keys
@@ -244,28 +254,40 @@ syncList.updateOne = {
 		data,
 		remote: {res: DataRes; route: Route},
 	): LoadedList<any> => {
-		const id = remote?.res.data.id;
+		const preparedData = remote?.res?.data || data;
+		const id = preparedData?.id;
 		if (!id) {
-			return s;
+			return {
+				...s,
+				loadingStatus: {
+					...s.loadingStatus,
+					error: {
+						message: 'Полученные данные не содержат id',
+						ok: false,
+					},
+					isLoading: false,
+				},
+			};
 		}
 		const index = s.data.findIndex((el) => el.id === id);
 		if (index === -1) {
+			console.warn('Не удалось найти существующий элемент. Был создан новый');
 			return syncList.createOne.success(s, data, remote);
 		}
+
 		return {
+			...s,
 			data: [
 				...s.data.splice(0, index),
-				remote.res.data,
+				preparedData,
 				...s.data.splice(index + 1),
 			],
-			filter: s.filter,
 			loadingStatus: {
 				error: undefined,
 				isLoaded: true,
 				isLoading: false,
 				updatedAt: new Date().getTime(),
 			},
-			paginate: s.paginate,
 		};
 	},
 	// eslint-disable-next-line sort-keys
@@ -274,17 +296,7 @@ syncList.updateOne = {
 
 syncList.remove = {
 	request: requestHandler,
-	success: (): LoadedList<any> => ({
-		data: [],
-		filter: {},
-		loadingStatus: {
-			error: undefined,
-			isLoaded: false,
-			isLoading: false,
-			updatedAt: new Date().getTime(),
-		},
-		paginate: getInitDataList(false).paginate,
-	}),
+	success: (): LoadedList<any> => getInitDataList(false, new Date().getTime()),
 	// eslint-disable-next-line sort-keys
 	failure: failureHandler,
 } as any;
