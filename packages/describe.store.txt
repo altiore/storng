@@ -1,0 +1,79 @@
+import {combineTwo} from '~/@utils/combineTwo';
+
+import {StoreType} from '~/@store/@store';
+
+const funData = <T = any>(arg: {yes: T; no: T}): any => {}
+
+const createSelector = (func: any, dependencies: Array<keyof StoreType>): any => {};
+
+// Простейший объект
+const userFilter = {
+	orderBy: 'id',
+};
+
+// 1. data (зависимость) - Array<{type: 'OBJECT', pointer: ['ObjectName']}>
+// 2. transformer (свойство состояния данных, информация о состоянии данных)
+const funUserFilter = funData({
+	yes: '',
+	no: '',
+});
+
+const users = [
+	{
+		id: '1',
+		email: 'email1@mail.com',
+	},
+	{
+		id: '2',
+		email: 'email2@mail.com',
+	},
+];
+
+// 1. data (зависимость) - Array<{type: 'ARRAY', pointer: ['TableName']}> (один элемент табицы =
+// Array<{type: 'OBJECT', pointer: ['TableName', 'id']}>
+// 2. transformer
+const funUsers = funData({
+	yes: '',
+	no: '',
+});
+
+const orderedUsers = (filter: any, list: any): Array<any> => {
+	return list;
+}
+
+// 1. зависимости (могут быть функциональными данными) // 1. data (зависимость) - {type: 'ARRAY', tableName}
+// Array<{type: 'Object|Array|SelectorType(Object/Array)', pointer?: []}>
+// 2. трансформер
+const funOrderedUsers = funData();
+
+// export const oneOrManyRoles = createSelector(([funProfile, funProfileFilter]: any) => {
+// 	return combineTwo(funProfile, funProfileFilter)({
+// 		correct: '',
+// 		failure: '',
+// 		loading: '',
+// 		nothing: '',
+// 	});
+// }, [['profile', transformer], 'profile_filter', ['selectorKey', transformer]]);
+
+//
+
+// 1. Найти набор информации, проверка типа которой мне даст однозначно понять, какие именно
+// данные я запрашиваю
+
+// [functionTransformer, dependencies]
+
+// 1.1. dependencies могут быть данными из разрешенных ключей
+// 1.2. dependencies могут быть селекторами
+
+// Задачи
+// 1. Нужно позволить менять трансформер для простых данных
+//
+
+type Data = [
+	{
+		descriptor: Array<{type: string; pointer?: string[]}>;
+		transformer: <T = any>(...args: any) => T;
+	},
+];
+
+
