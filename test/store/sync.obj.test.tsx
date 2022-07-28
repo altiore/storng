@@ -97,7 +97,7 @@ describe('sync.object.ts', () => {
 
 		expect(root?.innerHTML).to.equal('<p>loading function</p>');
 
-		await wait(0.3);
+		await wait(1);
 
 		expect(root?.innerHTML).to.equal('<p>correct function</p>');
 

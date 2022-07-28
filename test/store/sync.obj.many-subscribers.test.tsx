@@ -99,7 +99,7 @@ describe('sync.object.ts много подписчиков', () => {
 			'<p>loading</p><p>loading</p><p>loading</p>',
 		);
 
-		await wait(0.3);
+		await wait(1);
 
 		expect(root?.innerHTML).to.equal(
 			'<p>correct</p><p>correct</p><p>correct</p>',

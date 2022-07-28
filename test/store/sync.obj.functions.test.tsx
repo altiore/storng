@@ -87,8 +87,8 @@ describe('sync.obj.ts Подписка на данные из syncObj - как �
 
 		expect(root?.innerHTML).to.equal('<p>...loading</p>');
 
-		await wait(0.3);
+		await wait(1);
 
 		expect(root?.innerHTML).to.equal('<p>correct: accessToken</p>');
-	}).timeout(5000);
+	});
 });
