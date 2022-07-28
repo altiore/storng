@@ -31,10 +31,12 @@ export const ConnectComponent = ({
 	);
 
 	const storeData = useRef({});
-	const dependencies = useRef({});
+	const dependencies = useRef<
+		{[key in string]: {deps: string[]; transformer: (...args: any) => any}}
+	>({});
 
 	const addDependency = useCallback(
-		(name, deps, transformer) => {
+		(name: string, deps: string[], transformer: (...args: any) => any) => {
 			dependencies.current = {
 				...dependencies.current,
 				[name]: {deps, transformer},
@@ -44,16 +46,19 @@ export const ConnectComponent = ({
 	);
 
 	const [state, setState] = useState(
-		Object.entries(selectors || {}).reduce((res, cur) => {
-			res[cur[0]] = cur[1].def;
-			return res;
-		}, {}),
+		Object.entries(selectors || {}).reduce<{[key in string]: any}>(
+			(res, cur) => {
+				res[cur[0]] = cur[1].def;
+				return res;
+			},
+			{},
+		),
 	);
 
 	const getMounted = useIsMounted();
 
 	const updateState = useCallback(
-		(name, value) => {
+		(name: string, value: any) => {
 			if (!getMounted()) {
 				return;
 			}
