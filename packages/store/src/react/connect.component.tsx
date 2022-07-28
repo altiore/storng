@@ -30,7 +30,7 @@ export const ConnectComponent = ({
 			: {},
 	);
 
-	const storeData = useRef({});
+	const storeData = useRef<{[key in string]: any}>({});
 	const dependencies = useRef<
 		{[key in string]: {deps: string[]; transformer: (...args: any) => any}}
 	>({});
@@ -69,7 +69,7 @@ export const ConnectComponent = ({
 			};
 
 			setState((s) => {
-				return Object.entries(s).reduce((res, cur) => {
+				return Object.entries(s).reduce<{[key in string]: any}>((res, cur) => {
 					const fieldName = cur[0];
 					const deps = dependencies.current[fieldName].deps;
 					const transformer = dependencies.current[fieldName].transformer;
