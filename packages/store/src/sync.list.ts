@@ -196,7 +196,7 @@ syncList.replace = {
 		remote: {res: DataRes; route: Route},
 	): LoadedList<any> => {
 		return {
-			data: remote?.res?.data || data || [],
+			data: (remote?.res?.data as any) || data || [],
 			filter: s.filter,
 			loadingStatus: {
 				error: undefined,
