@@ -36,7 +36,7 @@ const STORE_NAME = 'sync.obj.with.custom.handler.test.tsx2';
 const store = getStore(STORE_NAME);
 
 const s = {
-	notify,
+	notify: notify.item,
 };
 
 const a = {
@@ -71,6 +71,7 @@ describe('sync.obj.ts сущность без API', () => {
 			expect(root?.innerHTML).to.equal('<p>...loading</p>');
 		});
 
+		await wait(0.3);
 		expect(root?.innerHTML).to.equal('<p>correct: 0</p>');
 
 		expect(renderSpy).to.have.been.calledTwice;

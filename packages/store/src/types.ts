@@ -6,6 +6,8 @@ import {
 	Route,
 } from '@storng/common';
 
+import {Store} from './store';
+
 export interface LoadingStatus {
 	declinedRestore: boolean;
 	isLocalLoaded: boolean;
@@ -78,8 +80,8 @@ export type ListPersistStore<T extends Record<keyof T, T[keyof T]>> = {
 };
 
 export enum StructureType {
-	ITEM = 'item',
-	LIST = 'list',
+	ITEM = '___item',
+	LIST = '___list',
 }
 
 export type KeyNames<StoreState> = {[P in keyof StoreState]: string};
@@ -98,9 +100,8 @@ export type SubsObj<Item> = (
 	subscriber: SubscriberType<Item> | SubscriberListType<Item>,
 ) => Promise<() => void>;
 
-export type SyncObjectType<
+export type SyncListType<
 	Routes extends Record<string, Route<any, any>> = Record<string, never>,
-	Item extends Record<string, any> = Record<string, any>,
 	OtherRoutes extends Record<string, any> = Record<string, never>,
 > = {
 	[P in keyof Routes]: GetActionFunc<Routes[P]>;
@@ -108,7 +109,20 @@ export type SyncObjectType<
 	{
 		[P in keyof OtherRoutes]: GetActionFunc<OtherRoutes[P]>;
 	} & {
-		getSubscriber: <StoreState = any>(store: StoreState) => SubsObj<Item>;
+		currentPage: SelectorType;
+		oneById: SelectorType;
+	};
+
+export type SyncObjectType<
+	Routes extends Record<string, Route<any, any>> = Record<string, never>,
+	OtherRoutes extends Record<string, any> = Record<string, never>,
+> = {
+	[P in keyof Routes]: GetActionFunc<Routes[P]>;
+} &
+	{
+		[P in keyof OtherRoutes]: GetActionFunc<OtherRoutes[P]>;
+	} & {
+		item: SelectorType;
 	};
 
 export type ActionHandler<
@@ -204,4 +218,14 @@ export type MaybeRemoteListData<
 		| R;
 }) => R;
 
-export const LIST_FILTER_TABLE_NAME = 'list_filters';
+export const LIST_FILTER_TABLE_NAME = '___list_filters';
+
+export type SelectorType = {
+	func: (
+		store: Store<any>,
+	) => (
+		getSubscriber: (name: string) => (data: unknown) => void,
+		existingStoreNames: string[],
+	) => any;
+	def: unknown;
+};

@@ -36,7 +36,7 @@ const MyComponent = ({auth, registerConfirm}: MyComponentProps) => {
 };
 
 const s = {
-	auth,
+	auth: auth.item,
 };
 
 const a = {

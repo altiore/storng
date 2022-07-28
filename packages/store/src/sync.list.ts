@@ -7,18 +7,12 @@ import {
 	Route,
 } from '@storng/common';
 
+import {createSelector} from './react/create-selector';
+import {getItemFromListFunc, getListFunc} from './react/get.func-data';
 import {Store} from './store';
-import {defRestorePreparation} from './sync.object.helpers/def.restore.preparation';
 import {getListUpdater} from './sync.object.helpers/get-list-updater';
 import {prepareActions} from './sync.object.helpers/prepare-actions';
-import {
-	LoadedList,
-	MaybeRemoteListData,
-	ScopeHandlers,
-	StructureType,
-	SubscriberListType,
-	SyncObjectType,
-} from './types';
+import {LoadedList, ScopeHandlers, StructureType, SyncListType} from './types';
 import {getInitDataList, getResPaginate} from './utils';
 
 const getPaginateData = <T>(
@@ -79,12 +73,8 @@ export function syncList<
 	scope: GetScope<Routes, Key> | Key,
 	scopeHandlers: ScopeHandlers<StoreState, Key, Routes, OtherRoutes>,
 	persistData?: boolean,
-	restorePreparation: (
-		v: LoadedList<StoreState[Key]>,
-	) => LoadedList<StoreState[Key]> = defRestorePreparation as any,
-): SyncObjectType<
+): SyncListType<
 	Routes,
-	StoreState[Key],
 	OtherRoutes & {onChangeFilter: Partial<Omit<Paginated<any>, 'data'>>}
 > {
 	const result: any = {};
@@ -107,40 +97,22 @@ export function syncList<
 		result[CrudUrl.getMany],
 	);
 
-	result.getSubscriber =
-		(
-			store: Store<StoreState>,
-			dataPreparer: (
-				value: LoadedList<StoreState[Key]>,
-			) => MaybeRemoteListData<StoreState[Key]>,
-		) =>
-		(subscriber: SubscriberListType<StoreState[Key]>) => {
-			try {
-				const storeName: Key =
-					typeof scope === 'object' ? (scope.NAME as Key) : scope;
+	const scopeName: keyof StoreState =
+		typeof scope === 'object' ? (scope.NAME as keyof StoreState) : scope;
 
-				const shouldPersistStore =
-					typeof persistData === 'boolean'
-						? persistData
-						: typeof scope === 'object';
+	result.currentPage = createSelector(
+		getListFunc,
+		[{pointer: ['', scopeName as string], type: StructureType.LIST}],
+		undefined,
+		result[CrudUrl.getMany],
+	);
 
-				const persistStorage = shouldPersistStore
-					? store.local.listStorage<StoreState>()
-					: undefined;
-
-				store.subscribeList<MaybeRemoteListData<StoreState[Key]>>(
-					storeName,
-					subscriber,
-					dataPreparer as any,
-					restorePreparation as any,
-					persistStorage,
-					result[CrudUrl.getMany],
-				);
-				return () => store.unsubscribe(storeName, subscriber);
-			} catch (err) {
-				console.error(err);
-			}
-		};
+	result.oneById = createSelector(
+		getItemFromListFunc,
+		[{pointer: ['', scopeName as string], type: StructureType.LIST}],
+		undefined,
+		result[CrudUrl.getMany],
+	);
 
 	return result;
 }

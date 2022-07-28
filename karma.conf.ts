@@ -49,7 +49,6 @@ export default function (config: WholeConfig) {
 			'packages/**/*(!.d).ts',
 			'test/**/*.test.tsx',
 			'test/**/*.test.ts',
-			// 'test/**/sync.list.test.tsx',
 		],
 
 		// frameworks to use

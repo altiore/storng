@@ -1,6 +1,8 @@
-import {LoadedData, LoadedList} from '../types';
+import {getInitData, getInitDataList} from '@storng/store';
 
-export const defRestorePreparation = <T = any>(
+import {LoadedData, LoadedItem, LoadedList} from '../types';
+
+export const defListRestorePreparation = <T = any>(
 	s: LoadedData<T>,
 ): LoadedData<T> => {
 	if (typeof s?.loadingStatus?.isLoading === 'boolean') {
@@ -17,5 +19,23 @@ export const defRestorePreparation = <T = any>(
 	}
 
 	console.error('NO DATA >>>>>>', s);
-	return s;
+	return getInitDataList(true);
+};
+
+export const defObjRestorePreparation = <T extends Record<string, any> = any>(
+	s?: LoadedItem<T>,
+): LoadedItem<T> => {
+	if (typeof s?.loadingStatus?.isLoading === 'boolean') {
+		return {
+			data: s.data as any,
+			loadingStatus: {
+				...s.loadingStatus,
+				error: undefined,
+				isLoading: false,
+			},
+		};
+	}
+
+	console.error('NO DATA >>>>>>', s);
+	return getInitData<T>({}, true);
 };

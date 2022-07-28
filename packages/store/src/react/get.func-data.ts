@@ -1,4 +1,9 @@
-import {LoadedList, MaybeRemoteData, MaybeRemoteListData} from '@storng/store';
+import {
+	LoadedList,
+	MaybeRemoteData,
+	MaybeRemoteListData,
+	getInitDataList,
+} from '@storng/store';
 
 import {
 	getCorrectList,
@@ -14,8 +19,14 @@ import {
 } from './func-data/maybe-remote.data';
 
 export const getObjFunc = <A extends Record<string, any>>(
-	s: A,
+	s?: A,
 ): MaybeRemoteData<A> => {
+	if (!s?.loadingStatus) {
+		return getLoading<A | Record<string, never>>({
+			data: {},
+		});
+	}
+
 	if (s.loadingStatus.isLoading) {
 		return getLoading<A | Record<string, never>>({
 			data: s?.data,
@@ -39,8 +50,16 @@ export const getObjFunc = <A extends Record<string, any>>(
 };
 
 export const getListFunc = <A extends Record<string, any>>(
-	s: LoadedList<A>,
+	s?: LoadedList<A>,
 ): MaybeRemoteListData<Omit<LoadedList<A>, 'loadingStatus'>> => {
+	if (!s?.loadingStatus) {
+		return getLoadingList<A>({
+			data: [],
+			filter: {},
+			paginate: getInitDataList(false).paginate,
+		});
+	}
+
 	if (s.loadingStatus.isLoading) {
 		return getLoadingList<A>({
 			data: s.data,
@@ -71,3 +90,35 @@ export const getListFunc = <A extends Record<string, any>>(
 		paginate: s.paginate,
 	});
 };
+
+export const getItemFromListFunc =
+	<A extends Record<string, any>>(s?: LoadedList<A>) =>
+	(id: string): MaybeRemoteData<A> => {
+		if (!s?.loadingStatus) {
+			return getLoading<A>({
+				data: {},
+			});
+		}
+
+		const item = s.data.find((el) => el.id === id);
+		if (s.loadingStatus.isLoading) {
+			return getLoading<A>({
+				data: item ?? {},
+			});
+		}
+
+		if (s.loadingStatus.error) {
+			return getFailure<A>({
+				data: item,
+				error: s.loadingStatus.error,
+			});
+		}
+
+		if (item) {
+			return getCorrect<A>({
+				data: item,
+			});
+		}
+
+		return getNothing<A>();
+	};

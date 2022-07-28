@@ -37,7 +37,7 @@ const store = getStore(STORE_NAME, mockVersionFetch);
 const Wrapped = connect(
 	MyComponent,
 	{
-		publicData,
+		publicData: publicData.item,
 	},
 	{
 		fetchVersions: publicData.version,

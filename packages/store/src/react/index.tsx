@@ -1,28 +1,21 @@
 import React, {ComponentProps, FC} from 'react';
 
 import {ActionFunc, GetActionFunc} from '@storng/common';
-import {MaybeRemoteData, MaybeRemoteListData, SubsObj} from '@storng/store';
+import {SelectorType} from '@storng/store';
 
 import {ConnectComponent} from './connect.component';
 import {StoreContext} from './store.context';
 
-type SelectorLift<
-	S extends
-		| {[K in string]: {getSubscriber: (store: any) => SubsObj<any>}}
-		| undefined,
-> = {
-	[Prop in keyof S]: S[Prop] extends {
-		getSubscriber: (store: any) => SubsObj<infer Item>;
-	}
-		? MaybeRemoteData<Item> | MaybeRemoteListData<Item>
+type SelectorLift<S extends {[K in string]: SelectorType} | undefined> = {
+	[Prop in keyof S]: S[Prop] extends SelectorType
+		? // TODO: указать правильный тип
+		  any
 		: never;
 };
 
 type ValidStateProps<
 	C extends FC<any>,
-	S extends
-		| {[K in string]: {getSubscriber: (store: any) => SubsObj<any>}}
-		| undefined,
+	S extends {[K in string]: SelectorType} | undefined,
 > = ComponentProps<C> extends SelectorLift<S> ? S : undefined;
 
 type ActionLift<
@@ -45,8 +38,8 @@ type ValidActionProps<
 export function connect<
 	C extends FC<any>,
 	S extends {
-		[K in string]: {getSubscriber: (store: any) => SubsObj<any>};
-	} = {[K in string]: {getSubscriber: (store: any) => SubsObj<any>}},
+		[K in string]: SelectorType;
+	} = {[K in string]: SelectorType},
 >(
 	WrappedComponent: C,
 	selectors: ValidStateProps<C, S>,
@@ -56,10 +49,10 @@ export function connect<
 	C extends FC<any>,
 	S extends
 		| {
-				[K in string]: {getSubscriber: (store: any) => SubsObj<any>};
+				[K in string]: SelectorType;
 		  }
 		| undefined = {
-		[K in string]: {getSubscriber: (store: any) => SubsObj<any>};
+		[K in string]: SelectorType;
 	},
 	A extends {[P in string]: GetActionFunc} | undefined = {
 		[P in string]: GetActionFunc;
@@ -80,10 +73,10 @@ export function connect<
 	C extends FC<any>,
 	S extends
 		| {
-				[K in string]: {getSubscriber: (store: any) => SubsObj<any>};
+				[K in string]: SelectorType;
 		  }
 		| undefined = {
-		[K in string]: {getSubscriber: (store: any) => SubsObj<any>};
+		[K in string]: SelectorType;
 	},
 	A extends {[P in string]: GetActionFunc} | undefined = {
 		[P in string]: GetActionFunc;
@@ -107,7 +100,7 @@ export function connect<
 						actions={actions}
 						component={WrappedComponent}
 						componentProps={ownProps}
-						selectors={selectors}
+						selectors={selectors as any}
 						store={store}
 					/>
 				)}

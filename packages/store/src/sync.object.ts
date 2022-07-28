@@ -1,16 +1,15 @@
 import {DataRes, ErrorOrInfo, GetScope, Route} from '@storng/common';
 
+import {createSelector} from './react/create-selector';
+import {getObjFunc} from './react/get.func-data';
 import {Store} from './store';
-import {defRestorePreparation} from './sync.object.helpers/def.restore.preparation';
 import {getUpdater} from './sync.object.helpers/get-updater';
 import {prepareActions} from './sync.object.helpers/prepare-actions';
 import {
 	ActionHandlers,
 	LoadedItem,
-	MaybeRemoteData,
 	ScopeHandlers,
 	StructureType,
-	SubscriberType,
 	SyncObjectType,
 } from './types';
 import {deepAssign} from './utils';
@@ -25,10 +24,7 @@ export function syncObject<
 	scopeHandlers: ScopeHandlers<StoreState, Key, Routes, OtherRoutes>,
 	initData?: Partial<StoreState[Key]>,
 	persistData?: boolean,
-	restorePreparation: (
-		v: LoadedItem<StoreState[Key]>,
-	) => LoadedItem<StoreState[Key]> = defRestorePreparation as any,
-): SyncObjectType<Routes, StoreState[Key], OtherRoutes> {
+): SyncObjectType<Routes, OtherRoutes> {
 	const result: any = {};
 	result.type = StructureType.ITEM;
 
@@ -40,40 +36,19 @@ export function syncObject<
 		initData,
 	);
 
-	result.getSubscriber =
-		(
-			store: Store<StoreState>,
-			dataPreparer: (
-				value: LoadedItem<StoreState[Key]>,
-			) => MaybeRemoteData<LoadedItem<StoreState[Key]>>,
-		) =>
-		(subscriber: SubscriberType<StoreState[Key]>) => {
-			try {
-				const storeName: Key =
-					typeof scope === 'object' ? (scope.NAME as Key) : scope;
+	const scopeName: keyof StoreState =
+		typeof scope === 'object' ? (scope.NAME as keyof StoreState) : scope;
 
-				const shouldPersistStore =
-					typeof persistData === 'boolean'
-						? persistData
-						: typeof scope === 'object';
-
-				const persistStorage = shouldPersistStore
-					? store.local.itemStorage()
-					: undefined;
-
-				store.subscribe<MaybeRemoteData<StoreState[Key]>>(
-					storeName,
-					subscriber,
-					dataPreparer as any,
-					restorePreparation as any,
-					persistStorage as any,
-					initData,
-				);
-				return () => store.unsubscribe(storeName, subscriber);
-			} catch (err) {
-				console.error(err);
-			}
-		};
+	result.item = createSelector(
+		getObjFunc,
+		[
+			{
+				pointer: ['1', scopeName as string, scopeName as string],
+				type: StructureType.ITEM,
+			},
+		],
+		initData,
+	);
 
 	return result;
 }

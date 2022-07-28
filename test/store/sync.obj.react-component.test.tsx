@@ -44,7 +44,7 @@ const STORE_NAME = 'sync.obj.react-component.test.tsx';
 const store = getStore(STORE_NAME);
 
 const Wrapped = connect(MyComponent, {
-	auth,
+	auth: auth.item,
 });
 
 describe('sync.obj.ts Подписка на данные из syncObj - Как реакт компоненты с проверкой свойств', () => {
@@ -75,7 +75,7 @@ describe('sync.obj.ts Подписка на данные из syncObj - Как �
 		expect(root?.innerHTML).to.equal('<div>loading: </div>');
 
 		await wait(0.3);
-		// expect(renderSpy).to.have.been.calledTwice;
+		expect(renderSpy).to.have.been.calledTwice;
 		expect(root?.innerHTML).to.equal('<div>nothing</div>');
 	});
 });

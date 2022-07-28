@@ -22,7 +22,7 @@ const MyComponent = ({publicData, fetchVersions}: MyComponentProps) => {
 		correct: ({data}) => <p>correct: {data.api.api}</p>,
 		failure: ({error}) => <p>{error.message}</p>,
 		loading: () => <p>...loading</p>,
-		nothing: () => <p>{typeof fetchVersions}</p>,
+		nothing: () => <p>nothing {typeof fetchVersions}</p>,
 	});
 };
 
@@ -33,7 +33,7 @@ const store = getStore(STORE_NAME, mockVersionFetch);
 const Wrapped = connect(
 	MyComponent,
 	{
-		publicData,
+		publicData: publicData.item,
 	},
 	{
 		fetchVersions: publicData.version,
@@ -69,6 +69,7 @@ describe('sync.obj.ts Подписка на данные из syncObj - влож
 
 		await wait(0.3);
 		expect(renderSpy).to.have.been.callCount(2);
+
 		expect(root?.innerHTML).to.equal('<p>correct: default</p>');
 	});
 });

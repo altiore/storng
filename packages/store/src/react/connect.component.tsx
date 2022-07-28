@@ -1,14 +1,12 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 
-import {Store, StructureType, SubsObj} from '@storng/store';
+import {SelectorType, Store} from '@storng/store';
 
-import {getLoadingList} from './func-data/maybe-remote-list.data';
-import {getLoading} from './func-data/maybe-remote.data';
-import {getListFunc} from './get.func-data';
+import {useIsMounted} from './hooks/use-is-mounted';
 
 interface IProps<T extends Record<string, T[keyof T]>> {
 	store: Store<T>;
-	selectors: any;
+	selectors: {[key in string]: SelectorType};
 	actions: any;
 	component: any;
 	componentProps: any;
@@ -16,69 +14,101 @@ interface IProps<T extends Record<string, T[keyof T]>> {
 
 const DEF_PROPS = {};
 
-export const ConnectComponent = <T extends Record<string, T[keyof T]>>({
+export const ConnectComponent = ({
 	actions = DEF_PROPS,
 	component: Component,
 	componentProps = DEF_PROPS,
 	selectors,
 	store,
-}: IProps<T>): JSX.Element => {
+}: IProps<any>): JSX.Element => {
+	const [prepActions] = useState(
+		actions && actions
+			? Object.keys(actions).reduce<any>((res, cur) => {
+					res[cur] = actions[cur](store);
+					return res;
+			  }, {})
+			: {},
+	);
+
+	const storeData = useRef({});
+	const dependencies = useRef({});
+
+	const addDependency = useCallback(
+		(name, deps, transformer) => {
+			dependencies.current = {
+				...dependencies.current,
+				[name]: {deps, transformer},
+			};
+		},
+		[dependencies.current],
+	);
+
 	const [state, setState] = useState(
-		Object.keys(selectors || {}).reduce<any>((res, cur) => {
-			res[cur] =
-				selectors[cur].type === StructureType.LIST
-					? getLoadingList()
-					: getLoading();
+		Object.entries(selectors || {}).reduce((res, cur) => {
+			res[cur[0]] = cur[1].def;
 			return res;
 		}, {}),
 	);
 
-	const prepActions = useMemo(() => {
-		if (store && actions) {
-			return Object.keys(actions).reduce<any>((res, cur) => {
-				res[cur] = actions[cur](store, getListFunc);
-				return res;
-			}, {});
-		}
-
-		return {};
-	}, [actions, store]);
+	const getMounted = useIsMounted();
 
 	const updateState = useCallback(
-		(propName: string) => (value: any) => {
-			setState((s: any) => {
-				const newState = {
-					...s,
-					[propName]: value,
-				};
-				return newState;
+		(name, value) => {
+			if (!getMounted()) {
+				return;
+			}
+
+			storeData.current = {
+				...storeData.current,
+				[name]: value,
+			};
+
+			setState((s) => {
+				return Object.entries(s).reduce((res, cur) => {
+					const fieldName = cur[0];
+					const deps = dependencies.current[fieldName].deps;
+					const transformer = dependencies.current[fieldName].transformer;
+					if (deps.includes(name)) {
+						res[fieldName] = transformer(
+							...deps.map((dep) =>
+								dep === name ? value : storeData.current[dep],
+							),
+						);
+					} else {
+						res[fieldName] = cur[1];
+					}
+					return res;
+				}, {});
 			});
 		},
-		[setState],
+		[dependencies.current, storeData.current],
+	);
+
+	const getSubscriber = useCallback(
+		(storePropName: string): any => {
+			return updateState.bind(undefined, storePropName);
+		},
+		[updateState],
 	);
 
 	useEffect(() => {
-		const subscribers: any[] = [];
-		if (store && selectors) {
-			Object.entries(
-				selectors as {
-					[K in string]: {
-						getSubscriber: (store: any, prepareData: any) => SubsObj<any>;
-					};
-				},
-			).map(([propName, syncElement]) => {
-				const unsubscribe = syncElement.getSubscriber(
-					store,
-					getListFunc,
-				)(updateState(propName));
-				subscribers.push(unsubscribe);
+		const existingStoreNames: string[] = [];
+		const subscribers: Array<() => void> = [];
+		if (selectors) {
+			Object.entries(selectors).forEach(([selectorName, selector]) => {
+				const [transformer, tables, subs] = selector.func(store)(
+					getSubscriber,
+					existingStoreNames,
+				);
+				subscribers.push(...subs);
+				addDependency(selectorName, tables, transformer);
 			});
 		}
 
 		return () => {
 			subscribers.forEach((unsubscribe) => unsubscribe());
 		};
-	}, [store, selectors]);
+	}, [selectors, store]);
 
 	return <Component {...prepActions} {...state} {...componentProps} />;
 };

@@ -12,7 +12,7 @@ import {users} from './storage/users';
 
 const renderSpy = sinon.spy();
 
-const STORE_NAME = 'sync.list.test.tsx';
+const STORE_NAME = 'sync.list.selector.test.tsx';
 
 const store = getStore(STORE_NAME, mockSuccessListFetch);
 
@@ -97,9 +97,9 @@ describe('sync.list.ts', () => {
 	it('вторая генерация', async () => {
 		await wait(0.3);
 
-		expect(root?.innerHTML).to.equal('<p>correct 2 - 10</p>');
-
 		expect(renderSpy).have.been.callCount(2);
+
+		expect(root?.innerHTML).to.equal('<p>correct 2 - 10</p>');
 	});
 
 	it('Изменить фильтр (следующая страница пагинации)', async () => {

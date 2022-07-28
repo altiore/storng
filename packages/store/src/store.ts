@@ -3,7 +3,10 @@ import {Route} from '@storng/common';
 import {StoreCache} from './store.cache';
 import {StoreLocal} from './store.local';
 import {StoreRemote} from './store.remote';
-import {defRestorePreparation} from './sync.object.helpers/def.restore.preparation';
+import {
+	defListRestorePreparation,
+	defObjRestorePreparation,
+} from './sync.object.helpers/def.restore.preparation';
 import {
 	AuthData,
 	FetchType,
@@ -175,7 +178,9 @@ export class Store<T extends Record<string, T[keyof T]>> {
 		key: keyof T,
 		subscriber: (value: ResultData) => void,
 		dataPreparer: (value: LoadedData<T[keyof T]>) => ResultData,
-		restorePreparation: (v: LoadedItem<T[keyof T]>) => LoadedItem<T[keyof T]>,
+		restorePreparation: (
+			v: LoadedItem<T[keyof T]>,
+		) => LoadedItem<T[keyof T]> = defObjRestorePreparation as any,
 		persistStore?: PersistStore<T>,
 		initDataData?: Partial<T[keyof T]>,
 	): void => {
@@ -241,7 +246,9 @@ export class Store<T extends Record<string, T[keyof T]>> {
 		storeName: keyof T,
 		subscriber: (value: ResultData) => void,
 		dataPreparer: (value: LoadedList<T[keyof T]>) => ResultData,
-		restorePreparation: (v: LoadedList<T[keyof T]>) => LoadedList<T[keyof T]>,
+		restorePreparation: (
+			v: LoadedList<T[keyof T]>,
+		) => LoadedList<T[keyof T]> = defListRestorePreparation as any,
 		persistStore?: ListPersistStore<T>,
 		onFetch?: (store: any) => (a: any) => Promise<any>,
 	): void => {
@@ -263,7 +270,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 		}
 
 		// 2. добавляем подписчика
-		const item = this.cache.subscribeList(
+		const list = this.cache.subscribeList(
 			storeName,
 			subscriber,
 			dataPreparer as any,
@@ -276,8 +283,6 @@ export class Store<T extends Record<string, T[keyof T]>> {
 		const xSecAgo = 1;
 
 		if (!persistStore || loadingStatus?.isLocalLoaded) {
-			// 4. Если данные уже восстановлены или мы вообще не храним их в локальном хранилище, --
-			//    отправить данные текущему подписчику
 			this.updateLoadingStatus(storeName, {
 				isLocalLoaded: true,
 			});
@@ -285,16 +290,17 @@ export class Store<T extends Record<string, T[keyof T]>> {
 			// 3. Если данные были загружены более х-ти секунд назад, то загрузить данные
 			if (
 				onFetch &&
-				new Date().getTime() - item.loadingStatus.updatedAt > xSecAgo * 1000
+				new Date().getTime() - list.loadingStatus.updatedAt > xSecAgo * 1000
 			) {
 				onFetch(this)({
-					limit: item.paginate.limit,
-					page: item.paginate.page,
+					limit: list.paginate.limit,
+					page: list.paginate.page,
 				})
 					.then()
 					.catch(console.error);
 			} else {
-				subscriber(dataPreparer(item));
+				// 4. Если мы не загружаем данные - отправить их подписчику
+				subscriber(dataPreparer(list));
 			}
 
 			return;
@@ -307,7 +313,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 		this.restoreListData(
 			storeName,
 			persistStore,
-			item,
+			list,
 			restorePreparation as any,
 		)
 			.then((data) => {
@@ -490,7 +496,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 		prevData: LoadedItem<P>,
 		restorePreparation: (
 			v: LoadedItem<P>,
-		) => LoadedItem<P> = defRestorePreparation as any,
+		) => LoadedItem<P> = defObjRestorePreparation as any,
 	): Promise<LoadedItem<P>> => {
 		const loadingStatus = this.loadingStatus.get(storeName);
 
@@ -525,7 +531,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 		prevData: LoadedList<T[keyof T]>,
 		restorePreparation: (
 			v: LoadedList<T[keyof T]>,
-		) => LoadedList<T[keyof T]> = defRestorePreparation as any,
+		) => LoadedList<T[keyof T]> = defListRestorePreparation as any,
 	): Promise<LoadedData<T[keyof T]>> => {
 		const loadingStatus = this.loadingStatus.get(storeName);
 

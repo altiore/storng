@@ -38,7 +38,7 @@ const MyComponent = ({auth, registerConfirm}: MyComponentProps) => {
 };
 
 const s = {
-	auth,
+	auth: auth.item,
 };
 
 const a = {
@@ -63,7 +63,7 @@ describe('sync.object.ts', () => {
 	});
 
 	it('users.getSubscriber is func', () => {
-		expect(typeof users.getSubscriber).to.be.eq('function');
+		expect(typeof users.currentPage).to.be.eq('object');
 	});
 
 	it('первая генерация компонента', async () => {

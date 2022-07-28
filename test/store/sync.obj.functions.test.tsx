@@ -40,7 +40,7 @@ const store = getStore(STORE_NAME);
 const Wrapped = connect(
 	MyComponent,
 	{
-		auth,
+		auth: auth.item,
 	},
 	{
 		registerConfirm: auth.registerConfirm,

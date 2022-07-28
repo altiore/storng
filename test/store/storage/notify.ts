@@ -10,7 +10,6 @@ type Actions = {
 
 export const notify: SyncObjectType<
 	Record<string, never>,
-	StoreType['notify'],
 	Actions
 > = syncObject<StoreType, 'notify', Record<string, never>, Actions>(
 	'notify',
