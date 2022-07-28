@@ -278,9 +278,9 @@ syncList.updateOne = {
 		return {
 			...s,
 			data: [
-				...s.data.splice(0, index),
+				...s.data.slice(0, index),
 				preparedData,
-				...s.data.splice(index + 1),
+				...s.data.slice(index + 1),
 			],
 			loadingStatus: {
 				error: undefined,
