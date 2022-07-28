@@ -60,6 +60,16 @@ const successFetchList1Json: any = () =>
 			}),
 	);
 
+const successFetchItemJson: any = () =>
+	sinon.spy(
+		() =>
+			new Promise((resolve) => {
+				resolve({
+					data: {email: 'user-0@mail.com', id: 'user-id-0'},
+					ok: true,
+				});
+			}),
+	);
 export const mockSuccessListFetch: any = sinon.spy((url: string) => {
 	if (url === '/base/users?limit=2&page=2') {
 		return new Promise((resolve) => {
@@ -68,6 +78,13 @@ export const mockSuccessListFetch: any = sinon.spy((url: string) => {
 					json: successFetchList1Json(),
 				} as any);
 			}, 100);
+		});
+	}
+	if (url === '/base/users/user-id-0') {
+		return new Promise((resolve) => {
+			resolve({
+				json: successFetchItemJson(),
+			} as any);
 		});
 	}
 	return new Promise((resolve) => {

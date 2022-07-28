@@ -107,12 +107,9 @@ export function syncList<
 		result[CrudUrl.getMany],
 	);
 
-	result.oneById = createSelector(
-		getItemFromListFunc,
-		[{pointer: ['', scopeName as string], type: StructureType.LIST}],
-		undefined,
-		result[CrudUrl.getMany],
-	);
+	result.oneById = createSelector(getItemFromListFunc, [
+		{pointer: ['', scopeName as string], type: StructureType.LIST},
+	]);
 
 	return result;
 }
@@ -191,7 +188,7 @@ syncList.createOne = {
 		remote: {res: DataRes; route: Route},
 	): LoadedList<any> => {
 		const preparedData = remote?.res?.data || data;
-		if (!data.id) {
+		if (!preparedData.id) {
 			return {
 				...s,
 				loadingStatus: {

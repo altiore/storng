@@ -12,6 +12,7 @@ export const users = syncList<StoreType, 'users', UsersUrls, Actions>(
 	API_USERS,
 	{
 		[CrudUrl.getMany]: syncList.replace,
+		[CrudUrl.getOne]: syncList.updateOne,
 		otherHandler: syncList.nothing,
 	},
 );

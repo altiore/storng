@@ -14,9 +14,9 @@ export const createSelector = <R = any, T = any>(
 	dependencies: Array<Descriptor>,
 	def?: T,
 	onFetch?: (store: Store<any>) => () => Promise<any>,
-): {def: typeof def; func: SelectorType} =>
+): {def: any; func: SelectorType} =>
 	getSelectorObj(
-		transformer(def),
+		transformer(...(def ? [def] : dependencies.map(() => undefined))),
 		(store: Store<any>) =>
 			(
 				getSubscriber: (fieldName: string) => (data: R) => void,
@@ -29,8 +29,8 @@ export const createSelector = <R = any, T = any>(
 							return false;
 						}
 						const storeName = dep.pointer[1];
-
 						existingStoreNames.push(storeName);
+
 						if ([StructureType.LIST, StructureType.ITEM].includes(dep.type)) {
 							if (dep.type === StructureType.LIST) {
 								propNames.push(storeName);

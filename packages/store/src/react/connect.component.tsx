@@ -71,8 +71,9 @@ export const ConnectComponent = ({
 			setState((s) => {
 				return Object.entries(s).reduce<{[key in string]: any}>((res, cur) => {
 					const fieldName = cur[0];
-					const deps = dependencies.current[fieldName].deps;
-					const transformer = dependencies.current[fieldName].transformer;
+					const dep = dependencies.current[fieldName];
+					const deps = dep.deps;
+					const transformer = dep.transformer;
 					if (deps.includes(name)) {
 						res[fieldName] = transformer(
 							...deps.map((dep) =>
@@ -86,7 +87,7 @@ export const ConnectComponent = ({
 				}, {});
 			});
 		},
-		[dependencies.current, storeData.current],
+		[dependencies.current, store, storeData.current],
 	);
 
 	const getSubscriber = useCallback(

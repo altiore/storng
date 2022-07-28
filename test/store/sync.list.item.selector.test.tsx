@@ -1,11 +1,12 @@
 import React, {useCallback, useState} from 'react';
 
-import {ActionFunc, Paginated} from '@storng/common';
+import {ActionFunc} from '@storng/common';
 import {MaybeRemoteData} from '@storng/store';
 import {connect} from '@storng/store/src/react';
 import {StoreProvider} from '@storng/store/src/react/store.provider';
 
 import {getStore} from './storage';
+import {API_USERS} from './storage/_users';
 import {mockSuccessListFetch} from './storage/mock.fetch';
 import {StoreType} from './storage/store.type';
 import {users} from './storage/users';
@@ -17,26 +18,35 @@ const STORE_NAME = 'sync.list.item.selector.test.tsx';
 const store = getStore(STORE_NAME, mockSuccessListFetch);
 
 interface MyComponentProps {
-	changeFilter: ActionFunc<Partial<Omit<Paginated<any>, 'data'>>>;
+	getOne: ActionFunc<typeof API_USERS.getOne>;
 	user: (id: string) => MaybeRemoteData<StoreType['users']>;
 }
 
-const MyComponent = ({changeFilter, user}: MyComponentProps) => {
+const MyComponent = ({getOne, user}: MyComponentProps) => {
 	const [id, setId] = useState('user-id-0');
+	const fetchOne = useCallback(() => {
+		getOne({id}).then().catch(console.error);
+	}, [getOne, id]);
+
 	const changeId = useCallback(() => {
-		setId('no-such-user-id');
-	}, [changeFilter]);
+		setId('unknown-id');
+	}, [setId]);
 
 	renderSpy();
 
 	return (
-		<p onClick={changeId}>
-			{user(id)({
-				correct: ({data}) => data.email,
-				failure: 'failure',
-				loading: 'loading',
-				nothing: 'nothing',
-			})}
+		<p onClick={fetchOne}>
+			<span onClick={changeId}>
+				{user(id)({
+					correct: ({data}) => data.email,
+					failure: ({error}) => {
+						console.log('error is', JSON.stringify(error));
+						return 'failure';
+					},
+					loading: 'loading',
+					nothing: 'nothing',
+				})}
+			</span>
 		</p>
 	);
 };
@@ -46,7 +56,7 @@ const s = {
 };
 
 const a = {
-	changeFilter: users.onChangeFilter,
+	getOne: users.getOne,
 };
 
 const Wrapped = connect(MyComponent, s, a);
@@ -76,7 +86,7 @@ describe('sync.list.item.selector.test.tsx проверяем селектор �
 			);
 		});
 
-		expect(root?.innerHTML).to.equal('<p>loading</p>');
+		expect(root?.innerHTML).to.equal('<p><span>loading</span></p>');
 
 		expect(renderSpy).have.been.callCount(1);
 	});
@@ -86,17 +96,28 @@ describe('sync.list.item.selector.test.tsx проверяем селектор �
 
 		expect(renderSpy).have.been.callCount(2);
 
-		expect(root?.innerHTML).to.equal('<p>user-0@mail.com</p>');
+		expect(root?.innerHTML).to.equal('<p><span>nothing</span></p>');
 	});
 
-	it('Изменить фильтр (элемент с несуществующим id)', async () => {
+	it('загрузить данные для одного элемента', async () => {
 		await act(() => {
 			const p = document.getElementsByTagName('p');
 			p[0].click();
 		});
 
-		await wait(0.1);
+		await wait(0.3);
 
-		expect(root?.innerHTML).to.equal('<p>nothing</p>');
+		expect(root?.innerHTML).to.equal('<p><span>user-0@mail.com</span></p>');
+	});
+
+	it('Изменить фильтр (установить несуществующий id)', async () => {
+		await act(() => {
+			const p = document.getElementsByTagName('span');
+			p[0].click();
+		});
+
+		await wait(0.3);
+
+		expect(root?.innerHTML).to.equal('<p><span>nothing</span></p>');
 	});
 });

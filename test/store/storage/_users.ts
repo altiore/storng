@@ -9,6 +9,10 @@ export type UsersUrls = {
 		Record<string, never>,
 		ResBase<Record<string, never>, {data: Array<IUser>}>
 	>;
+	[CrudUrl.getOne]: Route<
+		{id: string},
+		ResBase<Record<string, never>, {data: IUser}>
+	>;
 };
 
 export const API_USERS = RouteScope<UsersUrls, 'users'>({
@@ -16,5 +20,6 @@ export const API_USERS = RouteScope<UsersUrls, 'users'>({
 	NAME: 'users',
 	URL: {
 		[CrudUrl.getMany]: {method: Method.GET, path: '/users'},
+		[CrudUrl.getOne]: {method: Method.GET, path: '/users/:id'},
 	},
 });
