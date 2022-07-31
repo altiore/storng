@@ -29,6 +29,10 @@ type Request<
 			url: string;
 	  };
 
+export enum AdditionalRule {
+	OwnerOnly = 'OwnerOnly',
+}
+
 export interface RouteConf<
 	Req extends Record<string, any> = Record<string, never>,
 > {
@@ -36,6 +40,7 @@ export interface RouteConf<
 	path?: string;
 	private?: true;
 	requiredParams?: Array<keyof Req>;
+	rules?: Array<AdditionalRule>;
 }
 
 export type ResError<
@@ -109,6 +114,8 @@ export class Route<
 
 	/**
 	 * Возвращает полный маршрут (url), заменяя параметры на значения из объекта params
+	 * Должно быть Partial, т.к. маршрут может состоять еще и из body данных, а это всего лишь
+	 * часть URI без body.
 	 */
 	public to(params?: Partial<Req>): string {
 		const [url, urlParams] = this.replaceUrlParams(this.path, params);
