@@ -92,12 +92,14 @@ export class Route<
 		this.relative = conf.path ?? '';
 		this.private = conf.private;
 		this.path = this.base + this.relative;
+		this.rules = conf.rules ?? [];
 		this.urlRequiredParams = this.path.match(/:[a-zA-Z]+/g) || [];
 		this.requiredParams = conf.requiredParams || [];
 	}
 
 	public readonly method: Method;
 	public readonly private?: boolean;
+	public readonly rules: Array<AdditionalRule>;
 	private readonly base: string;
 	private readonly relative: string;
 	private readonly path: string;
