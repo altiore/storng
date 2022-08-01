@@ -93,3 +93,22 @@ export const mockSuccessListFetch: any = sinon.spy((url: string) => {
 		} as any);
 	});
 });
+
+const emptyFetchJson: any = () =>
+	sinon.spy(
+		() =>
+			new Promise((resolve) => {
+				resolve({
+					data: [],
+					ok: true,
+				});
+			}),
+	);
+
+export const mockEmptyListFetch: any = sinon.spy(() => {
+	return new Promise((resolve) => {
+		resolve({
+			json: emptyFetchJson(),
+		} as any);
+	});
+});

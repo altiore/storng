@@ -108,3 +108,5 @@ export function connect<
 		);
 	}) as any;
 }
+
+export {createSelector} from './create-selector';
