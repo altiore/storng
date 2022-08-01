@@ -40,7 +40,7 @@ export const getObjFunc = <A extends Record<string, any>>(
 		});
 	}
 
-	if (Object.keys(s.data).length) {
+	if (s.data && Object.keys(s.data).length) {
 		return getCorrect<A>({
 			data: s.data,
 		});

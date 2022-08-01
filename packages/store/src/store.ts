@@ -174,78 +174,74 @@ export class Store<T extends Record<string, T[keyof T]>> {
 		await this.local.delList(LIST_FILTER_TABLE_NAME as any);
 	}
 
-	subscribe = <ResultData = LoadedItem<T[keyof T]>>(
-		key: keyof T,
-		subscriber: (value: ResultData) => void,
-		dataPreparer: (value: LoadedData<T[keyof T]>) => ResultData,
+	subscribeItem = (
+		storeName: keyof T,
+		subscriber: (value: LoadedItem<T[keyof T]>) => void,
 		restorePreparation: (
 			v: LoadedItem<T[keyof T]>,
 		) => LoadedItem<T[keyof T]> = defObjRestorePreparation as any,
 		persistStore?: PersistStore<T>,
-		initDataData?: Partial<T[keyof T]>,
+		initData?: T[keyof T],
 	): void => {
-		const loadingStatus = this.loadingStatus.get(key);
+		const loadingStatus = this.loadingStatus.get(storeName);
 
 		if (loadingStatus?.isLocalLoading) {
 			// 1. Если восстановление данных в процессе, отложить подписку элемента на данные
 			setTimeout(() => {
-				this.subscribe.bind(this)(
-					key,
+				this.subscribeItem.bind(this)(
+					storeName,
 					subscriber,
-					dataPreparer,
 					restorePreparation,
 					persistStore,
-					initDataData,
+					initData,
 				);
 			}, 100);
 			return;
 		}
 
 		// 2. добавляем подписчика
-		const item = this.cache.subscribe(
-			key,
+		const item = this.cache.subscribeItem(
+			storeName,
 			subscriber,
-			dataPreparer,
-			initDataData,
 			Boolean(persistStore),
+			initData,
 		);
 
 		if (!persistStore || loadingStatus?.isLocalLoaded) {
 			// 3. Если данные уже восстановлены или мы вообще не храним их в локальном хранилище, --
 			//    отправить данные текущему подписчику
-			this.updateLoadingStatus(key, {
+			this.updateLoadingStatus(storeName, {
 				isLocalLoaded: true,
 			});
-			subscriber(dataPreparer(item));
+			subscriber(item);
 			return;
 		}
 
-		this.updateLoadingStatus(key, {
+		this.updateLoadingStatus(storeName, {
 			isLocalLoading: true,
 		});
 
-		this.restoreData(key, persistStore, item, restorePreparation as any)
+		this.restoreData(storeName, persistStore, item, restorePreparation as any)
 			.then((data) => {
-				this.updateLoadingStatus(key, {
+				this.updateLoadingStatus(storeName, {
 					isLocalLoading: false,
 				});
-				if (!this.loadingStatus.get(key)?.declinedRestore) {
-					this.cache.updateData(key, data, false);
-					subscriber(dataPreparer(data as LoadedItem<T[keyof T]>));
+				if (!this.loadingStatus.get(storeName)?.declinedRestore) {
+					this.cache.updateData(storeName, data, false);
+					subscriber(data);
 				}
 			})
 			.catch((err) => {
 				console.error(err);
-				this.updateLoadingStatus(key, {
+				this.updateLoadingStatus(storeName, {
 					isLocalLoaded: false,
 				});
 			});
 	};
 
-	subscribeList = <ResultData = LoadedList<T[keyof T]>>(
+	subscribeList = (
 		storeName: keyof T,
-		subscriber: (value: ResultData) => void,
-		dataPreparer: (value: LoadedList<T[keyof T]>) => ResultData,
+		subscriber: (value: LoadedList<T[keyof T]>) => void,
 		restorePreparation: (
 			v: LoadedList<T[keyof T]>,
 		) => LoadedList<T[keyof T]> = defListRestorePreparation as any,
@@ -260,7 +256,6 @@ export class Store<T extends Record<string, T[keyof T]>> {
 				this.subscribeList.bind(this)(
 					storeName,
 					subscriber,
-					dataPreparer,
 					restorePreparation,
 					persistStore,
 					onFetch,
@@ -273,7 +268,6 @@ export class Store<T extends Record<string, T[keyof T]>> {
 		const list = this.cache.subscribeList(
 			storeName,
 			subscriber,
-			dataPreparer as any,
 			Boolean(persistStore),
 		);
 
@@ -300,7 +294,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 					.catch(console.error);
 			} else {
 				// 4. Если мы не загружаем данные - отправить их подписчику
-				subscriber(dataPreparer(list));
+				subscriber(list);
 			}
 
 			return;
@@ -334,7 +328,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 							.catch(console.error);
 					} else {
 						this.cache.updateData(storeName, data, false);
-						subscriber(dataPreparer(data as LoadedList<T[keyof T]>));
+						subscriber(data as LoadedList<T[keyof T]>);
 					}
 				}
 			})

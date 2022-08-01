@@ -16,18 +16,13 @@ type ObjKey<T extends Record<string, T[keyof T]>> = {
 
 type DataAndSubs<T extends Record<keyof T, T[keyof T]>> = {
 	data: LoadedData<T[keyof T]>;
-	subscribers: Array<{
-		dataPreparer: (data: LoadedData<T[keyof T]>) => any;
-		subscriber: (val: any) => void;
-	}>;
+	subscribers: Array<(val: any) => void>;
 };
 
 type WeakStore<T extends Record<string, T[keyof T]>> = WeakMap<
 	ObjKey<T>,
 	DataAndSubs<T>
 >;
-
-const DEF_PREPARE_DATA = (t: LoadedItem<any>): any => t;
 
 export class StoreCache<T extends Record<string, T[keyof T]>> {
 	/**
@@ -72,10 +67,7 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 	private setData = (
 		key: keyof T,
 		data: LoadedData<T[keyof T]>,
-		subscribers: Array<{
-			dataPreparer: (data: LoadedData<T[keyof T]>) => any;
-			subscriber: (val: any) => void;
-		}>,
+		subscribers: Array<(val: any) => void>,
 	): void => {
 		const objKey = this.getDataKey(key);
 		if (!objKey) {
@@ -112,11 +104,11 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 
 	public addItem = (
 		key: keyof T,
-		initData: Partial<T[keyof T]> = {},
 		isPersist = true,
+		initData?: T[keyof T],
 	): ObjKey<T> => {
 		const structureInfo: ObjKey<T> = {
-			initData: getInitData(initData, isPersist),
+			initData: getInitData(isPersist, initData),
 			isPersist,
 			name: key,
 			type: StructureType.ITEM,
@@ -158,19 +150,16 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 		return false;
 	};
 
-	public subscribe = <ResultData = LoadedItem<T[keyof T]>>(
+	public subscribeItem = <ResultData = LoadedItem<T[keyof T]>>(
 		key: keyof T,
 		subscriber: (value: ResultData) => void,
-		dataPreparer: (
-			value: LoadedData<T[keyof T]>,
-		) => ResultData = DEF_PREPARE_DATA,
-		initDataData?: Partial<T[keyof T]>,
 		isPersist = true,
+		initData?: T[keyof T],
 	): LoadedItem<T[keyof T]> => {
 		let keyData = this.getDataKey(key);
 
 		if (!keyData) {
-			keyData = this.addItem(key, initDataData, isPersist);
+			keyData = this.addItem(key, isPersist, initData);
 		}
 
 		let data: LoadedItem<T[keyof T]>;
@@ -178,10 +167,10 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 		const curData = this.getData(key);
 		if (curData) {
 			data = curData.data as LoadedItem<T[keyof T]>;
-			curData.subscribers.push({dataPreparer, subscriber});
+			curData.subscribers.push(subscriber);
 		} else {
 			data = (keyData as ObjKey<T>).initData as LoadedItem<T[keyof T]>;
-			this.setData(key, data, [{dataPreparer, subscriber}]);
+			this.setData(key, data, [subscriber]);
 		}
 
 		return data;
@@ -190,9 +179,6 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 	public subscribeList = <ResultData = LoadedList<T[keyof T]>>(
 		storeName: keyof T,
 		subscriber: (value: ResultData) => void,
-		dataPreparer: (
-			value: LoadedData<T[keyof T]>,
-		) => ResultData = DEF_PREPARE_DATA,
 		isPersist = true,
 	): LoadedList<T[keyof T]> => {
 		let keyData = this.getDataKey(storeName);
@@ -206,10 +192,10 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 		const curData = this.getData(storeName);
 		if (curData) {
 			data = curData.data as LoadedList<T[keyof T]>;
-			curData.subscribers.push({dataPreparer, subscriber});
+			curData.subscribers.push(subscriber);
 		} else {
 			data = (keyData as ObjKey<T>).initData as LoadedList<T[keyof T]>;
-			this.setData(storeName, data, [{dataPreparer, subscriber}]);
+			this.setData(storeName, data, [subscriber]);
 		}
 
 		return data;
@@ -226,7 +212,7 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 		const curData = this.getData(key);
 		if (curData) {
 			const subscriberRemoveIndex = curData.subscribers.findIndex(
-				(el) => el.subscriber === subscriber,
+				(existingSubscriber) => existingSubscriber === subscriber,
 			);
 			if (subscriberRemoveIndex !== -1) {
 				curData.subscribers.splice(subscriberRemoveIndex, 1);
@@ -258,8 +244,8 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 			this.setData(key, newData, curData.subscribers);
 			// Разослать данные всем подписчикам
 			if (runSubscribers) {
-				curData.subscribers.forEach(({subscriber, dataPreparer}) => {
-					subscriber(dataPreparer(newData));
+				curData.subscribers.forEach((subscriber) => {
+					subscriber(newData);
 				});
 			}
 

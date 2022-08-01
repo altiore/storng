@@ -7,7 +7,6 @@ import {
 	Route,
 } from '@storng/common';
 
-import {createSelector} from './react/create-selector';
 import {getItemFromListFunc, getListFunc} from './react/get.func-data';
 import {Store} from './store';
 import {getListUpdater} from './sync.object.helpers/get-list-updater';
@@ -100,16 +99,36 @@ export function syncList<
 	const scopeName: keyof StoreState =
 		typeof scope === 'object' ? (scope.NAME as keyof StoreState) : scope;
 
-	result.currentPage = createSelector(
-		getListFunc,
-		[{pointer: ['', scopeName as string], type: StructureType.LIST}],
-		undefined,
-		result[CrudUrl.getMany],
-	);
+	result.currentPage = {
+		defaultValue: getListFunc(),
+		dependencies: [scopeName],
+		subscribe: (store: Store<any>) => (subscriber) => {
+			store.subscribeList(
+				scopeName,
+				subscriber,
+				undefined,
+				store.local.listStorage(),
+				result?.[CrudUrl.getMany],
+			);
+			return () => store.unsubscribe(scopeName, subscriber);
+		},
+		transform: getListFunc,
+	};
 
-	result.oneById = createSelector(getItemFromListFunc, [
-		{pointer: ['', scopeName as string], type: StructureType.LIST},
-	]);
+	result.oneById = {
+		defaultValue: getItemFromListFunc(),
+		dependencies: [scopeName],
+		subscribe: (store: Store<any>) => (subscriber) => {
+			store.subscribeList(
+				scopeName,
+				subscriber,
+				undefined,
+				store.local.listStorage(),
+			);
+			return () => store.unsubscribe(scopeName, subscriber);
+		},
+		transform: getItemFromListFunc,
+	};
 
 	return result;
 }

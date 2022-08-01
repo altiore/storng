@@ -37,5 +37,5 @@ export const defObjRestorePreparation = <T extends Record<string, any> = any>(
 	}
 
 	console.error('NO DATA >>>>>>', s);
-	return getInitData<T>({}, true);
+	return getInitData<T>(true);
 };

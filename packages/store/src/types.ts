@@ -38,7 +38,7 @@ export interface LoadedItem<
 		ok: boolean;
 	},
 > {
-	data: Partial<Item>;
+	data?: Partial<Item>;
 
 	loadingStatus: LoadingStatusRemote<Error>;
 }
@@ -220,12 +220,11 @@ export type MaybeRemoteListData<
 
 export const LIST_FILTER_TABLE_NAME = '___list_filters';
 
-export type SelectorType = {
-	func: (
+export type SelectorType<R = any> = {
+	defaultValue?: R;
+	dependencies: Array<string | SelectorType>;
+	subscribe?: (
 		store: Store<any>,
-	) => (
-		getSubscriber: (name: string) => (data: unknown) => void,
-		existingStoreNames: string[],
-	) => any;
-	def: unknown;
+	) => (subscriber: (store: Store<any>) => (data: any) => any) => () => void;
+	transform: (...args: Array<any>) => R;
 };

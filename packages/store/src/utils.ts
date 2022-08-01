@@ -50,11 +50,11 @@ export function getIsExpiredSoon(
 }
 
 export function getInitData<T>(
-	initData: Partial<T[keyof T]>,
 	isLoading: boolean,
+	data?: T[keyof T],
 ): LoadedItem<T[keyof T]> {
 	return {
-		data: initData,
+		data,
 		loadingStatus: {
 			error: undefined,
 			isLoaded: false,

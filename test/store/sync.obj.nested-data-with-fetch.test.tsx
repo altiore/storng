@@ -13,7 +13,7 @@ const renderSpy = sinon.spy();
 
 interface MyComponentProps {
 	publicData: MaybeRemoteData<StoreType['public_common']>;
-	fetchVersions: ActionFunc<PublicUrls['version']>;
+	fetchVersions: ActionFunc<PublicUrls['fetchVersion']>;
 }
 
 const MyComponent = ({publicData, fetchVersions}: MyComponentProps) => {
@@ -40,7 +40,7 @@ const Wrapped = connect(
 		publicData: publicData.item,
 	},
 	{
-		fetchVersions: publicData.version,
+		fetchVersions: publicData.fetchVersion,
 	},
 );
 

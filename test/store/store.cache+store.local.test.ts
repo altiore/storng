@@ -43,7 +43,7 @@ describe('StoreWeb src/store.web.ts + фактическое indexed.db хран
 			// @ts-ignore
 			expect(storeWeb.structure.get('auth')).to.be.eql({
 				initData: {
-					data: {},
+					data: undefined,
 					loadingStatus: {
 						error: undefined,
 						isLoaded: false,
@@ -59,7 +59,7 @@ describe('StoreWeb src/store.web.ts + фактическое indexed.db хран
 	});
 
 	describe('addItem - добавляем структуру объекта данных с непустыми начальными данными', () => {
-		storeWeb.addItem('profile', {image: 'my-image'});
+		storeWeb.addItem('profile', true, {image: 'my-image'});
 
 		it('после добавления можем найти ключ', () => {
 			// @ts-ignore
@@ -90,7 +90,7 @@ describe('StoreWeb src/store.web.ts + фактическое indexed.db хран
 			// @ts-ignore
 			expect(storeWeb.getDataKey('auth')).to.be.eql({
 				initData: {
-					data: {},
+					data: undefined,
 					loadingStatus: {
 						error: undefined,
 						isLoaded: false,
@@ -164,28 +164,24 @@ describe('StoreWeb src/store.web.ts + фактическое indexed.db хран
 
 	describe('subscribe - подписка на изменения', () => {
 		it('первый подписчик добавляется', () => {
-			storeWeb.subscribe('auth', subscriber1);
+			storeWeb.subscribeItem('auth', subscriber1);
 			// вызывается дважды, потому что меняется флаг initial
 			expect(storeWeb.getData('auth')?.subscribers.length).to.be.eq(1);
 		});
 
 		it('второй подписчик получает текущие данные', () => {
-			storeWeb.subscribe('auth', subscriber2);
+			storeWeb.subscribeItem('auth', subscriber2);
 			expect(storeWeb.getData('auth')?.subscribers.length).to.be.eq(2);
 		});
 
 		it('после добавления второго подписчика ссылка на первого осталась прежней', () => {
 			// @ts-ignore
-			expect(storeWeb.getData('auth').subscribers[0].subscriber).to.be.eq(
-				subscriber1,
-			);
+			expect(storeWeb.getData('auth').subscribers[0]).to.be.eq(subscriber1);
 		});
 
 		it('после добавления второго подписчика ссылка на второй верная', () => {
 			// @ts-ignore
-			expect(storeWeb.getData('auth').subscribers[1].subscriber).to.be.eq(
-				subscriber2,
-			);
+			expect(storeWeb.getData('auth').subscribers[1]).to.be.eq(subscriber2);
 		});
 	});
 
@@ -245,7 +241,7 @@ describe('StoreWeb src/store.web.ts + фактическое indexed.db хран
 
 	describe('Восстановление данных из постоянного хранилища', () => {
 		it('восстанавливаем данные по ключу auth', async () => {
-			await storeWeb.subscribe('auth', subscriber1);
+			await storeWeb.subscribeItem('auth', subscriber1);
 
 			expect(subscriber1)
 				.to.nth(3)

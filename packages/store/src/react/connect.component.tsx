@@ -14,6 +14,56 @@ interface IProps<T extends Record<string, T[keyof T]>> {
 
 const DEF_PROPS = {};
 
+const getStoreNames = (
+	deps: Array<string | SelectorType>,
+	storeNames: string[] = [],
+): Array<string> => {
+	deps.forEach((dep) => {
+		if (typeof dep === 'string') {
+			if (!storeNames.includes(dep)) {
+				storeNames.push(dep);
+			}
+		} else {
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+			getStoreNames(dep.dependencies, storeNames);
+		}
+	});
+
+	return storeNames;
+};
+
+const getStoreSubscribers = (
+	selector: SelectorType,
+	storeSubscribers: Array<{storeName: string; subscribe: any}> = [],
+): Array<{storeName: string; subscribe: (store: Store<any>) => any}> => {
+	if (selector.subscribe) {
+		if (
+			selector.dependencies.length > 1 ||
+			typeof selector.dependencies[0] !== 'string'
+		) {
+			throw new Error(
+				'Тип селекторов не поддерживается - ' +
+					JSON.stringify({
+						dependencies: selector.dependencies,
+					}),
+			);
+		}
+		const storeName = selector.dependencies[0] as string;
+		if (!storeSubscribers.find((el) => el.storeName === storeName)) {
+			storeSubscribers.push({storeName, subscribe: selector.subscribe});
+		}
+	} else {
+		selector.dependencies.forEach((s) => {
+			if (typeof s !== 'string') {
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
+				getStoreSubscribers(s, storeSubscribers);
+			}
+		});
+	}
+
+	return storeSubscribers;
+};
+
 export const ConnectComponent = ({
 	actions = DEF_PROPS,
 	component: Component,
@@ -32,14 +82,23 @@ export const ConnectComponent = ({
 
 	const storeData = useRef<{[key in string]: any}>({});
 	const dependencies = useRef<
-		{[key in string]: {deps: string[]; transformer: (...args: any) => any}}
+		{
+			[key in string]: {
+				deps: Array<string | SelectorType>;
+				transform: (...args: any) => any;
+			};
+		}
 	>({});
 
 	const addDependency = useCallback(
-		(name: string, deps: string[], transformer: (...args: any) => any) => {
+		(
+			name: string,
+			deps: Array<string | SelectorType>,
+			transform: (...args: any) => any,
+		) => {
 			dependencies.current = {
-				...dependencies.current,
-				[name]: {deps, transformer},
+				...(dependencies.current || {}),
+				[name]: {deps, transform},
 			};
 		},
 		[dependencies.current],
@@ -48,7 +107,7 @@ export const ConnectComponent = ({
 	const [state, setState] = useState(
 		Object.entries(selectors || {}).reduce<{[key in string]: any}>(
 			(res, cur) => {
-				res[cur[0]] = cur[1].def;
+				res[cur[0]] = cur[1].defaultValue;
 				return res;
 			},
 			{},
@@ -56,6 +115,17 @@ export const ConnectComponent = ({
 	);
 
 	const getMounted = useIsMounted();
+
+	const getDependency = useCallback(
+		(selector: string | SelectorType) => {
+			if (typeof selector === 'string') {
+				return storeData.current[selector];
+			} else {
+				return selector.transform(...selector.dependencies.map(getDependency));
+			}
+		},
+		[storeData.current],
+	);
 
 	const updateState = useCallback(
 		(name: string, value: any) => {
@@ -71,15 +141,11 @@ export const ConnectComponent = ({
 			setState((s) => {
 				return Object.entries(s).reduce<{[key in string]: any}>((res, cur) => {
 					const fieldName = cur[0];
-					const dep = dependencies.current[fieldName];
-					const deps = dep.deps;
-					const transformer = dep.transformer;
-					if (deps.includes(name)) {
-						res[fieldName] = transformer(
-							...deps.map((dep) =>
-								dep === name ? value : storeData.current[dep],
-							),
-						);
+					const depData = dependencies.current[fieldName];
+					const transform = depData.transform;
+					const depNames = getStoreNames(depData.deps);
+					if (depNames.includes(name)) {
+						res[fieldName] = transform(...depData.deps.map(getDependency));
 					} else {
 						res[fieldName] = cur[1];
 					}
@@ -87,7 +153,7 @@ export const ConnectComponent = ({
 				}, {});
 			});
 		},
-		[dependencies.current, store, storeData.current],
+		[getDependency, dependencies.current],
 	);
 
 	const getSubscriber = useCallback(
@@ -99,20 +165,25 @@ export const ConnectComponent = ({
 
 	useEffect(() => {
 		const existingStoreNames: string[] = [];
-		const subscribers: Array<() => void> = [];
+		const unsubscribeList: Array<() => void> = [];
 		if (selectors) {
 			Object.entries(selectors).forEach(([selectorName, selector]) => {
-				const [transformer, tables, subs] = selector.func(store)(
-					getSubscriber,
-					existingStoreNames,
-				);
-				subscribers.push(...subs);
-				addDependency(selectorName, tables, transformer);
+				const storeSubscribers = getStoreSubscribers(selector);
+
+				storeSubscribers.forEach(({storeName, subscribe}) => {
+					if (!existingStoreNames.includes(storeName)) {
+						existingStoreNames.push(storeName);
+						const unsubscribe = subscribe(store)(getSubscriber(storeName));
+						unsubscribeList.push(unsubscribe);
+					}
+				});
+
+				addDependency(selectorName, selector.dependencies, selector.transform);
 			});
 		}
 
 		return () => {
-			subscribers.forEach((unsubscribe) => unsubscribe());
+			unsubscribeList.forEach((unsubscribe) => unsubscribe());
 		};
 	}, [selectors, store]);
 

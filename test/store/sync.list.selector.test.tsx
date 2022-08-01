@@ -75,7 +75,7 @@ describe('sync.list.selector.test.tsx', () => {
 		}
 	});
 
-	it('users.getSubscriber is func', () => {
+	it('users.currentPage is object', () => {
 		expect(typeof users.currentPage).to.be.eq('object');
 	});
 

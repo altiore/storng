@@ -19,14 +19,14 @@ interface MyComponentProps {
 const MyComponent = ({publicData, fetchVersions}: MyComponentProps) => {
 	renderSpy();
 	return publicData<JSX.Element>({
-		correct: ({data}) => <p>correct: {data.api.api}</p>,
+		correct: ({data}) => <p>correct: {data?.api?.api}</p>,
 		failure: ({error}) => <p>{error.message}</p>,
 		loading: () => <p>...loading</p>,
 		nothing: () => <p>nothing {typeof fetchVersions}</p>,
 	});
 };
 
-const STORE_NAME = 'sync.obj.nested-data.test.tsx';
+const STORE_NAME = 'sync.obj.selector.test.tsx';
 
 const store = getStore(STORE_NAME, mockVersionFetch);
 
@@ -40,7 +40,7 @@ const Wrapped = connect(
 	},
 );
 
-describe('sync.obj.ts Подписка на данные из syncObj - вложенные данные результата', () => {
+describe('sync.obj.selector.test.tsx Подписка на данные из syncObj. Простой селектор', () => {
 	let root: any;
 
 	before(async () => {
@@ -55,7 +55,7 @@ describe('sync.obj.ts Подписка на данные из syncObj - влож
 		}
 	});
 
-	it('подписка на изменения syncObject nested', async () => {
+	it('подписка на изменения syncObject с использованием селекторов начальные данные', async () => {
 		await act(async (render) => {
 			await render(
 				<StoreProvider store={store}>
@@ -66,10 +66,16 @@ describe('sync.obj.ts Подписка на данные из syncObj - влож
 		});
 
 		expect(root?.innerHTML).to.equal('<p>...loading</p>');
-
-		await wait(0.3);
-		expect(renderSpy).to.have.been.callCount(2);
-
-		expect(root?.innerHTML).to.equal('<p>correct: default</p>');
 	});
+
+	it(
+		'подписка на изменения syncObject с использованием селекторов. Данные из данных' +
+			' по-умолчанию',
+		async () => {
+			await wait(0.3);
+			expect(renderSpy).to.have.been.callCount(2);
+
+			expect(root?.innerHTML).to.equal('<p>correct: default</p>');
+		},
+	);
 });

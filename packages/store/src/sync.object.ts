@@ -1,6 +1,5 @@
 import {DataRes, ErrorOrInfo, GetScope, Route} from '@storng/common';
 
-import {createSelector} from './react/create-selector';
 import {getObjFunc} from './react/get.func-data';
 import {Store} from './store';
 import {getUpdater} from './sync.object.helpers/get-updater';
@@ -12,7 +11,7 @@ import {
 	StructureType,
 	SyncObjectType,
 } from './types';
-import {deepAssign} from './utils';
+import {deepAssign, getInitData} from './utils';
 
 export function syncObject<
 	StoreState extends Record<string, StoreState[keyof StoreState]>,
@@ -22,7 +21,7 @@ export function syncObject<
 >(
 	scope: GetScope<Routes, Key> | Key,
 	scopeHandlers: ScopeHandlers<StoreState, Key, Routes, OtherRoutes>,
-	initData?: Partial<StoreState[Key]>,
+	initData?: StoreState[Key],
 	persistData?: boolean,
 ): SyncObjectType<Routes, OtherRoutes> {
 	const result: any = {};
@@ -39,24 +38,32 @@ export function syncObject<
 	const scopeName: keyof StoreState =
 		typeof scope === 'object' ? (scope.NAME as keyof StoreState) : scope;
 
-	result.item = createSelector(
-		getObjFunc,
-		[
-			{
-				pointer: ['1', scopeName as string, scopeName as string],
-				type: StructureType.ITEM,
-			},
-		],
-		initData,
-	);
+	result.item = {
+		defaultValue: initData
+			? getObjFunc(getInitData(true, initData))
+			: getObjFunc(),
+		dependencies: [scopeName],
+		subscribe: (store: Store<any>) => (subscriber) => {
+			store.subscribeItem(
+				scopeName,
+				subscriber,
+				undefined,
+				store.local.itemStorage(),
+				initData,
+			);
+			return () => store.unsubscribe(scopeName, subscriber);
+		},
+		transform: getObjFunc,
+	};
 
 	return result;
 }
 
 const requestHandler = <T extends Record<string, any> = Record<string, any>>(
 	s: LoadedItem<T>,
+	data?: any,
 ): LoadedItem<T> => ({
-	data: s.data,
+	data: s.data ?? data ?? ({} as any),
 	loadingStatus: {
 		...s.loadingStatus,
 		isLoading: true,
@@ -65,10 +72,10 @@ const requestHandler = <T extends Record<string, any> = Record<string, any>>(
 
 const failureHandler = <T extends Record<string, any> = Record<string, any>>(
 	s: LoadedItem<T>,
-	_,
+	data,
 	remote: {res: ErrorOrInfo; route: Route},
 ): LoadedItem<T> => ({
-	data: s.data,
+	data: s.data ?? data ?? ({} as any),
 	loadingStatus: {
 		...s.loadingStatus,
 		error: remote.res,
@@ -156,7 +163,7 @@ syncObject.deepMerge = {
 		data,
 		remote: {res: DataRes; route: Route},
 	): LoadedItem<any> => ({
-		data: deepAssign(s.data, remote?.res?.data || data || {}),
+		data: deepAssign(s.data ?? {}, remote?.res?.data || data || {}),
 		loadingStatus: {
 			error: undefined,
 			isLoaded: true,

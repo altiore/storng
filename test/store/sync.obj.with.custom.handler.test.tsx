@@ -31,7 +31,7 @@ const MyComponent = React.memo(({notify, send}: MyComponentProps) => {
 	});
 });
 
-const STORE_NAME = 'sync.obj.with.custom.handler.test.tsx2';
+const STORE_NAME = 'sync.obj.with.custom.handler.test.tsx';
 
 const store = getStore(STORE_NAME);
 
@@ -83,7 +83,7 @@ describe('sync.obj.ts сущность без API', () => {
 			p[0].click();
 		});
 
-		await wait(0.3);
+		await wait(1.3);
 		expect(root?.innerHTML).to.equal('<p>correct: 3</p>');
 
 		expect(renderSpy).to.have.been.calledThrice;
