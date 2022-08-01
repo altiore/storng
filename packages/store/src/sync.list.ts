@@ -222,12 +222,31 @@ syncList.createOne = {
 		}
 		return {
 			...s,
-			data: [...(s.data || []), preparedData],
+			// Если порция значений меньше текущего полученного количества,
+			// то добавить элемент в конец массива. Если нет - элемент будет виден на другой странице
+			// TODO: учитывать фильтры
+			data:
+				s.paginate.limit < s.paginate.count
+					? [...(s.data || []), preparedData]
+					: s.data,
 			loadingStatus: {
 				...s.loadingStatus,
 				error: undefined,
 				isLoading: false,
 				updatedAt: new Date().getTime(),
+			},
+			paginate: {
+				...s.paginate,
+				count:
+					s.paginate.limit < s.paginate.count
+						? s.paginate.count + 1
+						: s.paginate.count,
+				pageCount:
+					s.paginate.page === s.paginate.pageCount &&
+					s.paginate.limit === s.paginate.count
+						? s.paginate.pageCount + 1
+						: s.paginate.pageCount,
+				total: s.paginate.total + 1,
 			},
 		};
 	},
