@@ -226,7 +226,7 @@ syncList.createOne = {
 			// то добавить элемент в конец массива. Если нет - элемент будет виден на другой странице
 			// TODO: учитывать фильтры
 			data:
-				s.paginate.limit < s.paginate.count
+				s.paginate.limit > s.paginate.count
 					? [...(s.data || []), preparedData]
 					: s.data,
 			loadingStatus: {
@@ -238,7 +238,7 @@ syncList.createOne = {
 			paginate: {
 				...s.paginate,
 				count:
-					s.paginate.limit < s.paginate.count
+					s.paginate.limit > s.paginate.count
 						? s.paginate.count + 1
 						: s.paginate.count,
 				pageCount:
