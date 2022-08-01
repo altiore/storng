@@ -110,3 +110,4 @@ export function connect<
 }
 
 export {createSelector} from './create-selector';
+export {getIs, getNo} from './func-data/is-or-no.data';
