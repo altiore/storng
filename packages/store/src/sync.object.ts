@@ -5,7 +5,6 @@ import {Store} from './store';
 import {getUpdater} from './sync.object.helpers/get-updater';
 import {prepareActions} from './sync.object.helpers/prepare-actions';
 import {
-	ActionHandlers,
 	LoadedItem,
 	ScopeHandlers,
 	StructureType,
@@ -98,7 +97,7 @@ syncObject.nothing = {
 	},
 	// eslint-disable-next-line sort-keys
 	failure: failureHandler,
-} as ActionHandlers;
+} as any;
 
 syncObject.update = {
 	request: requestHandler,
@@ -120,7 +119,7 @@ syncObject.update = {
 	}),
 	// eslint-disable-next-line sort-keys
 	failure: failureHandler,
-} as ActionHandlers;
+} as any;
 
 syncObject.replace = {
 	request: requestHandler,
@@ -139,7 +138,7 @@ syncObject.replace = {
 	}),
 	// eslint-disable-next-line sort-keys
 	failure: failureHandler,
-} as ActionHandlers;
+} as any;
 
 syncObject.remove = {
 	request: requestHandler,
@@ -154,7 +153,7 @@ syncObject.remove = {
 	}),
 	// eslint-disable-next-line sort-keys
 	failure: failureHandler,
-} as ActionHandlers;
+} as any;
 
 syncObject.deepMerge = {
 	request: requestHandler,
@@ -173,11 +172,9 @@ syncObject.deepMerge = {
 	}),
 	// eslint-disable-next-line sort-keys
 	failure: failureHandler,
-} as ActionHandlers;
+} as any;
 
-syncObject.custom = <T, D = any>(
-	cb: (a: T, data: D) => T,
-): ActionHandlers<T, D> => ({
+syncObject.custom = <T, D = any>(cb: (a: T, data: D) => T): any => ({
 	request: requestHandler,
 	success: (s: LoadedItem<T>, data: D): LoadedItem<T> => {
 		return {
@@ -213,4 +210,4 @@ syncObject.logout = {
 		}
 		return s;
 	},
-} as ActionHandlers;
+} as any;
