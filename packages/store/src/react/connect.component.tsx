@@ -117,7 +117,7 @@ export const ConnectComponent = ({
 	const getMounted = useIsMounted();
 
 	const getDependency = useCallback(
-		(selector: string | SelectorType) => {
+		(selector: string | SelectorType): any => {
 			if (typeof selector === 'string') {
 				return storeData.current[selector];
 			} else {
