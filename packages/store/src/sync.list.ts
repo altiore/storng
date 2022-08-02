@@ -184,7 +184,7 @@ syncList.replace = {
 		remote: {res: DataRes; route: Route},
 	): LoadedList<any> => {
 		return {
-			data: (remote?.res?.data as any) || data || [],
+			data: (remote?.res?.data?.data as any) || data || [],
 			filter: s.filter,
 			loadingStatus: {
 				error: undefined,
@@ -192,7 +192,7 @@ syncList.replace = {
 				isLoading: false,
 				updatedAt: new Date().getTime(),
 			},
-			paginate: getResPaginate(remote?.res as any, s.paginate),
+			paginate: getResPaginate(remote?.res?.data as any, s.paginate),
 		};
 	},
 	// eslint-disable-next-line sort-keys

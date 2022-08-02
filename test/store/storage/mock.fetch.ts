@@ -41,10 +41,12 @@ const successFetchList2Json: any = () =>
 		() =>
 			new Promise((resolve) => {
 				resolve({
-					data: [
-						{email: 'user-0@mail.com', id: 'user-id-0'},
-						{email: 'user-1@mail.com', id: 'user-id-1'},
-					],
+					data: {
+						data: [
+							{email: 'user-0@mail.com', id: 'user-id-0'},
+							{email: 'user-1@mail.com', id: 'user-id-1'},
+						],
+					},
 					ok: true,
 				});
 			}),
@@ -54,7 +56,9 @@ const successFetchList1Json: any = () =>
 		() =>
 			new Promise((resolve) => {
 				resolve({
-					data: [{email: 'user-3@mail.com', id: 'user-id-3'}],
+					data: {
+						data: [{email: 'user-3@mail.com', id: 'user-id-3'}],
+					},
 					ok: true,
 				});
 			}),
@@ -99,7 +103,9 @@ const emptyFetchJson: any = () =>
 		() =>
 			new Promise((resolve) => {
 				resolve({
-					data: [],
+					data: {
+						data: [],
+					},
 					ok: true,
 				});
 			}),
