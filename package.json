@@ -21,6 +21,7 @@
 		"build": "npm run build:common && npm run build:store",
 		"p": "lerna publish",
 		"f": "lerna publish --force-publish",
+		"t": "npm run lint && npm run build && npm run test:ci",
 		"test": "karma start",
 		"test:ci": "karma start --autoWatch=false --singleRun=true",
 		"lint": "tsc --noEmit && prettier --write \"**/*.{js,jsx,ts,tsx,json,yml}\" && prettier --write \"**/*.md\" --use-tabs=false && eslint . --fix --ext .js,.jsx,.ts,.tsx --max-warnings=3",

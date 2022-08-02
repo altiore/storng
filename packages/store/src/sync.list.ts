@@ -137,7 +137,7 @@ const requestHandler = <T extends Record<string, any> = Record<string, any>>(
 	s: LoadedList<T>,
 ): LoadedList<T> => ({
 	data: s.data,
-	filter: {},
+	filter: s.filter,
 	loadingStatus: {
 		...s.loadingStatus,
 		isLoading: true,
@@ -151,7 +151,7 @@ const failureHandler = <T extends Record<string, any> = Record<string, any>>(
 	remote: {res: ErrorOrInfo; route: Route},
 ): LoadedList<T> => ({
 	data: s.data,
-	filter: {},
+	filter: s.filter,
 	loadingStatus: {
 		...s.loadingStatus,
 		error: remote.res,
