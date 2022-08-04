@@ -1,5 +1,4 @@
 import {
-	ActionFunc,
 	CrudUrl,
 	DataRes,
 	ErrorOrInfo,
@@ -73,7 +72,7 @@ export function syncList<
 	scope: GetScope<Routes, Key> | Key,
 	scopeHandlers: ScopeHandlers<StoreState, Key, Routes, OtherRoutes>,
 	options?: {
-		getManyAction?: ActionFunc;
+		getManyAction?: keyof Routes;
 		persistData?: boolean;
 	},
 ): SyncListType<
@@ -98,7 +97,7 @@ export function syncList<
 		undefined,
 		scope,
 		shouldPersistStore,
-		getManyAction ?? result[CrudUrl.getMany],
+		result[getManyAction ?? CrudUrl.getMany],
 	);
 
 	const scopeName: keyof StoreState =
@@ -113,7 +112,7 @@ export function syncList<
 				subscriber,
 				undefined,
 				store.local.listStorage(),
-				getManyAction ?? result?.[CrudUrl.getMany],
+				result[getManyAction ?? CrudUrl.getMany],
 			);
 			return () => store.unsubscribe(scopeName, subscriber);
 		},
