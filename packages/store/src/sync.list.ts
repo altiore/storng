@@ -1,4 +1,5 @@
 import {
+	ActionFunc,
 	CrudUrl,
 	DataRes,
 	ErrorOrInfo,
@@ -71,7 +72,10 @@ export function syncList<
 >(
 	scope: GetScope<Routes, Key> | Key,
 	scopeHandlers: ScopeHandlers<StoreState, Key, Routes, OtherRoutes>,
-	persistData?: boolean,
+	options?: {
+		getManyAction?: ActionFunc;
+		persistData?: boolean;
+	},
 ): SyncListType<
 	Routes,
 	OtherRoutes & {onChangeFilter: Partial<Omit<Paginated<any>, 'data'>>}
@@ -79,6 +83,7 @@ export function syncList<
 	const result: any = {};
 	result.type = StructureType.LIST;
 
+	const {getManyAction, persistData} = options ?? {};
 	const shouldPersistStore =
 		typeof persistData === 'boolean' ? persistData : typeof scope === 'object';
 
@@ -93,7 +98,7 @@ export function syncList<
 		undefined,
 		scope,
 		shouldPersistStore,
-		result[CrudUrl.getMany],
+		getManyAction ?? result[CrudUrl.getMany],
 	);
 
 	const scopeName: keyof StoreState =
@@ -108,7 +113,7 @@ export function syncList<
 				subscriber,
 				undefined,
 				store.local.listStorage(),
-				result?.[CrudUrl.getMany],
+				getManyAction ?? result?.[CrudUrl.getMany],
 			);
 			return () => store.unsubscribe(scopeName, subscriber);
 		},
