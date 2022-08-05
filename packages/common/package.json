@@ -1,6 +1,6 @@
 {
 	"name": "@storng/common",
-	"version": "6.0.0",
+	"version": "6.2.0",
 	"description": "Storn common package use for both UI and API",
 	"keywords": [
 		"store",
