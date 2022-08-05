@@ -274,12 +274,14 @@ export class Scope<
 		Object.entries(conf.URL).forEach(([routeName, routeConf]) => {
 			this.routes.push(routeName);
 			this[routeName] = new Route(routeConf, this.BASE);
+			this.paths.push(this[routeName].toString());
 		});
 	}
 
 	public readonly NAME: NameType;
 	public readonly BASE: string;
 	public readonly routes: string[] = [];
+	public readonly paths: string[] = [];
 
 	toString(): NameType {
 		return this.NAME;

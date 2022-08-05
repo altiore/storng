@@ -222,10 +222,17 @@ describe('common.ts', () => {
 		});
 	});
 
-	describe('route routes', () => {
-		it('проверяем массив маршрутов RouteScope', () => {
+	describe('route scope routes', () => {
+		it('проверяем массив имен (названий) маршрутов RouteScope', () => {
 			const API_AUTH: GetScope<AuthRoutes> = getScope();
 			expect(API_AUTH.routes).to.be.eql(['LOGIN', 'LOGOUT']);
+		});
+	});
+
+	describe('route scope paths', () => {
+		it('проверяем массив маршрутов RouteScope', () => {
+			const API_AUTH: GetScope<AuthRoutes> = getScope();
+			expect(API_AUTH.paths).to.be.eql(['/auth/login', '/auth/logout']);
 		});
 	});
 });
