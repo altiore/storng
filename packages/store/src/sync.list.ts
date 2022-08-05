@@ -165,19 +165,10 @@ const failureHandler = <T extends Record<string, any> = Record<string, any>>(
 });
 
 syncList.nothing = {
-	request: requestHandler,
-	success: (s: LoadedList<any>): LoadedList<any> => {
-		return {
-			...s,
-			loadingStatus: {
-				...s.loadingStatus,
-				error: undefined,
-				isLoading: false,
-			},
-		};
-	},
+	request: (s) => s,
+	success: (s) => s,
 	// eslint-disable-next-line sort-keys
-	failure: failureHandler,
+	failure: (s) => s,
 } as any;
 
 syncList.replace = {
@@ -303,6 +294,20 @@ syncList.updateOne = {
 	},
 	// eslint-disable-next-line sort-keys
 	failure: failureHandler,
+} as any;
+
+syncList.createOneHidden = {
+	request: (s) => s,
+	success: syncList.createOne.success,
+	// eslint-disable-next-line sort-keys
+	failure: (s) => s,
+} as any;
+
+syncList.updateOneHidden = {
+	request: (s) => s,
+	success: syncList.updateOne.success,
+	// eslint-disable-next-line sort-keys
+	failure: (s) => s,
 } as any;
 
 syncList.remove = {

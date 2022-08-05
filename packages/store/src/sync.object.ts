@@ -83,20 +83,10 @@ const failureHandler = <T extends Record<string, any> = Record<string, any>>(
 });
 
 syncObject.nothing = {
-	request: requestHandler,
-	success: (s): LoadedItem<any> => {
-		return {
-			data: s.data,
-			loadingStatus: {
-				...s.loadingStatus,
-				error: undefined,
-				isLoading: false,
-				updatedAt: new Date().getTime(),
-			},
-		};
-	},
+	request: (s) => s,
+	success: (s) => s,
 	// eslint-disable-next-line sort-keys
-	failure: failureHandler,
+	failure: (s) => s,
 } as any;
 
 syncObject.update = {
