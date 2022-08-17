@@ -52,8 +52,8 @@ describe('sync.entities.tsx', () => {
 		}
 	});
 
-	it('users.getSubscriber is func', () => {
-		expect(typeof users.currentPage).to.be.eq('object');
+	it('users.currentPage is func', () => {
+		expect(typeof users.currentPage).to.be.eq('function');
 	});
 
 	it('первая генерация компонента', async () => {

@@ -109,7 +109,7 @@ export type SyncListType<
 	{
 		[P in keyof OtherRoutes]: GetActionFunc<OtherRoutes[P]>;
 	} & {
-		currentPage: SelectorType;
+		currentPage: (fetchActionName?: keyof Routes) => SelectorType;
 		oneById: SelectorType;
 	};
 

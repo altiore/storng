@@ -51,7 +51,7 @@ const MyComponent = ({changeFilter, users}: MyComponentProps) => {
 };
 
 const s = {
-	users: users.currentPage,
+	users: users.currentPage(),
 };
 
 const a = {
@@ -75,8 +75,8 @@ describe('sync.list.ts', () => {
 		}
 	});
 
-	it('users.getSubscriber is func', () => {
-		expect(typeof users.currentPage).to.be.eq('object');
+	it('users.currentPage is func', () => {
+		expect(typeof users.currentPage).to.be.eq('function');
 	});
 
 	it('первая генерация компонента - sync.list.test', async () => {

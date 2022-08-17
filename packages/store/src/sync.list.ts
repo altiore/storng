@@ -103,7 +103,7 @@ export function syncList<
 	const scopeName: keyof StoreState =
 		typeof scope === 'object' ? (scope.NAME as keyof StoreState) : scope;
 
-	result.currentPage = {
+	result.currentPage = (fetchAction?: keyof Routes) => ({
 		defaultValue: getListFunc(),
 		dependencies: [scopeName],
 		subscribe: (store: Store<any>) => (subscriber) => {
@@ -112,12 +112,12 @@ export function syncList<
 				subscriber,
 				undefined,
 				store.local.listStorage(),
-				result[getManyAction ?? CrudUrl.getMany],
+				result[fetchAction ?? getManyAction ?? CrudUrl.getMany],
 			);
 			return () => store.unsubscribe(scopeName, subscriber);
 		},
 		transform: getListFunc,
-	};
+	});
 
 	result.oneById = {
 		defaultValue: getItemFromListFunc(),

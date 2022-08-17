@@ -40,7 +40,7 @@ const MyComponent = ({users}: MyComponentProps) => {
 };
 
 const s = {
-	users: users.currentPage,
+	users: users.currentPage(),
 };
 
 const Wrapped = connect(MyComponent, s);
@@ -60,8 +60,8 @@ describe('sync.list.selector.empty-data.test.tsx', () => {
 		}
 	});
 
-	it('users.getSubscriber is func', () => {
-		expect(typeof users.currentPage).to.be.eq('object');
+	it('users.currentPage is func', () => {
+		expect(typeof users.currentPage).to.be.eq('function');
 	});
 
 	it('первая генерация компонента - sync.list.test', async () => {
