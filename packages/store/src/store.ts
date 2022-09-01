@@ -397,6 +397,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 				const newData = getData(prevData);
 
 				await persistStore.setItem(key, newData);
+				this.cache.updateData(key, newData);
 			}
 		} else {
 			this.cache.updateData(key, getData);
