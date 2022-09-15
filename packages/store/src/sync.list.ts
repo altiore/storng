@@ -12,6 +12,7 @@ import {Store} from './store';
 import {getDefListRestorePreparationWithFilters} from './sync.object.helpers/def.restore.preparation';
 import {getListUpdater} from './sync.object.helpers/get-list-updater';
 import {prepareActions} from './sync.object.helpers/prepare-actions';
+import {sortData} from './sync.object.helpers/sort-order';
 import {LoadedList, ScopeHandlers, StructureType, SyncListType} from './types';
 import {getInitDataList, getResPaginate} from './utils';
 
@@ -196,7 +197,10 @@ syncList.replace = {
 		remote: {res: DataRes; route: Route},
 	): LoadedList<any> => {
 		return {
-			data: (remote?.res?.data?.data as any) || data || [],
+			data: sortData(
+				(remote?.res?.data?.data as any) || data || [],
+				s.filter?.sort,
+			),
 			filter: s.filter,
 			loadingStatus: {
 				error: undefined,
@@ -236,11 +240,13 @@ syncList.createOne = {
 			...s,
 			// Если порция значений меньше текущего полученного количества,
 			// то добавить элемент в конец массива. Если нет - элемент будет виден на другой странице
-			// TODO: учитывать фильтры
 			data:
 				s.paginate.limit > s.paginate.count
-					? [...(s.data || []), preparedData]
-					: s.data,
+					? sortData([...(s.data || []), preparedData], s.filter?.sort)
+					: sortData([...s.data, preparedData], s.filter?.sort).slice(
+							0,
+							s.paginate.limit,
+					  ),
 			loadingStatus: {
 				...s.loadingStatus,
 				error: undefined,
