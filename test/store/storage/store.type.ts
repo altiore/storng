@@ -10,5 +10,6 @@ export type StoreType = {
 	users: {
 		id: string;
 		email: string;
+		order: number;
 	};
 };

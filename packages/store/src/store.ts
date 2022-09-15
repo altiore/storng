@@ -287,6 +287,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 				new Date().getTime() - list.loadingStatus.updatedAt > xSecAgo * 1000
 			) {
 				onFetch(this)({
+					...(list.filter ?? {}),
 					limit: list.paginate.limit,
 					page: list.paginate.page,
 				})
@@ -321,6 +322,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 						new Date().getTime() - data.loadingStatus.updatedAt > xSecAgo * 1000
 					) {
 						onFetch(this)({
+							...((data as LoadedList<T[keyof T]>).filter ?? {}),
 							limit: (data as LoadedList<T[keyof T]>).paginate.limit,
 							page: (data as LoadedList<T[keyof T]>).paginate.page,
 						})
@@ -470,6 +472,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 
 		if (onFetch && newData) {
 			onFetch({
+				...(newData.filter ?? {}),
 				limit: newData.paginate.limit,
 				page: newData.paginate.page,
 			})

@@ -163,7 +163,7 @@ export class StoreLocal<StoreState extends DBSchema> {
 	): Promise<Array<StoreKey<StoreState, StoreNames<StoreState>>>> {
 		const db = await this.dbPromise();
 
-		// TODO: удалить, когда будем хранить локальный кэш
+		// // TODO: удалить, когда будем хранить локальный кэш
 		await db.clear(storeName);
 
 		const trn = db.transaction(
@@ -181,6 +181,7 @@ export class StoreLocal<StoreState extends DBSchema> {
 
 		const filterModel = trn.objectStore(LIST_FILTER_TABLE_NAME);
 		await filterModel.put({
+			filter: loadedList.filter,
 			id: storeName,
 			loadingStatus: loadedList.loadingStatus,
 			paginate: loadedList.paginate,
@@ -205,6 +206,10 @@ export class StoreLocal<StoreState extends DBSchema> {
 		return {
 			...init,
 			data: list || [],
+			filter: {
+				...init.filter,
+				...((filterModelData as any)?.filter || {}),
+			},
 			loadingStatus: {
 				...init.loadingStatus,
 				isLoaded: Boolean(list?.length),

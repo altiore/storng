@@ -49,6 +49,35 @@ export const getObjFunc = <A extends Record<string, any>>(
 	return getNothing<A>();
 };
 
+const sortData = (data: any[], sort?: string) => {
+	if (!sort || !data || !data?.length) {
+		return data;
+	}
+	const [orderBy, order] = sort.split(',');
+	return data.slice(0).sort((a: any, b: any) => {
+		const fA = a?.[orderBy];
+		const fB = b?.[orderBy];
+
+		if (typeof fA === 'string' && typeof fB === 'string') {
+			if (order === 'ASC') {
+				return fA.toLowerCase() < fB.toLowerCase() ? -1 : 1;
+			} else {
+				return fA.toLowerCase() < fB.toLowerCase() ? 1 : -1;
+			}
+		}
+
+		if (typeof fA === 'number' && typeof fB === 'number') {
+			if (order === 'ASC') {
+				return fA - fB;
+			} else {
+				return fB - fA;
+			}
+		}
+
+		return 0;
+	});
+};
+
 export const getListFunc = <A extends Record<string, any>>(
 	s?: LoadedList<A>,
 ): MaybeRemoteListData<Omit<LoadedList<A>, 'loadingStatus'>> => {
@@ -62,7 +91,7 @@ export const getListFunc = <A extends Record<string, any>>(
 
 	if (s.loadingStatus.isLoading) {
 		return getLoadingList<A>({
-			data: s.data,
+			data: sortData(s.data, s.filter?.sort),
 			filter: s.filter,
 			paginate: s.paginate,
 		});
@@ -70,7 +99,7 @@ export const getListFunc = <A extends Record<string, any>>(
 
 	if (s.loadingStatus.error) {
 		return getFailureList<A>({
-			data: s.data,
+			data: sortData(s.data, s.filter?.sort),
 			error: s.loadingStatus.error,
 			filter: s.filter,
 			paginate: s.paginate,
@@ -79,7 +108,7 @@ export const getListFunc = <A extends Record<string, any>>(
 
 	if (Object.keys(s.data).length) {
 		return getCorrectList<A>({
-			data: s.data,
+			data: sortData(s.data, s.filter?.sort),
 			filter: s.filter,
 			paginate: s.paginate,
 		});

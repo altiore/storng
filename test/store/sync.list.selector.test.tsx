@@ -1,6 +1,6 @@
 import React, {useCallback} from 'react';
 
-import {ActionFunc, Paginated} from '@storng/common';
+import {ActionFunc, FilterBy} from '@storng/common';
 import {MaybeRemoteListData} from '@storng/store';
 import {connect} from '@storng/store/src/react';
 import {StoreProvider} from '@storng/store/src/react/store.provider';
@@ -17,15 +17,17 @@ const STORE_NAME = 'sync.list.selector.test.tsx';
 const store = getStore(STORE_NAME, mockSuccessListFetch);
 
 interface MyComponentProps {
-	changeFilter: ActionFunc<Partial<Omit<Paginated<any>, 'data'>>>;
+	changeFilter: ActionFunc<FilterBy>;
 	users: MaybeRemoteListData<StoreType['users']>;
 }
 
 const MyComponent = ({changeFilter, users}: MyComponentProps) => {
 	const handleChangeFilter = useCallback(() => {
 		changeFilter({
-			limit: 2,
-			page: 2,
+			paginate: {
+				limit: 2,
+				page: 2,
+			},
 		})
 			.then()
 			.catch(console.error);

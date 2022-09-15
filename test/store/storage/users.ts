@@ -15,4 +15,12 @@ export const users = syncList<StoreType, 'users', UsersUrls, Actions>(
 		[CrudUrl.getOne]: syncList.updateOne,
 		otherHandler: syncList.nothing,
 	},
+	{
+		filterBy: {
+			order: {
+				order: 'DESC',
+				orderBy: 'order',
+			},
+		},
+	},
 );

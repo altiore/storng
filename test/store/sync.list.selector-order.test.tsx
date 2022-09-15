@@ -12,7 +12,7 @@ import {users} from './storage/users';
 
 const renderSpy = sinon.spy();
 
-const STORE_NAME = 'sync.list.test.tsx';
+const STORE_NAME = 'sync.list.selector-order.test.tsx';
 
 const store = getStore(STORE_NAME, mockSuccessListFetch);
 
@@ -39,7 +39,7 @@ const MyComponent = ({changeFilter, users}: MyComponentProps) => {
 		correct: ({data, paginate}) => {
 			return (
 				<p onClick={handleChangeFilter}>
-					correct {data?.length} - {paginate.limit}
+					correct {data[0].order} - {paginate.limit}
 				</p>
 			);
 		},
@@ -62,7 +62,7 @@ const a = {
 
 const Wrapped = connect(MyComponent, s, a);
 
-describe('sync.list.ts', () => {
+describe('sync.list.selector.test.tsx', () => {
 	let root: any;
 
 	before(async () => {
@@ -77,7 +77,7 @@ describe('sync.list.ts', () => {
 		}
 	});
 
-	it('users.currentPage is func', () => {
+	it('users.currentPage is function', () => {
 		expect(typeof users.currentPage).to.be.eq('function');
 	});
 
@@ -99,27 +99,8 @@ describe('sync.list.ts', () => {
 	it('вторая генерация', async () => {
 		await wait(0.3);
 
-		expect(root?.innerHTML).to.equal('<p>correct 2 - 10</p>');
-
 		expect(renderSpy).have.been.callCount(2);
-	});
 
-	it('Изменить фильтр (следующая страница пагинации)', async () => {
-		await act(() => {
-			const p = document.getElementsByTagName('p');
-			p[0].click();
-		});
-
-		await wait(0.1);
-
-		expect(root?.innerHTML).to.equal('<p>loading</p>');
-	});
-
-	it('новые данные после изменения пагинации (следующая страница пагинации)', async () => {
-		await wait(0.3);
-
-		expect(root?.innerHTML).to.equal('<p>correct 1 - 2</p>');
-
-		expect(renderSpy).have.been.callCount(4);
+		expect(root?.innerHTML).to.equal('<p>correct 2 - 10</p>');
 	});
 });

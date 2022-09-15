@@ -2,31 +2,43 @@ import {
 	CrudUrl,
 	DataRes,
 	ErrorOrInfo,
+	FilterBy,
 	GetScope,
-	Paginated,
 	Route,
 } from '@storng/common';
 
 import {getItemFromListFunc, getListFunc} from './react/get.func-data';
 import {Store} from './store';
+import {getDefListRestorePreparationWithFilters} from './sync.object.helpers/def.restore.preparation';
 import {getListUpdater} from './sync.object.helpers/get-list-updater';
 import {prepareActions} from './sync.object.helpers/prepare-actions';
 import {LoadedList, ScopeHandlers, StructureType, SyncListType} from './types';
 import {getInitDataList, getResPaginate} from './utils';
 
 const getPaginateData = <T>(
-	paginate: Partial<Omit<Paginated<any>, 'data'>>,
+	filterBy: FilterBy<T>,
 	s: LoadedList<T[keyof T]>,
 ) => {
+	const prepFilter: Record<string, any> = Object.assign(
+		{},
+		filterBy?.filter ?? {},
+	);
+	if (filterBy?.order?.order && filterBy?.order?.orderBy) {
+		prepFilter.sort = `${filterBy?.order.orderBy},${filterBy?.order.order}`;
+	}
 	return {
 		...s,
+		filter: {
+			...s.filter,
+			...prepFilter,
+		},
 		loadingStatus: {
 			...s.loadingStatus,
 			isLoading: true,
 		},
 		paginate: {
 			...s.paginate,
-			...paginate,
+			...(filterBy.paginate ?? {}),
 		},
 	};
 };
@@ -42,7 +54,11 @@ const onChangeFilter =
 		onFetch: any,
 		store: Store<T>,
 	) =>
-	async (paginate: Partial<Omit<Paginated<any>, 'data'>>): Promise<void> => {
+	async ({
+		paginate = {},
+		order = {},
+		filter = {} as any,
+	}: FilterBy<T>): Promise<void> => {
 		const storeName: Key =
 			typeof scope === 'object' ? (scope.NAME as Key) : scope;
 
@@ -57,7 +73,7 @@ const onChangeFilter =
 
 		await store.updateListData(
 			storeName,
-			getPaginateData.bind(undefined, paginate) as any,
+			getPaginateData.bind(undefined, {filter, order, paginate} as any) as any,
 			persistStorage,
 			onFetch.bind(undefined, store)(),
 		);
@@ -72,17 +88,18 @@ export function syncList<
 	scope: GetScope<Routes, Key> | Key,
 	scopeHandlers: ScopeHandlers<StoreState, Key, Routes, OtherRoutes>,
 	options?: {
+		filterBy?: FilterBy;
 		getManyAction?: keyof Routes;
 		persistData?: boolean;
 	},
 ): SyncListType<
 	Routes,
-	OtherRoutes & {onChangeFilter: Partial<Omit<Paginated<any>, 'data'>>}
+	OtherRoutes & {onChangeFilter: FilterBy<StoreState[Key]>}
 > {
 	const result: any = {};
 	result.type = StructureType.LIST;
 
-	const {getManyAction, persistData} = options ?? {};
+	const {filterBy, getManyAction, persistData} = options ?? {};
 	const shouldPersistStore =
 		typeof persistData === 'boolean' ? persistData : typeof scope === 'object';
 
@@ -110,7 +127,7 @@ export function syncList<
 			store.subscribeList(
 				scopeName,
 				subscriber,
-				undefined,
+				getDefListRestorePreparationWithFilters(filterBy) as any,
 				store.local.listStorage(),
 				result[fetchAction ?? getManyAction ?? CrudUrl.getMany],
 			);
@@ -126,7 +143,7 @@ export function syncList<
 			store.subscribeList(
 				scopeName,
 				subscriber,
-				undefined,
+				getDefListRestorePreparationWithFilters(filterBy) as any,
 				store.local.listStorage(),
 			);
 			return () => store.unsubscribe(scopeName, subscriber);

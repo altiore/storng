@@ -43,8 +43,8 @@ const successFetchList2Json: any = () =>
 				resolve({
 					data: {
 						data: [
-							{email: 'user-0@mail.com', id: 'user-id-0'},
-							{email: 'user-1@mail.com', id: 'user-id-1'},
+							{email: 'user-0@mail.com', id: 'user-id-0', order: 2},
+							{email: 'user-1@mail.com', id: 'user-id-1', order: 1},
 						],
 					},
 					ok: true,
@@ -75,7 +75,7 @@ const successFetchItemJson: any = () =>
 			}),
 	);
 export const mockSuccessListFetch: any = sinon.spy((url: string) => {
-	if (url === '/base/users?limit=2&page=2') {
+	if (url === '/base/users?sort=order,DESC&limit=2&page=2') {
 		return new Promise((resolve) => {
 			setTimeout(() => {
 				resolve({
