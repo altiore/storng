@@ -94,7 +94,7 @@ export function syncList<
 	},
 ): SyncListType<
 	Routes,
-	OtherRoutes & {onChangeFilter: FilterBy<StoreState[Key]>}
+	OtherRoutes & {onChangeFilter: FilterBy<Record<string, any>>}
 > {
 	const result: any = {};
 	result.type = StructureType.LIST;
