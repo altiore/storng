@@ -296,7 +296,11 @@ syncList.updateOne = {
 		}
 		const index = s.data.findIndex((el) => el.id === id);
 		if (index === -1) {
-			console.warn('Не удалось найти существующий элемент. Был создан новый');
+			console.warn('Не удалось найти существующий элемент. Был создан новый', {
+				id,
+				length: s?.data?.length,
+				remoteRes: remote?.res,
+			});
 			return syncList.createOne.success(s, data, remote);
 		}
 
