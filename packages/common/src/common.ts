@@ -41,6 +41,7 @@ export interface RouteConf<
 	private?: true;
 	requiredParams?: Array<keyof Req>;
 	rules?: Array<AdditionalRule>;
+	resType?: 'json' | 'blob';
 }
 
 export type ResError<
@@ -87,6 +88,7 @@ export class Route<
 	Res extends ResBase = ResBase,
 > {
 	constructor(conf: RouteConf, basePath: string) {
+		this.resType = conf.resType || 'json';
 		this.base = basePath;
 		this.method = conf.method;
 		this.relative = conf.path ?? '';
@@ -100,6 +102,7 @@ export class Route<
 	public readonly method: Method;
 	public readonly private?: boolean;
 	public readonly rules: Array<AdditionalRule>;
+	public readonly resType: 'json' | 'blob';
 	private readonly base: string;
 	private readonly relative: string;
 	private readonly path: string;

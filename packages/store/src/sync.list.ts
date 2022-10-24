@@ -343,3 +343,21 @@ syncList.remove = {
 	// eslint-disable-next-line sort-keys
 	failure: failureHandler,
 } as any;
+
+syncList.file = {
+	request: requestHandler,
+	success: (s: LoadedList<any>): LoadedList<any> => {
+		return s;
+	},
+	// eslint-disable-next-line sort-keys
+	failure: failureHandler,
+} as any;
+
+syncList.fileHidden = {
+	request: (s) => s,
+	success: (s: LoadedList<any>): LoadedList<any> => {
+		return s;
+	},
+	// eslint-disable-next-line sort-keys
+	failure: (s) => s,
+} as any;

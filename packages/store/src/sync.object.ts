@@ -6,6 +6,7 @@ import {getUpdater} from './sync.object.helpers/get-updater';
 import {prepareActions} from './sync.object.helpers/prepare-actions';
 import {
 	LoadedItem,
+	LoadedList,
 	ScopeHandlers,
 	StructureType,
 	SyncObjectType,
@@ -200,4 +201,22 @@ syncObject.logout = {
 		}
 		return s;
 	},
+} as any;
+
+syncObject.file = {
+	request: requestHandler,
+	success: (s: LoadedList<any>): LoadedList<any> => {
+		return s;
+	},
+	// eslint-disable-next-line sort-keys
+	failure: failureHandler,
+} as any;
+
+syncObject.fileHidden = {
+	request: (s) => s,
+	success: (s: LoadedList<any>): LoadedList<any> => {
+		return s;
+	},
+	// eslint-disable-next-line sort-keys
+	failure: (s) => s,
 } as any;
