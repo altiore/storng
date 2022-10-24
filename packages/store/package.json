@@ -1,6 +1,6 @@
 {
 	"name": "@storng/store",
-	"version": "6.4.3",
+	"version": "6.5.0",
 	"description": "Storng web store with async requests",
 	"keywords": [
 		"store",
@@ -25,7 +25,7 @@
 		"react-dom": "^16.14.0 || ^17.0.0 || ^18.0.0"
 	},
 	"devDependencies": {
-		"@storng/common": "^6.4.0"
+		"@storng/common": "^6.5.0"
 	},
 	"dependencies": {
 		"idb": "7.0.1",
