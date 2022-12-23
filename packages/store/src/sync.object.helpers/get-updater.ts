@@ -18,6 +18,7 @@ export const getUpdater =
 				? persistData
 				: typeof scope === 'object';
 
+		console.log('getUpdater', store);
 		const persistStorage = shouldPersistStore
 			? store.local.itemStorage()
 			: undefined;

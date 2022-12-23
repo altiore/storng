@@ -165,7 +165,7 @@ export type AuthData = Record<'accessToken', string> | Record<string, never>;
 export type IsOrNo = <R = null>(mapping: {is: R; no: R}) => R;
 
 export type MaybeRemoteData<
-	A extends Record<string, any>,
+	A extends any = Record<string, any>,
 	E extends ErrorOrInfo = {
 		errors?: Array<ResError>;
 		message?: string;
