@@ -149,9 +149,6 @@ export const ConnectComponent = ({
 					} else {
 						res[fieldName] = cur[1];
 					}
-					console.log('new state', {
-						res,
-					});
 					return res;
 				}, {});
 			});
