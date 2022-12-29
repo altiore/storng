@@ -1,4 +1,4 @@
-export const sortData = (data: any[], sort?: string) => {
+export const sortData = (data: any[], sort?: string): any[] => {
 	if (!sort || !data || !data?.length) {
 		return data;
 	}

@@ -84,7 +84,9 @@ export enum StructureType {
 	LIST = '___list',
 }
 
-export type KeyNames<StoreState> = {[P in keyof StoreState]: string};
+export type KeyNames<StoreState> = {
+	[P in keyof StoreState]: string | string[] | null;
+};
 
 export type StoreStructure<StoreType> = {
 	[P in keyof StoreType]: {

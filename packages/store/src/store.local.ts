@@ -54,7 +54,7 @@ export class StoreLocal<StoreState extends DBSchema> {
 					// если хранилище key еще не существует
 					db.createObjectStore(storeName as any, {
 						autoIncrement: false,
-						keyPath: keyPath as any,
+						keyPath: keyPath,
 					}); // создаем хранилище
 				}
 			});
@@ -71,7 +71,7 @@ export class StoreLocal<StoreState extends DBSchema> {
 	private getConfig(): {
 		name: string;
 		version: number;
-		entityKeyNames: {[P in keyof StoreState]: string};
+		entityKeyNames: {[P in keyof StoreState]: string | string[] | null};
 	} {
 		return {
 			entityKeyNames: this.entityKeyNames,
