@@ -58,12 +58,12 @@ export interface DataRes<
 > {
 	data: Data;
 	message?: string;
-	ok: boolean;
+	ok: true;
 }
 
 export interface InfoRes {
 	message?: string;
-	ok: boolean;
+	ok: true;
 }
 
 export interface ErrorRes<
@@ -81,7 +81,7 @@ export type ErrorOrInfo<
 export type ResBase<
 	Data extends Record<string, any> = Record<string, any>,
 	FormState extends Record<string, any> = Record<string, any>,
-> = DataRes<Data> | InfoRes | ErrorRes<FormState>;
+> = DataRes<Data> | ErrorRes<FormState>;
 
 export class Route<
 	Req extends Record<string, any> = Record<string, never>,
