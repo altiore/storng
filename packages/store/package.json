@@ -30,5 +30,6 @@
 	"dependencies": {
 		"idb": "7.0.1",
 		"memoize-one": "6.0.0"
-	}
+	},
+	"gitHead": "aa1c9433a59ee7cbff2a7d1b38eb1beb3e81bdec"
 }
