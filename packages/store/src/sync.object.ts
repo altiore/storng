@@ -1,4 +1,4 @@
-import {DataRes, ErrorOrInfo, GetScope, Route} from '@storng/common';
+import {DataRes, ErrorRes, GetScope, Route} from '@storng/common';
 
 import {getObjFunc} from './react/get.func-data';
 import {Store} from './store';
@@ -73,7 +73,7 @@ const requestHandler = <T extends Record<string, any> = Record<string, any>>(
 const failureHandler = <T extends Record<string, any> = Record<string, any>>(
 	s: LoadedItem<T>,
 	data,
-	remote: {res: ErrorOrInfo; route: Route},
+	remote: {res: ErrorRes; route: Route},
 ): LoadedItem<T> => ({
 	data: s.data ?? data ?? ({} as any),
 	loadingStatus: {

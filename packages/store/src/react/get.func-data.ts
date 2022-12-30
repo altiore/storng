@@ -112,7 +112,7 @@ export const getItemFromListFunc =
 		if (s.loadingStatus.error) {
 			return getFailure<A>({
 				data: item,
-				error: s.loadingStatus.error,
+				error: s.loadingStatus.error as any,
 			});
 		}
 

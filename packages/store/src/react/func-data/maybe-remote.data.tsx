@@ -9,9 +9,9 @@ const getFailureBase =
 	<
 		A,
 		E extends ErrorOrInfo = {
-			errors?: Array<ResError>;
+			errors: Array<ResError>;
 			message?: string;
-			ok: boolean;
+			ok: false;
 		},
 	>(a: {
 		data?: A;

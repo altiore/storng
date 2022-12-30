@@ -1,7 +1,7 @@
 import {
 	CrudUrl,
 	DataRes,
-	ErrorOrInfo,
+	ErrorRes,
 	FilterBy,
 	GetScope,
 	Route,
@@ -170,7 +170,7 @@ const requestHandler = <T extends Record<string, any> = Record<string, any>>(
 const failureHandler = <T extends Record<string, any> = Record<string, any>>(
 	s: LoadedList<T>,
 	_,
-	remote: {res: ErrorOrInfo; route: Route},
+	remote: {res: ErrorRes; route: Route},
 ): LoadedList<T> => ({
 	data: s.data,
 	filter: s.filter,
@@ -229,6 +229,7 @@ syncList.createOne = {
 				loadingStatus: {
 					...s.loadingStatus,
 					error: {
+						errors: [],
 						message: 'Полученные данные не содержат id',
 						ok: false,
 					},
@@ -287,6 +288,7 @@ syncList.updateOne = {
 				loadingStatus: {
 					...s.loadingStatus,
 					error: {
+						errors: [],
 						message: 'Полученные данные не содержат id',
 						ok: false,
 					},

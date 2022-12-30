@@ -1,5 +1,6 @@
 import {
 	ErrorOrInfo,
+	ErrorRes,
 	GetActionFunc,
 	Paginated,
 	ResError,
@@ -14,14 +15,8 @@ export interface LoadingStatus {
 	isLocalLoading: boolean;
 }
 
-export interface LoadingStatusRemote<
-	Error extends ErrorOrInfo = {
-		errors?: Array<ResError>;
-		message?: string;
-		ok: boolean;
-	},
-> {
-	error: Error | undefined;
+export interface LoadingStatusRemote {
+	error: ErrorRes | undefined;
 	// устанавливается в true, когда данные были успешно загружены
 	isLoaded: boolean;
 	// устанавливается в true, когда данные загружаются
@@ -30,32 +25,18 @@ export interface LoadingStatusRemote<
 	updatedAt: number;
 }
 
-export interface LoadedItem<
-	Item extends Record<string, any>,
-	Error extends ErrorOrInfo = {
-		errors?: Array<ResError>;
-		message?: string;
-		ok: boolean;
-	},
-> {
+export interface LoadedItem<Item extends Record<string, any>> {
 	data?: Partial<Item>;
 
-	loadingStatus: LoadingStatusRemote<Error>;
+	loadingStatus: LoadingStatusRemote;
 }
 
-export interface LoadedList<
-	Item extends Record<string, any>,
-	Error extends ErrorOrInfo = {
-		errors?: Array<ResError>;
-		message?: string;
-		ok: boolean;
-	},
-> {
+export interface LoadedList<Item extends Record<string, any>> {
 	data: Array<Item>;
 
 	filter: Record<string, any>;
 
-	loadingStatus: LoadingStatusRemote<Error>;
+	loadingStatus: LoadingStatusRemote;
 
 	paginate: Omit<Paginated<any>, 'data'>;
 }
@@ -169,9 +150,9 @@ export type IsOrNo = <R = null>(mapping: {is: R; no: R}) => R;
 export type MaybeRemoteData<
 	A extends any = Record<string, any>,
 	E extends ErrorOrInfo = {
-		errors?: Array<ResError>;
+		errors: Array<ResError>;
 		message?: string;
-		ok: boolean;
+		ok: false;
 	},
 > = <R = null>(mapping: {
 	correct: ((a: {data: A; error?: E}) => R) | R;
@@ -183,9 +164,9 @@ export type MaybeRemoteData<
 export type MaybeRemoteListData<
 	A extends Record<string, any>,
 	E extends ErrorOrInfo = {
-		errors?: Array<ResError>;
+		errors: Array<ResError>;
 		message?: string;
-		ok: boolean;
+		ok: false;
 	},
 > = <R = null>(mapping: {
 	correct:

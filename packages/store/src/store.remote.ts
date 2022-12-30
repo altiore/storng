@@ -58,6 +58,7 @@ export class StoreRemote {
 					// это означает, что выход уже произведен. Ведь критерием того, что пользователь находится
 					// внутри системы как раз и является наличие ключа accessToken
 					return {
+						errors: [],
 						message: 'Пользователь не авторизован (нет ключа доступа)',
 						ok: false,
 					};
@@ -124,6 +125,7 @@ export class StoreRemote {
 								resolve(err);
 							}
 							resolve({
+								errors: [],
 								message: String(err),
 								ok: false,
 							});
@@ -136,6 +138,7 @@ export class StoreRemote {
 		} catch (err: any) {
 			if (err?.ok !== false) {
 				return {
+					errors: [],
 					message: String(err),
 					ok: false,
 				};
