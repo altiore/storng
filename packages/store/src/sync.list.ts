@@ -4,6 +4,7 @@ import {
 	ErrorRes,
 	FilterBy,
 	GetScope,
+	Paginated,
 	Route,
 } from '@storng/common';
 
@@ -325,6 +326,58 @@ syncList.updateOne = {
 	failure: failureHandler,
 } as any;
 
+syncList.deleteOne = {
+	request: requestHandler,
+	success: (
+		s: LoadedList<any>,
+		data,
+		remote: {res: DataRes; route: Route},
+	): LoadedList<any> => {
+		const preparedData = remote?.res?.data || data;
+		if (!preparedData.id) {
+			return {
+				...s,
+				loadingStatus: {
+					...s.loadingStatus,
+					error: {
+						errors: [],
+						message: 'Полученные данные не содержат id',
+						ok: false,
+					},
+					isLoading: false,
+				},
+			};
+		}
+		const newData = sortData(
+			[...(s.data || []).filter((el) => el.id !== preparedData.id)],
+			s.filter?.sort,
+		);
+		const nextDataLength = newData.length;
+		const nextTotal = s.paginate.total - 1;
+		return {
+			...s,
+			data: newData,
+			loadingStatus: {
+				...s.loadingStatus,
+				error: undefined,
+				isLoading: false,
+				updatedAt: new Date().getTime(),
+			},
+			paginate: {
+				...s.paginate,
+				count: nextDataLength,
+				pageCount:
+					nextTotal % s.paginate.limit === 0
+						? s.paginate.pageCount - 1
+						: s.paginate.pageCount,
+				total: nextTotal,
+			},
+		};
+	},
+	// eslint-disable-next-line sort-keys
+	failure: failureHandler,
+} as any;
+
 syncList.createOneHidden = {
 	request: (s) => s,
 	success: syncList.createOne.success,
@@ -335,6 +388,13 @@ syncList.createOneHidden = {
 syncList.updateOneHidden = {
 	request: (s) => s,
 	success: syncList.updateOne.success,
+	// eslint-disable-next-line sort-keys
+	failure: (s) => s,
+} as any;
+
+syncList.deleteOneHidden = {
+	request: (s) => s,
+	success: syncList.deleteOne.success,
 	// eslint-disable-next-line sort-keys
 	failure: (s) => s,
 } as any;
@@ -363,3 +423,29 @@ syncList.fileHidden = {
 	// eslint-disable-next-line sort-keys
 	failure: (s) => s,
 } as any;
+
+syncList.custom = <T, D = any>(
+	cb: (
+		a: T[],
+		paginate: Omit<Paginated<any>, 'data'>,
+		data: D,
+	) => [T[], Omit<Paginated<any>, 'data'>],
+): any => ({
+	request: requestHandler,
+	success: (s: LoadedList<T>, data: D): LoadedList<T> => {
+		const [nextData, paginate] = cb(s.data as any, s.paginate, data);
+		return {
+			...s,
+			data: nextData,
+			loadingStatus: {
+				error: undefined,
+				isLoaded: true,
+				isLoading: false,
+				updatedAt: new Date().getTime(),
+			},
+			paginate,
+		};
+	},
+	// eslint-disable-next-line sort-keys
+	failure: failureHandler as any,
+});
