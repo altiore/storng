@@ -429,21 +429,21 @@ syncList.custom = <T, D = any>(
 		a: T[],
 		paginate: Omit<Paginated<any>, 'data'>,
 		data: D,
-	) => [T[], Omit<Paginated<any>, 'data'>],
+	) => Partial<LoadedList<T>>,
 ): any => ({
 	request: requestHandler,
 	success: (s: LoadedList<T>, data: D): LoadedList<T> => {
-		const [nextData, paginate] = cb(s.data as any, s.paginate, data);
+		const res = cb(s.data as any, s.paginate, data);
 		return {
-			...s,
-			data: nextData,
-			loadingStatus: {
+			data: res.data,
+			filter: res.filter ?? s.filter,
+			loadingStatus: res.loadingStatus ?? {
 				error: undefined,
 				isLoaded: true,
 				isLoading: false,
 				updatedAt: new Date().getTime(),
 			},
-			paginate,
+			paginate: res.paginate ?? s.paginate,
 		};
 	},
 	// eslint-disable-next-line sort-keys
