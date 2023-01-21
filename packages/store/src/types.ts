@@ -162,7 +162,8 @@ export type MaybeRemoteData<
 }) => R;
 
 export type MaybeRemoteListData<
-	A extends Record<string, any>,
+	A extends any, // здесь почему-то Record<string, any> вызывает ошибку при попытке передать
+	// интерфейс
 	E extends ErrorOrInfo = {
 		errors: Array<ResError>;
 		message?: string;

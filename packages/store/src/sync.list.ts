@@ -435,7 +435,7 @@ syncList.custom = <T, D = any>(
 	success: (s: LoadedList<T>, data: D): LoadedList<T> => {
 		const res = cb(s.data as any, s.paginate, data);
 		return {
-			data: res.data,
+			data: res.data ?? [],
 			filter: res.filter ?? s.filter,
 			loadingStatus: res.loadingStatus ?? {
 				error: undefined,
