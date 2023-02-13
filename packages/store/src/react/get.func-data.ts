@@ -81,7 +81,9 @@ export const getListFunc = <A extends Record<string, any>>(
 
 	if (Object.keys(s.data).length) {
 		return getCorrectList<A>({
-			data: sortData(s.data, s.filter?.sort),
+			// slice здесь нужен, чтобы при добавлении новых данных мы не отображали больше элементов,
+			// чем limit
+			data: sortData(s.data, s.filter?.sort).slice(0, s.paginate.limit),
 			filter: s.filter,
 			paginate: s.paginate,
 		});
