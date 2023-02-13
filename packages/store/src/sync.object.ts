@@ -83,11 +83,13 @@ const failureHandler = <T extends Record<string, any> = Record<string, any>>(
 	},
 });
 
+const nothingHandler = (s) => s;
+
 syncObject.nothing = {
-	request: (s) => s,
-	success: (s) => s,
+	request: nothingHandler,
+	success: nothingHandler,
 	// eslint-disable-next-line sort-keys
-	failure: (s) => s,
+	failure: nothingHandler,
 } as any;
 
 syncObject.update = {
@@ -166,7 +168,7 @@ syncObject.deepMerge = {
 } as any;
 
 syncObject.custom = <T, D = any>(cb: (a: T, data: D) => T): any => ({
-	request: requestHandler,
+	request: nothingHandler,
 	success: (s: LoadedItem<T>, data: D): LoadedItem<T> => {
 		return {
 			data: cb(s.data as any, data),
@@ -179,8 +181,16 @@ syncObject.custom = <T, D = any>(cb: (a: T, data: D) => T): any => ({
 		};
 	},
 	// eslint-disable-next-line sort-keys
-	failure: failureHandler as any,
+	failure: nothingHandler as any,
 });
+
+syncObject.updateField = <T extends string = string>(fieldName: T) =>
+	syncObject.custom((s: any, newValue) => {
+		return {
+			...s,
+			[fieldName]: newValue,
+		};
+	});
 
 syncObject.logout = {
 	request: requestHandler,
@@ -213,10 +223,10 @@ syncObject.file = {
 } as any;
 
 syncObject.fileHidden = {
-	request: (s) => s,
+	request: nothingHandler,
 	success: (s: LoadedList<any>): LoadedList<any> => {
 		return s;
 	},
 	// eslint-disable-next-line sort-keys
-	failure: (s) => s,
+	failure: nothingHandler,
 } as any;
