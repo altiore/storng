@@ -245,6 +245,7 @@ syncList.createOne = {
 			loadingStatus: {
 				...s.loadingStatus,
 				error: undefined,
+				isLoaded: true,
 				isLoading: false,
 				updatedAt: new Date().getTime(),
 			},
