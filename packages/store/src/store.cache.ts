@@ -19,7 +19,7 @@ type DataAndSubs<T extends Record<keyof T, T[keyof T]>> = {
 	subscribers: Array<(val: any) => void>;
 };
 
-type WeakStore<T extends Record<string, T[keyof T]>> = WeakMap<
+type Store<T extends Record<string, T[keyof T]>> = WeakMap<
 	ObjKey<T>,
 	DataAndSubs<T>
 >;
@@ -39,7 +39,7 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 	/**
 	 * Это хранилище в оперативной памяти. Очищается когда никто больше не подписан на эти данные
 	 */
-	private weakStore: WeakStore<T>;
+	private weakStore: Store<T>;
 
 	/**
 	 * это значение хранит имя записи для хранения данных авторизации
@@ -50,7 +50,7 @@ export class StoreCache<T extends Record<string, T[keyof T]>> {
 		this.name = name;
 		this.authStorage = authStorage;
 		// TODO: возможно, здесь лучше использовать обычный Map
-		this.weakStore = new WeakMap() as WeakStore<T>;
+		this.weakStore = new Map() as Store<T>;
 		this.structure = new Map<keyof T, ObjKey<T>>();
 	}
 
