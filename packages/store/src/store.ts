@@ -71,8 +71,9 @@ export class Store<T extends Record<string, T[keyof T]>> {
 		prefix = '',
 		authStorage?: keyof T,
 		autoRemoveErrorIn?: number,
-		updateTokenRoute?: Route,
+		updateTokenRoute?: Route<any, any>,
 		publicStorages: Array<keyof T> = [],
+		withFingerprint?: boolean,
 	) {
 		this.cache = new StoreCache<T>(name, authStorage);
 		this.name = name;
@@ -98,6 +99,7 @@ export class Store<T extends Record<string, T[keyof T]>> {
 			this.logout.bind(this),
 			this.updateAuthData.bind(this),
 			updateTokenRoute,
+			withFingerprint,
 		);
 		this.authStorage = authStorage;
 		this.autoRemoveErrorIn = autoRemoveErrorIn ?? this.autoRemoveErrorIn;

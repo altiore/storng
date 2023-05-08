@@ -1,5 +1,6 @@
 import {ResBase, Route} from '@storng/common';
 
+import {getFingerprint} from './fingerprint';
 import {AuthData, FetchType} from './types';
 import {getIsExpiredSoon} from './utils';
 
@@ -10,6 +11,7 @@ export class StoreRemote {
 	private readonly logout: () => Promise<void>;
 	private readonly getAuthToken: () => Promise<string | false>;
 	private readonly updateAuthData?: (authData: AuthData) => Promise<void>;
+	private readonly withFingerprint?: boolean;
 
 	constructor(
 		apiFetch: FetchType,
@@ -18,6 +20,7 @@ export class StoreRemote {
 		logout: () => Promise<void>,
 		updateAuthData?: (authData: AuthData) => Promise<void>,
 		updateTokenRoute?: Route,
+		withFingerprint?: boolean,
 	) {
 		this.apiFetch = apiFetch;
 		this.prefix = prefix;
@@ -25,6 +28,7 @@ export class StoreRemote {
 		this.updateAuthData = updateAuthData;
 		this.updateTokenRoute = updateTokenRoute;
 		this.logout = logout;
+		this.withFingerprint = withFingerprint;
 	}
 
 	private isUpdating = false;
@@ -90,8 +94,14 @@ export class StoreRemote {
 							});
 
 							// 2.2. выполнить обновление ключа
+							// TODO: это проблема, которую нужно вынести для решения в отдельное место
 							const updateTokenResult = await this.makeRequest(
 								this.updateTokenRoute as Route,
+								this.withFingerprint
+									? {
+											fingerprint: getFingerprint(),
+									  }
+									: undefined,
 							);
 							this.isUpdating = false;
 
