@@ -56,9 +56,9 @@ export const getListFunc = <A extends Record<string, any>>(
 ): MaybeRemoteListData<Omit<LoadedList<A>, 'loadingStatus'>> => {
 	if (!s?.loadingStatus) {
 		return getLoadingList<A>({
-			data: [],
-			filter: {},
-			paginate: getInitDataList(false).paginate,
+			data: sortData(s?.data ?? [], s?.filter?.sort),
+			filter: s?.filter ?? {},
+			paginate: s?.paginate ?? getInitDataList(false).paginate,
 		});
 	}
 
@@ -81,9 +81,7 @@ export const getListFunc = <A extends Record<string, any>>(
 
 	if (Object.keys(s.data).length) {
 		return getCorrectList<A>({
-			// slice здесь нужен, чтобы при добавлении новых данных мы не отображали больше элементов,
-			// чем limit
-			data: sortData(s.data, s.filter?.sort).slice(0, s.paginate.limit),
+			data: sortData(s.data, s.filter?.sort),
 			filter: s.filter,
 			paginate: s.paginate,
 		});

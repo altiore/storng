@@ -53,13 +53,18 @@ const getCorrectBase =
 export const getCorrectList = getCorrectBase as typeof getCorrectBase;
 
 const getNothingBase =
-	<A,>({
-		filter,
-		paginate,
-	}: {
-		filter: Record<string, any>;
-		paginate: Omit<Paginated<any>, 'data'>;
-	}): MaybeRemoteListData<A> =>
+	<A,>(
+		{
+			filter,
+			paginate,
+		}: {
+			filter?: Record<string, any>;
+			paginate?: Omit<Paginated<any>, 'data'>;
+		} = {
+			filter: {},
+			paginate: getInitDataList(false).paginate,
+		},
+	): MaybeRemoteListData<A> =>
 	({nothing, failure}) => {
 		return runFunc(
 			nothing,
