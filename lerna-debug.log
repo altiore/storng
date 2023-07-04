@@ -1,0 +1,7 @@
+38 error Error: Command failed with exit code 1: git add -- packages/common/package.json packages/store/package.json packages/store/package-lock.json lerna.json
+38 error Следующие пути игнорируются одним из ваших файлов .gitignore:
+38 error packages/store/package-lock.json
+38 error     at makeError (/Users/mac/www/@storng/node_modules/execa/lib/error.js:60:11)
+38 error     at handlePromise (/Users/mac/www/@storng/node_modules/execa/index.js:118:26)
+38 error     at processTicksAndRejections (internal/process/task_queues.js:93:5)
+38 error     at async Promise.all (index 0)
