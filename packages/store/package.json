@@ -21,17 +21,16 @@
 	},
 	"peerDependencies": {
 		"@storng/common": "^1.3.6",
-		"device-uuid": "1.0.4",
 		"react": "^16.14.0 || ^17.0.0 || ^18.0.0",
 		"react-dom": "^16.14.0 || ^17.0.0 || ^18.0.0"
 	},
 	"devDependencies": {
-		"@storng/common": "^7.0.1",
-		"device-uuid": "1.0.4"
+		"@storng/common": "^7.0.1"
 	},
 	"dependencies": {
+		"device-uuid": "^1.0.4",
 		"idb": "7.0.1",
 		"memoize-one": "6.0.0"
 	},
-	"gitHead": "957e90cbf4caf6b3502d2f694f1245bc238cc23c"
+	"gitHead": "e963ed17a3f7ae1a52614a978e8c464ff8f89e53"
 }
