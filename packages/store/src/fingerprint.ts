@@ -1,7 +1,12 @@
-export const getFingerprint = (): string => {
+export const getFingerprint = async (): Promise<string> => {
 	try {
-		return navigator.userAgent.replace(/[0-9/.]/g, '');
+		const {DeviceUUID} = await import('device-uuid');
+		return JSON.stringify({
+			browser: navigator.userAgent.replace(/[0-9/.]/g, ''),
+			device: new DeviceUUID().get(),
+			// userAgent: navigator.userAgent,
+		});
 	} catch (e) {
-		return '';
+		return Promise.resolve('');
 	}
 };
