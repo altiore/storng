@@ -99,7 +99,7 @@ export class StoreRemote {
 								this.updateTokenRoute as Route,
 								this.withFingerprint
 									? {
-											fingerprint: getFingerprint(),
+											fingerprint: await getFingerprint(),
 									  }
 									: undefined,
 							);
