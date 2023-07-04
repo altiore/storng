@@ -1,6 +1,6 @@
 {
 	"name": "@storng/store",
-	"version": "7.0.0",
+	"version": "7.0.1",
 	"description": "Storng web store with async requests",
 	"keywords": [
 		"store",
@@ -26,7 +26,7 @@
 		"react-dom": "^16.14.0 || ^17.0.0 || ^18.0.0"
 	},
 	"devDependencies": {
-		"@storng/common": "^7.0.0",
+		"@storng/common": "^7.0.1",
 		"device-uuid": "1.0.4"
 	},
 	"dependencies": {
