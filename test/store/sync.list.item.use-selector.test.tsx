@@ -79,7 +79,7 @@ describe(`${STORE_NAME} проверяем селектор одного эле�
 		expect(renderSpy).have.been.callCount(1);
 	});
 
-	it('вторая генерация', async () => {
+	it(`вторая генерация - ${STORE_NAME}`, async () => {
 		await wait(0.3);
 
 		expect(renderSpy).have.been.callCount(2);
@@ -87,7 +87,7 @@ describe(`${STORE_NAME} проверяем селектор одного эле�
 		expect(root?.innerHTML).to.equal('<p><span>nothing</span></p>');
 	});
 
-	it('загрузить данные для одного элемента', async () => {
+	it(`загрузить данные для одного элемента - ${STORE_NAME}`, async () => {
 		await act(() => {
 			const p = document.getElementsByTagName('p');
 			p[0].click();
@@ -98,7 +98,7 @@ describe(`${STORE_NAME} проверяем селектор одного эле�
 		expect(root?.innerHTML).to.equal('<p><span>user-0@mail.com</span></p>');
 	});
 
-	it('Изменить фильтр (установить несуществующий id)', async () => {
+	it(`Изменить фильтр (установить несуществующий id) - ${STORE_NAME}`, async () => {
 		await act(() => {
 			const p = document.getElementsByTagName('span');
 			p[0].click();
