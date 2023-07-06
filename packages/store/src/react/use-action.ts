@@ -4,7 +4,7 @@ import {GetActionFunc, Route} from '@storng/common';
 
 import {StoreContext} from './store.context';
 
-export function useAction<T extends Route = Route>(
+export function useAction<T extends Route<any, any> = Route<any, any>>(
 	action: GetActionFunc<T>,
 ): T extends Route<infer Req, infer Res>
 	? (params?: Req) => Promise<Res>
