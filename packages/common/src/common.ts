@@ -334,10 +334,7 @@ export type ActionFunc<T extends any = any> = T extends Route<
 	? () => Promise<void>
 	: (data: T) => Promise<void>;
 
-export type GetActionFunc<T extends any = any> = (
-	store: any,
-	prepareDataForSubscriber: any,
-) => ActionFunc<T>;
+export type GetActionFunc<T extends any = any> = (store: any) => ActionFunc<T>;
 
 export type RouteReq<T extends Route<any, any>> = T extends Route<
 	infer Req,
