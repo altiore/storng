@@ -22,7 +22,7 @@ export function useSelector<T = any, R = any>(
 	const dependency = useRef<{
 		deps: Array<string | SelectorType>;
 		transform: (...args: any) => any;
-	}>({});
+	}>({deps: [], transform: (a) => a});
 
 	const addDependency = useCallback(
 		(deps: Array<string | SelectorType>, transform: (...args: any) => any) => {
@@ -100,15 +100,15 @@ export function useSelector<T = any, R = any>(
 		};
 	}, [selector, store]);
 
-	return useMemo(() => {
+	return useMemo<T & {getOrDef: (def: R) => R}>(() => {
 		if (typeof state === 'function') {
-			state.getOrDef = (def: R) => {
+			(state as any).getOrDef = (def: R) => {
 				try {
 					return state({
 						correct: ({data}) => data ?? def,
+						failure: () => def,
 						loading: ({data}) => data ?? def,
 						nothing: () => def,
-						failure: () => def,
 					});
 				} catch (e) {
 					console.error(e);
@@ -116,5 +116,6 @@ export function useSelector<T = any, R = any>(
 				}
 			};
 		}
+		return state as any;
 	}, [state]);
 }
