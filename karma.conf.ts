@@ -49,7 +49,7 @@ export default function (config: WholeConfig) {
 			'packages/**/*(!.d).ts',
 			'test/**/*.test.tsx',
 			'test/**/*.test.ts',
-			// 'test/**/sync.list.selector.test.tsx',
+			// 'test/**/sync.list.item.use-selector.test.tsx',
 		],
 
 		// frameworks to use

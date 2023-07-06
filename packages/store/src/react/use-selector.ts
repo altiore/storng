@@ -31,7 +31,7 @@ export function useSelector<T = any, R = any>(
 		[dependency.current],
 	);
 
-	const [state, setState] = useState(selector.defaultValue);
+	const [state, setState] = useState(() => selector.defaultValue);
 
 	const getMounted = useIsMounted();
 
@@ -116,6 +116,7 @@ export function useSelector<T = any, R = any>(
 				}
 			};
 		}
-		return state as any;
-	}, [state]);
+
+		return (state as any) ?? (selector.defaultValue as any);
+	}, [selector.defaultValue, state]);
 }
