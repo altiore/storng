@@ -117,6 +117,6 @@ export function useSelector<T = any, R = any>(
 			};
 		}
 
-		return (state as any) ?? (selector.defaultValue as any);
+		return state as any;
 	}, [selector.defaultValue, state]);
 }
