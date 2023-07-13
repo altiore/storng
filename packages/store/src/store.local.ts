@@ -207,7 +207,6 @@ export class StoreLocal<StoreState extends DBSchema> {
 			...init,
 			data: list || [],
 			filter: {
-				...init.filter,
 				...((filterModelData as any)?.filter || {}),
 			},
 			loadingStatus: {

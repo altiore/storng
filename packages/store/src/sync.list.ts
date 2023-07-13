@@ -31,7 +31,7 @@ const getPaginateData = <T>(
 	return {
 		...s,
 		filter: {
-			...s.filter,
+			...(filterBy.replace ? {} : s.filter),
 			...prepFilter,
 		},
 		loadingStatus: {

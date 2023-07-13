@@ -321,6 +321,7 @@ export interface FilterBy<T extends Record<string, any> = Record<string, any>> {
 	filter?: Record<keyof T, any>;
 	order?: Partial<{order: 'ASC' | 'DESC'; orderBy: keyof T}>;
 	paginate?: Partial<Omit<Paginated<T>, 'data'>>;
+	replace?: boolean;
 }
 
 export type ActionFunc<T extends any = any> = T extends Route<

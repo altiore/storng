@@ -11,13 +11,13 @@ export const defListRestorePreparation = <T = any>(
 		return {
 			data: s.data as any,
 			filter: {
+				...(filterBy?.replace ? {} : (s as LoadedList<any>).filter),
 				...(filterBy?.filter ?? {}),
 				...(filterBy?.order?.order && filterBy?.order?.orderBy
 					? {
 							sort: `${filterBy.order.orderBy},${filterBy.order.order}`,
 					  }
 					: {}),
-				...(s as LoadedList<any>).filter,
 			},
 			loadingStatus: {
 				...s.loadingStatus,
