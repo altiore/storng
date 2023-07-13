@@ -56,11 +56,7 @@ const onChangeFilter =
 		onFetch: any,
 		store: Store<T>,
 	) =>
-	async ({
-		paginate = {},
-		order = {},
-		filter = {} as any,
-	}: FilterBy<T>): Promise<void> => {
+	async (filterBy: FilterBy<T>): Promise<void> => {
 		const storeName: Key =
 			typeof scope === 'object' ? (scope.NAME as Key) : scope;
 
@@ -75,7 +71,7 @@ const onChangeFilter =
 
 		await store.updateListData(
 			storeName,
-			getPaginateData.bind(undefined, {filter, order, paginate} as any) as any,
+			getPaginateData.bind(undefined, filterBy as any) as any,
 			persistStorage,
 			onFetch.bind(undefined, store)(),
 		);
