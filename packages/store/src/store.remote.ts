@@ -103,10 +103,10 @@ export class StoreRemote {
 									  }
 									: undefined,
 							);
-							this.isUpdating = false;
 
 							if (updateTokenResult.ok && this.updateAuthData) {
 								await this.updateAuthData(updateTokenResult.data);
+								this.isUpdating = false;
 							} else {
 								while (this.requestsQueue.length) {
 									const cur = this.requestsQueue.shift();
@@ -118,6 +118,7 @@ export class StoreRemote {
 										});
 									}
 								}
+								this.isUpdating = false;
 								return;
 							}
 
