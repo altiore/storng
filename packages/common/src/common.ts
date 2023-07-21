@@ -42,6 +42,7 @@ export interface RouteConf<
 	requiredParams?: Array<keyof Req>;
 	rules?: Array<AdditionalRule>;
 	resType?: 'json' | 'blob';
+	reqType?: 'json' | 'form-data';
 }
 
 export type ResError<
@@ -89,6 +90,7 @@ export class Route<
 > {
 	constructor(conf: RouteConf, basePath: string) {
 		this.resType = conf.resType || 'json';
+		this.reqType = conf.reqType || 'json';
 		this.base = basePath;
 		this.method = conf.method;
 		this.relative = conf.path ?? '';
@@ -103,6 +105,7 @@ export class Route<
 	public readonly private?: boolean;
 	public readonly rules: Array<AdditionalRule>;
 	public readonly resType: 'json' | 'blob';
+	public readonly reqType: 'json' | 'form-data';
 	private readonly base: string;
 	private readonly relative: string;
 	private readonly path: string;
@@ -174,20 +177,42 @@ export class Route<
 	): [string, RequestInit] {
 		const request = this.request(data);
 
+		const isFormData =
+			requestInit?.headers?.['Content-Type'] === 'multipart/form-data';
+		let body: any = undefined;
+		let additionalHeaders = {};
+		if (isFormData) {
+			const formData = new FormData();
+			Object.entries(formData).forEach(([fieldKey, fieldValue]) => {
+				formData.append(fieldKey, fieldValue);
+			});
+			body = formData;
+
+			additionalHeaders = {
+				Accept: 'application/json, application/xml, text/plain, text/html, *.*',
+				'Content-Type': 'multipart/form-data',
+			};
+		} else if (request.body) {
+			body = JSON.stringify(request.body);
+		}
+
 		return [
 			prefix + (request.method === Method.GET ? this.to(data) : request.url),
 			{
-				body: request.body ? JSON.stringify(request.body) : undefined,
+				body,
 				cache: 'no-cache',
 				credentials: 'same-origin',
 				method: request.method,
 				redirect: 'follow',
+				// TODO: возможно, нужно оставлять заголовок Referrer
+				// referrerPolicy: 'same-origin',
 				referrerPolicy: 'no-referrer',
 				...(requestInit || {}),
 				headers: {
 					Accept: 'application/json',
 					'Content-Type': 'application/json',
 					...(requestInit?.headers || {}),
+					...additionalHeaders,
 				},
 			},
 		];

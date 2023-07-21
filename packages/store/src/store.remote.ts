@@ -171,6 +171,13 @@ export class StoreRemote {
 				}
 			}
 
+			if (route.reqType === 'form-data') {
+				requestInit.headers = {
+					...(requestInit.headers || {}),
+					'Content-Type': 'multipart/form-data',
+				};
+			}
+
 			const [url, init] = route.fetchParams(data, this.prefix, requestInit);
 			const res = await this.apiFetch(url, init);
 
