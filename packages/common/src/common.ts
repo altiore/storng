@@ -179,27 +179,30 @@ export class Route<
 
 		const isFormData =
 			requestInit?.headers?.['Content-Type'] === 'multipart/form-data';
-		let body: any = undefined;
-		let additionalHeaders = {};
+
 		if (isFormData) {
 			const formData = new FormData();
 			Object.entries(formData).forEach(([fieldKey, fieldValue]) => {
 				formData.append(fieldKey, fieldValue);
 			});
-			body = formData;
-
-			additionalHeaders = {
-				Accept: 'application/json, application/xml, text/plain, text/html, *.*',
-				'Content-Type': 'multipart/form-data',
-			};
-		} else if (request.body) {
-			body = JSON.stringify(request.body);
+			return [
+				prefix + request.url,
+				{
+					body: formData,
+					headers: (requestInit?.headers as any)?.Authorization
+						? {
+								Authorization: (requestInit?.headers as any)?.Authorization,
+						  }
+						: undefined,
+					method: request.method,
+				},
+			];
 		}
 
 		return [
 			prefix + (request.method === Method.GET ? this.to(data) : request.url),
 			{
-				body,
+				body: request.body ? JSON.stringify(request.body) : undefined,
 				cache: 'no-cache',
 				credentials: 'same-origin',
 				method: request.method,
@@ -212,7 +215,6 @@ export class Route<
 					Accept: 'application/json',
 					'Content-Type': 'application/json',
 					...(requestInit?.headers || {}),
-					...additionalHeaders,
 				},
 			},
 		];
