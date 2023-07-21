@@ -189,12 +189,18 @@ export class Route<
 				prefix + request.url,
 				{
 					body: formData,
+					cache: 'no-cache',
+					credentials: 'same-origin',
 					headers: (requestInit?.headers as any)?.Authorization
 						? {
 								Authorization: (requestInit?.headers as any)?.Authorization,
 						  }
 						: undefined,
 					method: request.method,
+					redirect: 'follow',
+					// TODO: возможно, нужно оставлять заголовок Referrer
+					// referrerPolicy: 'same-origin',
+					referrerPolicy: 'no-referrer',
 				},
 			];
 		}
