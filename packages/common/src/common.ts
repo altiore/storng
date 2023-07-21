@@ -182,7 +182,7 @@ export class Route<
 
 		if (isFormData) {
 			const formData = new FormData();
-			Object.entries(formData).forEach(([fieldKey, fieldValue]) => {
+			Object.entries(request.body).forEach(([fieldKey, fieldValue]) => {
 				formData.append(fieldKey, fieldValue);
 			});
 			return [
